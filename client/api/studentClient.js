@@ -2,52 +2,23 @@ import axios from 'axios'
 import { ApiClient } from './apiClient'
 import { CourseClient } from './courseClient'
 import { ModelClient } from './modelClient'
-import { InstructorClient } from './instructorClient'
-import { StudentClient } from './studentClient'
+import { NotifyClient } from './notifyClient'
 
-export class AdminClient extends ApiClient {
+export class StudentClient extends ApiClient {
   constructor() {
-    super("admin")
+    super("student")
     this.course = new CourseClient()
     this.model = new ModelClient()
-    this.instructor = new InstructorClient()
-    this.student = new StudentClient()
+    this.notify = new NotifyClient
   }
   
-  async acceptCourse(id) {
+  async updateProgress(id, courseID, lectureID, percent) {
     try {
-      const response = await axios.put(`${this.domain}/accept/${id}`, {
+      const response = await axios.post(`${this.domain}/${id}/${courseID}/${lectureID}/updateprogress`, {
         headers: {
           //authentication
-        }
-      })
-      return response
-    }
-    catch (error) {
-      return error
-    }
-  }
-
-  async rejectCourse(id) {
-    try {
-      const response = await axios.put(`${this.domain}/reject/${id}`, {
-        headers: {
-          //authentication
-        }
-      })
-      return response
-    }
-    catch (error) {
-      return error
-    }
-  }
-
-  async terminateCourse(id) {
-    try {
-      const response = await axios.put(`${this.domain}/terminate/${id}`, {
-        headers: {
-          //authentication
-        }
+        },
+        data: percent
       })
       return response
     }
@@ -71,9 +42,27 @@ export class AdminClient extends ApiClient {
     }
   }
 
-  async lockAccount(id) { 
+  async ratingsCourse(id, courseID, star, content) {
     try {
-      const response = await axios.put(`${this.domain}/locked/${id}`, {
+      const response = await axios.post(`${this.domain}/${id}/${courseID}/ratings`, {
+        headers: {
+          //authentication
+        },
+        data: {
+          star: star,
+          content: content
+        }
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
+  async buyCourse(id, courseID) {
+    try {
+      const response = await axios.post(`${this.domain}/${id}/buy/${courseID}`, {
         headers: {
           //authentication
         }
@@ -84,6 +73,7 @@ export class AdminClient extends ApiClient {
       return error
     }
   }
+
   async getCourseSummary(id) {
     return await this.course.loadSumaryInformation(id)
   }
@@ -96,14 +86,6 @@ export class AdminClient extends ApiClient {
     return await this.course.getListInformation()
   }
 
-  async loadListInstructor() {
-    return await this.instructor.getListInformation()
-  }
-
-  async loadListStudent() {
-    return await this.student.getListInformation()
-  }
-
   async searchCourse(params) {
     return await this.course.searchCourse(params)
   }
@@ -114,5 +96,13 @@ export class AdminClient extends ApiClient {
 
   async chatAI(content) {
     return await this.model.chatAI(content)
+  }
+
+  async getListNotification(id) {
+    return await this.notify.getInformation(id)
+  }
+
+  async updateUnreadNotify(id, notifyID) {
+    return await this.notify.updateUnreadNotify(id, notifyID)
   }
 }
