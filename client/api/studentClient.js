@@ -11,7 +11,7 @@ export class StudentClient extends ApiClient {
     this.model = new ModelClient()
     this.notify = new NotifyClient
   }
-  
+
   async updateProgress(id, courseID, lectureID, percent) {
     try {
       const response = await axios.post(`${this.domain}/${id}/${courseID}/${lectureID}/updateprogress`, {

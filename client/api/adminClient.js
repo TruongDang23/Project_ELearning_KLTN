@@ -13,7 +13,7 @@ export class AdminClient extends ApiClient {
     this.instructor = new InstructorClient()
     this.student = new StudentClient()
   }
-  
+
   async acceptCourse(id) {
     try {
       const response = await axios.put(`${this.domain}/accept/${id}`, {
