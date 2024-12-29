@@ -3,6 +3,8 @@ import express from 'express'
 import bodyParser from 'body-parser'
 
 // Import các route
+import guestRouter from './routes/guestRouter.js'
+import adminRouter from './routes/adminRouter.js'
 
 const app = express()
 
@@ -22,5 +24,7 @@ app.use((req, res, next) => {
 })
 
 // Sử dụng các route
+app.use('/api', guestRouter)
+app.use('/api/admin', adminRouter)
 
 export default app
