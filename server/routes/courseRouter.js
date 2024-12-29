@@ -28,7 +28,7 @@ courseRouter
   .route('/')
   .post(
     authController.protect,
-    authController.restrictTo('admin', 'instructor'),
+    authController.restrictTo('instructor'),
     courseController.createCourse
   )
 
@@ -36,7 +36,7 @@ courseRouter
   .route('/:id')
   .put(
     authController.protect,
-    authController.restrictTo('admin', 'instructor'),
+    authController.restrictTo('instructor'),
     courseController.updateCourse
   )
 
