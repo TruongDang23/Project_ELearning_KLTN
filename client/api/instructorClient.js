@@ -1,0 +1,83 @@
+import axios from 'axios'
+import { ApiClient } from './apiClient'
+import { CourseClient } from './courseClient'
+import { ModelClient } from './modelClient'
+import { NotifyClient } from './notifyClient'
+
+export class InstructorClient extends ApiClient {
+  constructor() {
+    super("instructor")
+    this.course = new CourseClient()
+    this.model = new ModelClient()
+    this.notify = new NotifyClient()
+  }
+
+  async QnA(id, courseID, lectureID, content) {
+    try {
+      const response = await axios.post(`${this.domain}/${id}/${courseID}/${lectureID}/QA`, {
+        headers: {
+          //authentication
+        },
+        data: content
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
+  async sendApproveCourse(id, courseID) {
+    try {
+      const response = await axios.put(`${this.domain}/${id}/sendapprove/${courseID}`, {
+        headers: {
+          //authentication
+        }
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
+  async createCourse(data) {
+    return this.course.createDataCourse(data)
+  }
+
+  async updateCourse(courseID, newdata) {
+    return this.course.update(courseID, newdata)
+  }
+
+  async getCourseSummary(id) {
+    return await this.course.loadSumaryInformation(id)
+  }
+
+  async getCourseDetails(id) {
+    return await this.course.getInformation(id)
+  }
+
+  async loadListCourse() {
+    return await this.course.getListInformation()
+  }
+
+  async searchCourse(params) {
+    return await this.course.searchCourse(params)
+  }
+
+  async chatBot(content) {
+    return await this.model.chatBot(content)
+  }
+
+  async chatAI(content) {
+    return await this.model.chatAI(content)
+  }
+
+  async getListNotification(id) {
+    return await this.notify.getInformation(id)
+  }
+
+  async updateUnreadNotify(id, notifyID) {
+    return await this.notify.updateUnreadNotify(id, notifyID)
+  }
+}
