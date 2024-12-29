@@ -9,7 +9,7 @@ export class AnonymousClient extends ApiClient {
     this.course = new CourseClient()
     this.model = new ModelClient()
   }
-  
+
   async authenticate(account) {
     try {
       const data = await axios.post(`${this.domain}login`, { //when create entity anonymous then domain is http://localhost:5173/

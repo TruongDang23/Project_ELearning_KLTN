@@ -12,6 +12,8 @@ import axios from "axios";
 import CryptoJS from "crypto-js";
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 
+import { anonymous } from 'api'
+
 function Login() {
   const [username, setUsername] = useState("")
   const [pass, setPass] = useState("");
@@ -68,11 +70,18 @@ function Login() {
   const checkLogin = async () => {
     try {
       const hassed = hashPassword(pass);
-      const res = await axios.post("http://localhost:3000/s/login", {
+      const res = await anonymous.authenticate({
         username,
         pass: hassed,
         role
-      });
+      })
+      console.log(res)
+
+      // const res = await axios.post("http://localhost:3000/s/login", {
+      //   username,
+      //   pass: hassed,
+      //   role
+      // });
       if (res.data === "User are not existed")
         setMessage("Username or Password is incorrect");
       else {
