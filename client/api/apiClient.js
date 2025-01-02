@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export class ApiClient {
-  domain = 'http://localhost:5173'
+  domain = 'http://localhost:3000/api'
   constructor(role) {
     this.domain = `${this.domain}/${role}`
   }

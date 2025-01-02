@@ -83,8 +83,8 @@ export default function AvatarAction({ setReload }) {
           userID[0] === 'S'
             ? '/Student/profile'
             : userID[0] === 'I'
-            ? '/Instructor/profile'
-            : '/Admin/profile'
+              ? '/Instructor/profile'
+              : '/Admin/profile'
         )
     },
     {
@@ -95,8 +95,8 @@ export default function AvatarAction({ setReload }) {
           userID[0] === 'S'
             ? '/Student/information'
             : userID[0] === 'I'
-            ? '/Instructor/information'
-            : '/Admin/information'
+              ? '/Instructor/information'
+              : '/Admin/information'
         )
     }
   ].filter(Boolean) // Loại bỏ các mục null hoặc undefined

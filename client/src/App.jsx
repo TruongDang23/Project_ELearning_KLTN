@@ -3,7 +3,6 @@ import { Admin } from "./screens/admin"
 import { Instructor } from "./screens/teacher"
 import { Student } from "./screens/student"
 import { Course } from "./screens/course"
-import { Snackbar } from "./components/general"
 
 function App() {
   return (
@@ -13,7 +12,6 @@ function App() {
       <Instructor />
       <Student />
       <Course />
-      <Snackbar />
     </>
   );
 }

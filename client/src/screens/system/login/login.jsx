@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import imgLogin from "../assets/image_loginNew.png";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
@@ -11,8 +12,8 @@ import { useState } from "react";
 import axios from "axios";
 import CryptoJS from "crypto-js";
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
-
 import { anonymous } from 'api'
+import { Snackbar } from "~/components/general"
 
 function Login() {
   const [username, setUsername] = useState("")
@@ -24,21 +25,26 @@ function Login() {
   const typeUsername = (e) => {
     setUsername(e.target.value);
     setMessage("");
-  };
+  }
 
   const typePassword = (e) => {
     setPass(e.target.value);
     setMessage("");
-  };
+  }
 
   const typeRole = (e) => {
     setRole(e.target.value);
     setMessage("");
-  };
+  }
 
   const hashPassword = (password) => {
     return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
-  };
+  }
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
 
   const handleSuccess = async (response) => {
     try {
@@ -64,39 +70,53 @@ function Login() {
   };
 
   const handleFailure = () => {
-    setMessage("An error occurred when logging in with Google!")
+    setOpenError({
+      status: true,
+      message: "An error occurred when logging in with Google!"
+    })
   };
 
   const checkLogin = async () => {
     try {
-      const hassed = hashPassword(pass);
+      const hassed = hashPassword(pass)
       const res = await anonymous.authenticate({
         username,
         pass: hassed,
         role
       })
-      console.log(res)
+      if (res.status === 200) {
+        //login successfully
+        setOpenSuccess(true)
+        setTimeout(() => {
+          navigate('/')
+        }, 2000)
+        //store token in localstorage/cookie/...
 
-      // const res = await axios.post("http://localhost:3000/s/login", {
-      //   username,
-      //   pass: hassed,
-      //   role
-      // });
-      if (res.data === "User are not existed")
-        setMessage("Username or Password is incorrect");
+        //res.data.token
+        //res.data.userID
+      }
       else {
-        const { token, userID, role } = res.data;
-        const userData = JSON.stringify({ userID, role });
-        alert("Login successfully")
-        sessionStorage.setItem(`token`, token)
-        sessionStorage.setItem(`userAuth`, userData)
-        navigate(`/`)
+        setOpenError({
+          status: true
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
       }
     } catch (error) {
-      alert("An error occurred while trying to log in.");
-      //console.error(error)
+      setOpenError({
+        status: true
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
     }
-  };
+  }
+
   return (
     <>
       <Helmet>
@@ -182,7 +202,7 @@ function Login() {
                   <span className="custom-radio"></span>
                   Instructor
                 </label>
-                {/* <label>
+                <label>
                   <input
                     type="radio"
                     value="Admin"
@@ -191,7 +211,7 @@ function Login() {
                   />
                   <span className="custom-radio"></span>
                   Admin
-                </label> */}
+                </label>
               </div>
 
               {message && (
@@ -235,6 +255,9 @@ function Login() {
           </div>
         </div>
       </LoginWrapper>
+
+      { openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Login Successfully"/> </> : <> </> }
+      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
     </>
   );
 }
