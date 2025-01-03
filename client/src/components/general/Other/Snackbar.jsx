@@ -14,7 +14,6 @@ function SnackbarCustom({ vertical, horizontal, severity, message }) {
   return (
     <Snackbar
       open={open}
-      autoHideDuration={3000}
       anchorOrigin={{ vertical, horizontal }}
       onClose={handleClose} // Handle auto-hide
     >

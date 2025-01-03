@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongo from 'mongoose'
 import dotenv from 'dotenv'
 
 dotenv.config({ path: './config.env' })
@@ -7,14 +7,14 @@ dotenv.config({ path: './config.env' })
 const connectMongo = async () => {
   try {
     // console.log(process.env)
-    await mongoose.connect(process.env.CONNECTIONSTRING, {
+    await mongo.connect(process.env.CONNECTIONSTRING, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     })
     console.log('Connected to MongoDB')
   } catch (err) {
     console.error('Error connecting to MongoDB', err)
-    process.exit(1) // Dừng ứng dụng nếu không thể kết nốiCSDL
+    process.exit(1) // Dừng ứng dụng nếu không thể kết nối CSDL
   }
 }
 

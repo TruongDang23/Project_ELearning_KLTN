@@ -3,7 +3,7 @@ const errorHandler = (err, req, res, next) => {
   const message = err.message || 'Internal Server Error'
   
   console.error(`[ERROR] ${status} - ${message}`)
-  
+  console.log(err)
   res.status(status).send({
     success: false,
     error: message,

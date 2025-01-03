@@ -1,7 +1,10 @@
 import mongoose from 'mongoose'
 
 const courseSchema = new mongoose.Schema({
-  courseID: { type: String },
+  courseID: { 
+    type: String,
+    required: [true, 'Course ID is required']  
+  },
   image_introduce: { type: String },
 
   //Điền thêm các thuộc tính khác nếu cần
