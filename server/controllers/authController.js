@@ -7,18 +7,31 @@ import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 import connectMysql from '../connMySql.js'
 
-const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
+const signToken = (id, secret, expire) => {
+  return jwt.sign({ id }, secret, {
+    expiresIn: expire
   })
 }
 
 const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user.userID)
-  const userID = user.userID
+  const token = signToken(user.userID, process.env.JWT_SECRET, process.env.JWT_EXPIRES_IN)
+  const refresh = signToken(user.userID, process.env.REFRESH_JWT_SECRET, process.env.REFRESH_JWT_EXPIRES_IN)
+  
+  // Lưu token vào cookie
+  res.cookie('access_token', token, {
+    httpOnly: true,
+    sameSite: 'strict', // Ngăn chặn CSRF
+    maxAge: 15 * 60 * 1000 // Token có hiệu lực trong 15 phút
+  })
+
+  res.cookie('refresh_token', refresh, {
+    httpOnly: true,
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // Refresh token có hiệu lực trong 7 ngày
+  })
+
   res.status(statusCode).json({
-    token,
-    userID
+    userID: user.userID
   })
 }
 
@@ -45,17 +58,17 @@ const login = catchAsync(async (req, res, next) => {
     roleOfUser = 'I'
 
   connectMysql.getConnection((error, connection) => {
-    if (error) res.status(503).send('Error when connect to database') //return next(new AppError("Error when connect to database", 503))
+    if (error) next(error)
     else {
       let query = 'SELECT userID from account WHERE username = ? AND password = ? AND LEFT(userID,1) = ? AND activity_status <> "locked"'
       connection.query(query, [username, pass, roleOfUser], (error, results) => {
         connection.release()
-        if (error) res.status(400).send('Syntax error') //return next(new AppError("Syntax error", 400))
-        if (results.length > 0) {
+        if (error) next(error)
+        if ( results != null && results.length > 0) {
           createSendToken(results[0], 200, res)
         }
         else
-          res.status(404).send('User does not exit') //return next(new AppError("User does not exist", 404))
+          return next({ status: 404, message: "User does not exit" })
       })
     }
   })
@@ -63,6 +76,7 @@ const login = catchAsync(async (req, res, next) => {
 
 const protect = catchAsync(async (req, res, next) => {
   // Implement here
+
 })
 
 const restrictTo = (...roles) => {

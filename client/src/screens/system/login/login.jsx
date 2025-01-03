@@ -90,14 +90,12 @@ function Login() {
         setTimeout(() => {
           navigate('/')
         }, 2000)
-        //store token in localstorage/cookie/...
-
-        //res.data.token
-        //res.data.userID
+        sessionStorage.setItem("userID", res.data.userID)
       }
       else {
         setOpenError({
-          status: true
+          status: true,
+          message: res.response.data.error
         })
         setTimeout(() => {
           setOpenError({
@@ -107,7 +105,8 @@ function Login() {
       }
     } catch (error) {
       setOpenError({
-        status: true
+        status: true,
+        message: "Error occurred when login!"
       })
       setTimeout(() => {
         setOpenError({
