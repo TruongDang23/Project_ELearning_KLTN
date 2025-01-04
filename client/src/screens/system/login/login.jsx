@@ -1,25 +1,31 @@
 /* eslint-disable no-unused-vars */
-import imgLogin from "../assets/image_loginNew.png";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import LockIcon from "@mui/icons-material/Lock";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import CloseIcon from "@mui/icons-material/Close";
-import { Link, useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.css";
-import styled from "styled-components";
-import { useState } from "react";
-import axios from "axios";
-import CryptoJS from "crypto-js";
+import imgLogin from "../assets/image_loginNew.png"
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline"
+import LockIcon from "@mui/icons-material/Lock"
+import ExitToAppIcon from "@mui/icons-material/ExitToApp"
+import CloseIcon from "@mui/icons-material/Close"
+import { Link, useNavigate } from "react-router-dom"
+import "bootstrap/dist/css/bootstrap.css"
+import styled from "styled-components"
+import { useState, useContext } from "react"
+import CryptoJS from "crypto-js"
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
-import { anonymous } from 'api'
+import { anonymous, admin, instructor, student } from 'api'
 import { Snackbar } from "~/components/general"
+import { UserContext } from "~/context/UserContext"
 
 function Login() {
   const [username, setUsername] = useState("")
   const [pass, setPass] = useState("");
   const [role, setRole] = useState("");
   const [message, setMessage] = useState("")
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const { setUserInfo } = useContext(UserContext)
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   const navigate = useNavigate()
 
   const typeUsername = (e) => {
@@ -40,41 +46,64 @@ function Login() {
   const hashPassword = (password) => {
     return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
   }
-  const [openSuccess, setOpenSuccess] = useState(false)
-  const [openError, setOpenError] = useState({
-    status: false,
-    message: ""
-  })
+
+  const getInformation = async (userID) => {
+    let userInfo
+    switch (userID[0]) {
+    case 'A':
+      userInfo = await admin.getInformation(userID)
+      break
+    case 'I':
+      userInfo = await instructor.getInformation(userID)
+      break
+    case 'S':
+      userInfo = await student.getInformation(userID)
+      break
+    }
+  }
 
   const handleSuccess = async (response) => {
     try {
-      const res = await axios.post("http://localhost:3000/s/loginWithGoogle", {
-        loginCredential: response.credential
-      });
-      if (res.data === "error")
-        setMessage("An error occurred when logging in with Google!")
-      else if (res.data === "locked")
-        setMessage("Your account is locked. Please choose another one")
+      const res = await anonymous.authenticateGoogle(response.credential)
+      if (res.status === 200) {
+        //login successfully
+        setOpenSuccess(true)
+        sessionStorage.setItem("userID", res.data.userID)
+        await getInformation(res.data.userID)
+        setTimeout(async () => {
+          navigate('/')
+        }, 2000)
+      }
       else {
-        const { token, userID, role } = res.data;
-        const userData = JSON.stringify({ userID, role })
-        alert("Login successfully")
-        sessionStorage.setItem(`token`, token)
-        sessionStorage.setItem(`userAuth`, userData)
-        navigate(`/`)
+        setOpenError({
+          status: true,
+          message: res.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
       }
     } catch (error) {
-      alert("An error occurred while trying to log in.");
-      //console.error(error)
+      setOpenError({
+        status: true,
+        message: "Error occurred when login!"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
     }
-  };
+  }
 
   const handleFailure = () => {
     setOpenError({
       status: true,
       message: "An error occurred when logging in with Google!"
     })
-  };
+  }
 
   const checkLogin = async () => {
     try {
@@ -87,10 +116,11 @@ function Login() {
       if (res.status === 200) {
         //login successfully
         setOpenSuccess(true)
-        setTimeout(() => {
+        sessionStorage.setItem("userID", res.data.userID)
+        await getInformation(res.data.userID)
+        setTimeout(async () => {
           navigate('/')
         }, 2000)
-        sessionStorage.setItem("userID", res.data.userID)
       }
       else {
         setOpenError({

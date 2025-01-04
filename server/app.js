@@ -1,6 +1,7 @@
 import cors from 'cors'
 import express from 'express'
 import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
 
 // Import các route
 import guestRouter from './routes/guestRouter.js'
@@ -15,10 +16,13 @@ import errorHandler from './utils/errorHandler.js'
 const app = express()
 
 // Cấu hình CORS
-app.use(cors())
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true, // Cho phép gửi cookie
+}))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
-
+app.use(cookieParser())
 // Middleware log thời gian xử lý request
 app.use((req, res, next) => {
   const start = Date.now()

@@ -11,6 +11,17 @@ import User from '../models/user.js'
 import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
 
+const hashPassword = (password) => {
+  // Create a SHA-512 hash
+  const hash = crypto.createHash('sha512')
+  
+  // Update the hash with the password
+  hash.update(password)
+  
+  // Return the hashed value as a hex string
+  return hash.digest('hex')
+}
+
 const createUserMySQL = (connection, user) => {
   return new Promise(async (resolve, reject) => {
     let queryAccount = 'INSERT INTO account (username, password, userID, activity_status) values (?, ?, ?, ?)'
@@ -96,31 +107,59 @@ const countUserOfRole = (role) => {
   })
 }
 
+const getUserIDBasedEmail = (mail) => {
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        reject(err)
+        return
+      }
+
+      let query = 'SELECT userID FROM user WHERE mail = ?'
+      connection.query(query, [mail], (error, results) => {
+        connection.release() //Giải phóng connection khi truy vấn xong
+        if (error) {
+          reject(error)
+          return
+        }
+        if (results.length == 0)
+          resolve('null')
+        else
+          resolve(results[0].userID)
+      })
+    })
+  })
+}
+
 const signToken = (id, secret, expire) => {
   return jwt.sign({ id }, secret, {
     expiresIn: expire
   })
 }
 
-const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user.userID, process.env.JWT_SECRET, process.env.JWT_EXPIRES_IN)
-  const refresh = signToken(user.userID, process.env.REFRESH_JWT_SECRET, process.env.REFRESH_JWT_EXPIRES_IN)
+const createSendToken = (userID, statusCode, res) => {
+  const token = signToken(userID, process.env.JWT_SECRET, process.env.JWT_EXPIRES_IN)
+  const refresh = signToken(userID, process.env.REFRESH_JWT_SECRET, process.env.REFRESH_JWT_EXPIRES_IN)
   
   // Lưu token vào cookie
   res.cookie('access_token', token, {
     httpOnly: true,
-    sameSite: 'strict', // Ngăn chặn CSRF
-    maxAge: 60 * 60 * 1000 // Token có hiệu lực trong 60 phút
+    sameSite: 'None', // Ngăn chặn CSRF
+    maxAge: 60 * 60 * 1000, // Token có hiệu lực trong 60 phút
+    secure: true,
+    path: '/'
   })
 
   res.cookie('refresh_token', refresh, {
     httpOnly: true,
-    sameSite: 'strict',
-    maxAge: 10 * 24 * 60 * 60 * 1000 // Refresh token có hiệu lực trong 10 ngày
+    sameSite: 'None',
+    maxAge: 10 * 24 * 60 * 60 * 1000 ,// Refresh token có hiệu lực trong 10 ngày
+    secure: true,
+    path: '/'
   })
 
   res.status(statusCode).json({
-    userID: user.userID
+    userID: userID
   })
 }
 
@@ -145,7 +184,7 @@ const signup = catchAsync(async (req, res, next) => {
     const count = await countUserOfRole(roleOfUser)
     num = count
   } catch (error) {
-    res.status(500).send(error)
+    next({ status: 500, message: error})
   }
 
   //Xử lý userID
@@ -158,7 +197,7 @@ const signup = catchAsync(async (req, res, next) => {
     password: pass,
     role: role,
     avatar: '',
-    mail: 'example123@domain.com',
+    mail: `example123${userID}@domain.com`, //Email is unique
     name: ''
   }
   //Start Transaction
@@ -207,7 +246,7 @@ const login = catchAsync(async (req, res, next) => {
         connection.release()
         if (error) next(error)
         if ( results != null && results.length > 0) {
-          createSendToken(results[0], 200, res)
+          createSendToken(results[0].userID, 200, res)
         }
         else
           return next({ status: 404, message: "User does not exit" })
@@ -216,26 +255,84 @@ const login = catchAsync(async (req, res, next) => {
   })
 })
 
+const loginWithGoogle = catchAsync(async (req, res, next) => {
+  // Implement here
+  const { loginCredential } = req.body
+  const decode = jwt.decode(loginCredential)
+  const userID = await getUserIDBasedEmail(decode.email)
+  if (userID === 'null') {
+    //Sign up new user with role = Student
+    const mysqlTransaction = connectMysql.promise()
+    const mongoTransaction = await mongoose.startSession()
+    
+    let roleOfUser = 'I'
+    let userID = ''
+    let num
+    let betweenCharacter
+  
+    //Đếm số lượng user để tạo userID tương ứng
+    try {
+      const count = await countUserOfRole(roleOfUser)
+      num = count
+    } catch (error) {
+      next({ status: 500, message: error})
+    }
+  
+    //Xử lý userID
+    betweenCharacter = (num < 10) ? '00' : (num < 100) ? '0' : ''
+    userID = roleOfUser + betweenCharacter + num
+  
+    let user = {
+      userID: userID,
+      username: decode.email,
+      password: hashPassword(decode.sub),
+      role: "Student",
+      avatar: decode.picture,
+      mail: decode.email, //Email is unique
+      name: decode.name
+    }
+    //Start Transaction
+    await mysqlTransaction.query("START TRANSACTION")
+    mongoTransaction.startTransaction()
+  
+    try {
+      //Insert into Mysql
+      await createUserMySQL(mysqlTransaction, user)
+  
+      //Insert into MongoDB
+      await createUserMongo(mongoTransaction, user)
+  
+      await mysqlTransaction.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+      createSendToken(userID, 200, res)
+    }
+    catch (error) { 
+      await mysqlTransaction.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next(error)
+    }
+    finally {
+      await mongoTransaction.endSession()
+    }
+  }
+  else {
+    //If User is existing
+    createSendToken(userID, 200, res)
+  }
+})
+
 const protect = catchAsync(async (req, res, next) => {
   // Implement here
-
+  console.log(req.cookies.access_token)
 })
 
 const restrictTo = (...roles) => {
   return (req, res, next) => {
     // roles ['admin', 'lead-guide']. role='user'
     if (!roles.includes(req.user.Role)) {
-      return next(
-        new AppError('You do not have permission to perform this action', 403)
-      )
+      return next({ status: 403, message: "You do not have permission to perform this action"})
     }
-
-    next()
   }
 }
-
-const loginWithGoogle = catchAsync(async (req, res, next) => {
-  // Implement here
-})
 
 export default { signup, login, protect, restrictTo, loginWithGoogle }
