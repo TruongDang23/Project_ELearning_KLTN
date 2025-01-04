@@ -68,7 +68,6 @@ function Login() {
       if (res.status === 200) {
         //login successfully
         setOpenSuccess(true)
-        sessionStorage.setItem("userID", res.data.userID)
         await getInformation(res.data.userID)
         setTimeout(async () => {
           navigate('/')
@@ -116,7 +115,6 @@ function Login() {
       if (res.status === 200) {
         //login successfully
         setOpenSuccess(true)
-        sessionStorage.setItem("userID", res.data.userID)
         await getInformation(res.data.userID)
         setTimeout(async () => {
           navigate('/')

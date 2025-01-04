@@ -1,7 +1,5 @@
 import axios from 'axios'
 
-axios.defaults.withCredentials = true
-
 export class ApiClient {
   domain = 'http://localhost:3000/api'
 
@@ -30,7 +28,7 @@ export class ApiClient {
 
   async getInformation(id) {
     try {
-      const response = await axios.get(`${this.domain}/${id}`)
+      const response = await axios.get(`${this.domain}/${id}`, { withCredentials: true })
       return response
     }
     catch (error) {

@@ -1,12 +1,10 @@
 import catchAsync from '../utils/catchAsync.js'
-import AppError from '../utils/appError.js'
 import jwt from 'jsonwebtoken'
 import { promisify } from 'util'
 import Email from '../utils/email.js'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 import connectMysql from '../connMySql.js'
-import connectMongo from '../connMongo.js'
 import User from '../models/user.js'
 import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
@@ -65,7 +63,7 @@ const createUserMySQL = (connection, user) => {
   })
 }
 
-const createUserMongo = (connection, user) => {
+const createUserMongo = (transaction, user) => {
   return new Promise(async (resolve, reject) => {
     try {
       // Insert a new user using Mongoose
@@ -76,7 +74,7 @@ const createUserMongo = (connection, user) => {
             self_introduce: ' '
           }
         ],
-        { session: connection }
+        { session: transaction }
       )
       resolve(data)
     } catch (error) {
@@ -139,7 +137,7 @@ const signToken = (id, secret, expire) => {
 
 const createSendToken = (userID, statusCode, res) => {
   const token = signToken(userID, process.env.JWT_SECRET, process.env.JWT_EXPIRES_IN)
-  const refresh = signToken(userID, process.env.REFRESH_JWT_SECRET, process.env.REFRESH_JWT_EXPIRES_IN)
+  const refresh = signToken(userID, process.env.JWT_SECRET, process.env.REFRESH_JWT_EXPIRES_IN)
   
   // Lưu token vào cookie
   res.cookie('access_token', token, {
@@ -158,9 +156,7 @@ const createSendToken = (userID, statusCode, res) => {
     path: '/'
   })
 
-  res.status(statusCode).json({
-    userID: userID
-  })
+  res.status(200).send({ userID: userID })
 }
 
 const signup = catchAsync(async (req, res, next) => {
@@ -228,7 +224,6 @@ const signup = catchAsync(async (req, res, next) => {
 const login = catchAsync(async (req, res, next) => {
   // Implement here
   const { username, pass, role } = req.body
-
   //Handle role
   let roleOfUser = ''
   if (role === 'Admin')
@@ -323,14 +318,40 @@ const loginWithGoogle = catchAsync(async (req, res, next) => {
 
 const protect = catchAsync(async (req, res, next) => {
   // Implement here
-  console.log(req.cookies.access_token)
+  if(req.cookies.access_token) {
+    try {
+      const tokenDecode = jwt.verify(req.cookies.access_token, process.env.JWT_SECRET)
+      switch (tokenDecode.id[0]) {
+        case 'A':
+          req.role = 'admin'
+          break
+        case 'I':
+          req.role = 'instructor'
+          break
+        case 'S':
+          req.role = 'student'
+          break
+      }
+      req.userID = tokenDecode.id
+      next()
+    }
+    catch(error) {
+      next(error)
+    }
+  }
+  else {
+    next({ status: 401, message: "Missing access token!"})
+  }
 })
 
 const restrictTo = (...roles) => {
   return (req, res, next) => {
     // roles ['admin', 'lead-guide']. role='user'
-    if (!roles.includes(req.user.Role)) {
+    if (!roles.includes(req.role)) {
       return next({ status: 403, message: "You do not have permission to perform this action"})
+    }
+    else {
+      next()
     }
   }
 }
