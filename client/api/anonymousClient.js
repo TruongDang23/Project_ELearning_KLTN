@@ -50,6 +50,16 @@ export class AnonymousClient extends ApiClient {
     }
   }
 
+  async logOut() {
+    try {
+      const data = await axios.post(`${this.domain}logout`)
+      return data
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async getCourseSummary(id) {
     return await this.course.loadSumaryInformation(id)
   }

@@ -8,12 +8,11 @@ import CloseIcon from "@mui/icons-material/Close"
 import { Link, useNavigate } from "react-router-dom"
 import "bootstrap/dist/css/bootstrap.css"
 import styled from "styled-components"
-import { useState, useContext } from "react"
+import { useState } from "react"
 import CryptoJS from "crypto-js"
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
-import { anonymous, admin, instructor, student } from 'api'
+import { anonymous } from 'api'
 import { Snackbar } from "~/components/general"
-import { UserContext } from "~/context/UserContext"
 
 function Login() {
   const [username, setUsername] = useState("")
@@ -21,7 +20,6 @@ function Login() {
   const [role, setRole] = useState("");
   const [message, setMessage] = useState("")
   const [openSuccess, setOpenSuccess] = useState(false)
-  const { setUserInfo } = useContext(UserContext)
   const [openError, setOpenError] = useState({
     status: false,
     message: ""
@@ -47,28 +45,13 @@ function Login() {
     return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
   }
 
-  const getInformation = async (userID) => {
-    let userInfo
-    switch (userID[0]) {
-    case 'A':
-      userInfo = await admin.getInformation(userID)
-      break
-    case 'I':
-      userInfo = await instructor.getInformation(userID)
-      break
-    case 'S':
-      userInfo = await student.getInformation(userID)
-      break
-    }
-  }
-
   const handleSuccess = async (response) => {
     try {
       const res = await anonymous.authenticateGoogle(response.credential)
       if (res.status === 200) {
         //login successfully
         setOpenSuccess(true)
-        await getInformation(res.data.userID)
+        localStorage.setItem("userID", res.data.userID)
         setTimeout(async () => {
           navigate('/')
         }, 2000)
@@ -115,7 +98,7 @@ function Login() {
       if (res.status === 200) {
         //login successfully
         setOpenSuccess(true)
-        await getInformation(res.data.userID)
+        localStorage.setItem("userID", res.data.userID)
         setTimeout(async () => {
           navigate('/')
         }, 2000)

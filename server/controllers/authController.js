@@ -135,6 +135,26 @@ const signToken = (id, secret, expire) => {
   })
 }
 
+const logout = (req, res) => {
+  res.cookie('access_token', '', {
+    httpOnly: true,
+    sameSite: 'None',
+    secure: true,
+    path: '/', // Ensure path matches
+    expires: new Date(0),
+  });
+
+  res.cookie('refresh_token', '', {
+    httpOnly: true,
+    sameSite: 'None',
+    secure: true,
+    path: '/', // Ensure path matches
+    expires: new Date(0),
+  });
+
+  res.status(200).send({ message: 'Logged out successfully' });
+};
+
 const createSendToken = (userID, statusCode, res) => {
   const token = signToken(userID, process.env.JWT_SECRET, process.env.JWT_EXPIRES_IN)
   const refresh = signToken(userID, process.env.JWT_SECRET, process.env.REFRESH_JWT_EXPIRES_IN)
@@ -145,7 +165,7 @@ const createSendToken = (userID, statusCode, res) => {
     sameSite: 'None', // Ngăn chặn CSRF
     maxAge: 60 * 60 * 1000, // Token có hiệu lực trong 60 phút
     secure: true,
-    path: '/'
+    path: '/',
   })
 
   res.cookie('refresh_token', refresh, {
@@ -356,4 +376,4 @@ const restrictTo = (...roles) => {
   }
 }
 
-export default { signup, login, protect, restrictTo, loginWithGoogle }
+export default { signup, login, protect, restrictTo, loginWithGoogle, logout }

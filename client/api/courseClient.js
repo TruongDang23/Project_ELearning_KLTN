@@ -27,7 +27,7 @@ export class CourseClient extends ApiClient {
       return error
     }
   }
-  
+
   async createDataCourse(content) {
     try {
       const response = await axios.post(`${this.domain}`, {

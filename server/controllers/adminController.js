@@ -73,8 +73,6 @@ const getByID = catchAsync(async (req, res, next) => {
   }
 
   // Merge data
-  console.log(info_mysql)
-  console.log(info_mongo)
   const mergeData = info_mysql.map(inf => {
     return {
       ...inf,

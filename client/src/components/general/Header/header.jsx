@@ -8,34 +8,14 @@ import Categories from './categories'
 import AvatarAction from './avatar'
 import { useState, useContext, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import io from 'socket.io-client'
 import { NotificationContext } from '~/context/NotificationContext'
 
 function Header() {
   const navigate = useNavigate()
   // eslint-disable-next-line no-unused-vars
   const [search, setSearch] = useSearchParams()
-  const token = sessionStorage.getItem('token')
-  const userData = JSON.parse(sessionStorage.getItem('userAuth'))
-  const userID = userData ? userData.userID : ''
+  const userID = localStorage.getItem('userID')
   const [title, setTitle] = useState(search.get('q') || '')
-
-  const socket = io('http://localhost:3001')
-
-  // Notification
-  const { unreadCount, setUnreadCount } = useContext(NotificationContext)
-
-  useEffect(() => {
-    socket.emit('joinGroupIndividual', userID)
-    socket.on('unreadCountUpdated', (newUnreadCount) => {
-      setUnreadCount(newUnreadCount)
-    })
-
-    return () => {
-      socket.off('unreadCountUpdated') // Clean up when component unmounts
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setUnreadCount])
 
   const handleSearch = (event) => {
     if (event.key === 'Enter') {
@@ -49,7 +29,7 @@ function Header() {
   const [reload, setReload] = useState(false)
   {
     //Chưa login
-    if (token == null) {
+    if (userID == null) {
       return (
         <Navbar>
           <a className="brand" href="/">
@@ -72,12 +52,12 @@ function Header() {
                 />
               </a>
             </div>
-            {/* <a href="/login" className="link">
+            <a href="/login" className="link">
               Teach on EL-Space
             </a>
             <a href="/login" className="link">
               My Learning
-            </a> */}
+            </a>
           </div>
           <div className="authButtons">
             <Link to="/login">
@@ -125,13 +105,13 @@ function Header() {
                 My learning
               </a>
             )}
-            {/* <a>
+            <a>
               <StyledBadge badgeContent={4} color="primary">
                 <ShoppingCartOutlinedIcon />
               </StyledBadge>
-            </a> */}
+            </a>
             <a href="/notification">
-              <StyledBadge badgeContent={unreadCount} color="primary">
+              <StyledBadge badgeContent={0} color="primary">
                 <NotificationsOutlinedIcon />
               </StyledBadge>
             </a>

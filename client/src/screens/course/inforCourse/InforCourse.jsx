@@ -3,43 +3,40 @@ import FooterNew from '~/components/general/Footer/FooterNew'
 import IntroCourse from './IntroCourse'
 import MainCourse from './MainCourse'
 import { useParams } from 'react-router-dom'
-import axios from 'axios'
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import Loading from '~/screens/system/Loading'
 import Logo from '../../../assets/hdh.png'
-
 import styled from 'styled-components'
-
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
+import { anonymous, admin, instructor, student } from 'api'
 
 function InforCourse() {
   const [isLoad, setIsLoad] = useState(true) //Data is loading
+  const userID = localStorage.getItem("userID")
   const { courseID } = useParams()
   const [inforCourseData, setInforCourseData] = useState()
-  const navigate = useNavigate()
+  const loadInforCourse = async(courseID) => {
+    let course
+    switch (userID[0]) {
+    case 'A':
+      course = await admin.getCourseSummary(courseID)
+      break;
+    case 'I':
+      course = await instructor.getCourseSummary(courseID)
+      break;
+    case 'S':
+      course = await student.getCourseSummary(courseID)
+      break;
+    default:
+      course = await anonymous.getCourseSummary(courseID)
+      break;
+    }
+    setIsLoad(false)
+    setInforCourseData(course.data)
+  }
+
   useEffect(() => {
-    axios
-      .get('http://localhost:3000/c/loadInforCourse', {
-        params: {
-          courseID
-        }
-      })
-      .then((response) => {
-        setInforCourseData(response.data[0])
-        setIsLoad(false) //Data is loaded successfully
-      })
-      .catch((error) => {
-        //Server shut down
-        if (error.message === 'Network Error') navigate('/server-shutdown')
-        //Connection error
-        if (error.response.status === 500) navigate('/500error')
-        //Unauthorized. Need login
-        if (error.response.status === 401) navigate('/401error')
-        //Forbidden. Token != userAuth
-        if (error.response.status === 403) navigate('/403error')
-        setIsLoad(false)
-      })
+    loadInforCourse(courseID)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import {
   Box,
   Avatar,
@@ -20,32 +20,13 @@ import {
 import ManageSearchIcon from '@mui/icons-material/ManageSearch'
 import DesignServicesIcon from '@mui/icons-material/DesignServices'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import { UserContext } from "~/context/UserContext"
+import { anonymous } from 'api'
 
 export default function AvatarAction({ setReload }) {
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
-  const userData = JSON.parse(sessionStorage.getItem('userAuth'))
-
-  const userID = userData ? userData.userID : ''
-  const [avt, setAvt] = useState()
+  const { userInfo } = useContext(UserContext)
   const navigate = useNavigate()
-
-  useEffect(() => {
-    axios
-      .get('http://localhost:3000/s/loadAvatar', {
-        params: { userID },
-        headers: { Token: token, User: userAuth }
-      })
-      .then((response) => setAvt(response.data))
-      .catch((error) => {
-        const status = error.response?.status
-        if (error.message === 'Network Error') navigate('/server-shutdown')
-        else if (status === 500) navigate('/500error')
-        else if (status === 401) navigate('/401error')
-        else if (status === 403) navigate('/403error')
-      })
-  }, [token, userAuth, userID, navigate])
+  const userID = localStorage.getItem("userID")
 
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
@@ -53,8 +34,9 @@ export default function AvatarAction({ setReload }) {
   const handleClick = (event) => setAnchorEl(event.currentTarget)
   const handleClose = () => setAnchorEl(null)
 
-  const handleLogout = () => {
-    sessionStorage.clear()
+  const handleLogout = async() => {
+    localStorage.clear()
+    await anonymous.logOut()
     setReload(true)
     navigate('/')
   }
@@ -104,7 +86,9 @@ export default function AvatarAction({ setReload }) {
   return (
     <React.Fragment>
       <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
-        <Tooltip title="Information">
+        <Tooltip
+          title={<span style={{ fontSize: '1.6rem' }}>{userInfo.fullname}</span>}
+        >
           <IconButton
             onClick={handleClick}
             size="small"
@@ -121,7 +105,7 @@ export default function AvatarAction({ setReload }) {
                 border: '2px solid #1971c2',
                 marginLeft: '-20px'
               }}
-              src={avt}
+              src={userInfo.avatar}
             />
           </IconButton>
         </Tooltip>
@@ -167,7 +151,7 @@ export default function AvatarAction({ setReload }) {
           </MenuItem>
         ))}
         <Divider />
-        {/* <MenuItem
+        <MenuItem
           sx={{ fontSize: '16px', color: '#333' }}
           onClick={handleClose}
         >
@@ -184,7 +168,7 @@ export default function AvatarAction({ setReload }) {
             <Settings fontSize="large" />
           </ListItemIcon>
           Settings
-        </MenuItem> */}
+        </MenuItem>
         <MenuItem
           sx={{ fontSize: '16px', color: '#333' }}
           onClick={handleLogout}
