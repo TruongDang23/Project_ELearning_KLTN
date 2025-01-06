@@ -264,7 +264,6 @@ const login = catchAsync(async (req, res, next) => {
           if (results != null && results.length > 0) {
             createSendToken(results[0].userID, 200, res)
           } else {
-            // return next({ status: 404, message: 'User does not exit'})
             return next(
               new AppError('User does not exit', 404, { originalError: error })
             )

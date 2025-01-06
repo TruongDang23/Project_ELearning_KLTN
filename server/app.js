@@ -44,7 +44,6 @@ app.use('/api/student', studentRouter)
 app.use('/api/course', courseRouter)
 app.use('/api/notification', notificationRouter)
 app.use('/api/model', modelRouter)
-// app.use(errorHandler)
 
 app.all('*', (req, res, next) => {
   res.status(404).json({
