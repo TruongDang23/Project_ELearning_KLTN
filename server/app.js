@@ -12,14 +12,17 @@ import courseRouter from './routes/courseRouter.js'
 import notificationRouter from './routes/notificationRouter.js'
 import modelRouter from './routes/modelRouter.js'
 import errorHandler from './utils/errorHandler.js'
+import globalErrorHandler from './controllers/errorController.js'
 
 const app = express()
 
 // Cấu hình CORS
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true, // Cho phép gửi cookie
-}))
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true // Cho phép gửi cookie
+  })
+)
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(cookieParser())
@@ -41,6 +44,15 @@ app.use('/api/student', studentRouter)
 app.use('/api/course', courseRouter)
 app.use('/api/notification', notificationRouter)
 app.use('/api/model', modelRouter)
-app.use(errorHandler)
+// app.use(errorHandler)
+
+app.all('*', (req, res, next) => {
+  res.status(404).json({
+    status: 'fail',
+    message: `Can't find ${req.originalUrl} on this server!`
+  })
+})
+
+app.use(globalErrorHandler)
 
 export default app
