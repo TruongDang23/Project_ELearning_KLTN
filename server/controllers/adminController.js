@@ -2,7 +2,7 @@ import catchAsync from '../utils/catchAsync.js'
 import mongoose from 'mongoose'
 import User from '../models/user.js'
 import { formatDate } from '../utils/dateTimeHandler.js'
-import connectMysql from '../connMySql.js'
+import connectMysql from '../config/connMySql.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -34,7 +34,7 @@ const getFullInfoMongo = async (userID) => {
       if (mongoData)
         resolve(mongoData)
     }
-    catch (error) {
+    catch (error) { 
       reject(error)
     }
   })

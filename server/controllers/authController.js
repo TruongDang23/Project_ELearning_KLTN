@@ -4,7 +4,7 @@ import { promisify } from 'util'
 import Email from '../utils/email.js'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
-import connectMysql from '../connMySql.js'
+import connectMysql from '../config/connMySql.js'
 import User from '../models/user.js'
 import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
@@ -167,7 +167,7 @@ const createSendToken = (userID, statusCode, res) => {
   // Lưu token vào cookie
   res.cookie('access_token', token, {
     httpOnly: true,
-    sameSite: 'None', // Ngăn chặn CSRF
+    sameSite: 'Strict', // Ngăn chặn CSRF
     maxAge: 60 * 60 * 1000, // Token có hiệu lực trong 60 phút
     secure: true,
     path: '/'
@@ -175,7 +175,7 @@ const createSendToken = (userID, statusCode, res) => {
 
   res.cookie('refresh_token', refresh, {
     httpOnly: true,
-    sameSite: 'None',
+    sameSite: 'Strict',
     maxAge: 10 * 24 * 60 * 60 * 1000, // Refresh token có hiệu lực trong 10 ngày
     secure: true,
     path: '/'
@@ -264,9 +264,7 @@ const login = catchAsync(async (req, res, next) => {
           if (results != null && results.length > 0) {
             createSendToken(results[0].userID, 200, res)
           } else {
-            return next(
-              new AppError('User does not exit', 404, { originalError: error })
-            )
+            return next({ status: 404, message: 'User does not exit'})
           }
         }
       )

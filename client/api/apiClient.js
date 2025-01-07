@@ -1,6 +1,6 @@
 import axios from 'axios'
 axios.defaults.withCredentials = true
-
+axios.interceptors.response
 export class ApiClient {
   domain = 'http://localhost:3000/api'
 

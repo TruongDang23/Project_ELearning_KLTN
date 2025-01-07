@@ -52,6 +52,7 @@ app.all('*', (req, res, next) => {
   })
 })
 
-app.use(globalErrorHandler)
+app.use(errorHandler)
+// app.use(globalErrorHandler)
 
 export default app
