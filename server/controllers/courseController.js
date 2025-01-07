@@ -2,8 +2,119 @@ import Course from '../models/courseInfo.js'
 import catchAsync from '../utils/catchAsync.js'
 import mongoose from 'mongoose'
 import User from '../models/user.js'
-import { formatDate } from '../utils/dateTimeHandler.js'
-import connectMysql from '../connMySql.js'
+import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
+import connectMysql from '../config/connMySql.js'
+import storage from '../config/connGCS.js'
+
+const getFullInfoMySQL = (connection, courseID) => {
+  return new Promise(async (resolve, reject) => {
+    let query =
+      "SELECT c.courseID,\
+                u.fullname AS instructor,\
+                type_of_course,\
+                title,\
+                method,\
+                c.language,\
+                price,\
+                currency,\
+                program,\
+                category,\
+                course_for,\
+                status,\
+                num_lecture,\
+                avg.star,\
+                num.number_enrolled\
+                FROM course AS c\
+                LEFT JOIN user AS u ON c.userID = u.userID\
+                LEFT JOIN avg_rating AS avg ON c.courseID = avg.courseID\
+                LEFT JOIN (SELECT courseID, count(*) AS number_enrolled\
+                          FROM enroll\
+                          GROUP BY courseID) AS num\
+                          ON num.courseID = c.courseID\
+                WHERE c.courseID = ?"
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          courseID
+        ])
+      if (rowsInfo.affectedRows !== 0) {
+        resolve(rowsInfo)
+      }
+      else {
+        reject("This course does not contain data")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getFullInfoMongo = (courseID) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const mongoData = await Course.find({ courseID: { $in: courseID } }).select()
+      
+      if (mongoData) {
+        resolve(mongoData)
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getReview = (courseID) => {
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        reject(err)
+      }
+
+      const query = `SELECT u.fullname AS reviewerName,
+                            u.avatar   AS avatar, 
+                            message, 
+                            star, 
+                            time AS date
+                    FROM rating AS r
+                    LEFT JOIN user AS u ON r.userID = u.userID
+                    WHERE courseID = ?`
+      connection.query(query, [courseID], (error, reviews) => {
+        connection.release()
+        if (error) {
+          reject(error)
+        }
+
+        const finalData = reviews.map((rv) => {
+          return {
+            ...rv,
+            date: formatDateTime(rv.date)
+          }
+        })
+        resolve(finalData)
+      })
+    })
+  })
+}
+
+const getTotalVideo = (courseID) => {
+  return new Promise(async (resolve, reject) => {
+    resolve()
+    // const [files] = await storage
+    //   .bucket("e-learning-bucket")
+    //   .getFiles({ prefix: courseID })
+
+    // let totalVideo = 0
+
+    // for (const file of files) {
+    //   if (file.name.endsWith(".mp4")) {
+    //     totalVideo += 1
+    //   }
+    // }
+    // resolve(totalVideo)
+  })
+}
 
 const getAllCourses = catchAsync(async (req, res, next) => {
   // Implement here
@@ -19,15 +130,16 @@ const getCourseById = catchAsync(async (req, res, next) => {
   await mysqlTransaction.query("START TRANSACTION")
   mongoTransaction.startTransaction()
 
-  let info_mysql, info_mongo
+  let info_mysql, info_mongo, reviews, videos
 
   try {
     // Run both functions asynchronously
-    [info_mysql, info_mongo] = await Promise.all([
+    [info_mysql, info_mongo, reviews, videos] = await Promise.all([
       getFullInfoMySQL(mysqlTransaction, courseID), // Fetch MySQL data
       getFullInfoMongo(courseID), // Fetch MongoDB data
+      getReview(courseID),
+      getTotalVideo(courseID)
     ])
-
     // Commit Transactions
     await mysqlTransaction.query("COMMIT")
     await mongoTransaction.commitTransaction()
@@ -40,19 +152,19 @@ const getCourseById = catchAsync(async (req, res, next) => {
     // End the MongoDB session
     await mongoTransaction.endSession()
   }
-
+  
   // Merge data
-  const mergeData = info_mysql.map(inf => {
+  const mergeData = info_mysql.map(course => {
     return {
-      ...inf,
-      date_of_birth: formatDate(inf.date_of_birth),
-
-      //Câu query không có lấy activity_status. Tuy nhiên login thành công <=> activity_status = active
-      activity_status: 'active',
-
-      //Vì chưa có data về activities Admin trên MongoDB nên phải tạo mô phỏng
-      social_network: info_mongo.social_networks,
-      activities: []
+      ...course,
+      // videos: videos,
+      review: reviews,
+      image_introduce: info_mongo[0].image_introduce,
+      video_introduce: info_mongo[0].video_introduce,
+      keywords: info_mongo[0].keywords,
+      targets: info_mongo[0].targets,
+      requirements: info_mongo[0].requirements,
+      chapters: info_mongo[0].chapters
     }
   })
 

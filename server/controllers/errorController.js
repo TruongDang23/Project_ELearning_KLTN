@@ -54,7 +54,7 @@ const sendErrorProd = (err, req, res) => {
 
 const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500
-  err.status = err.status || 'error'
+  err.status = err.status || 'errors'
 
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, req, res)
