@@ -18,8 +18,8 @@ export class CourseClient extends ApiClient {
 
   async searchCourse(params) {
     try {
-      const response = await axios.get(`${this.domain}`, {
-        params: params 
+      const response = await axios.get(`${this.domain}/search`, {
+        params: params
       })
       return response
     }

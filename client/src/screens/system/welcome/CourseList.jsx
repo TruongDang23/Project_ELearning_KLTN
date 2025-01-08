@@ -1,9 +1,9 @@
 import styled from 'styled-components'
 import Course from './Course'
-import axios from 'axios'
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Element } from 'react-scroll'
+import { anonymous } from 'api/index'
+import { Snackbar } from "~/components/general"
 
 const CourseListWrapper = styled.section`
   .courses {
@@ -21,38 +21,46 @@ const CourseListWrapper = styled.section`
 `
 
 function CourseList() {
-  const navigate = useNavigate()
   const [courses, setCourse] = useState([])
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
+  const params = {
+    limit: 9,
+    page: 'welcome'
+  }
+  const loadCourseWelcome = async() => {
+    const res = await anonymous.searchCourse(params)
+    if (res.status === 200) {
+      setCourse(res.data)
+    }
+    else {
+      setOpenError({
+        status: true,
+        message: res.response.data.error
+      })
+    }
+  }
   useEffect(() => {
-    axios
-      .get('http://localhost:3000/s/loadCourseWelcome')
-      .then((response) => {
-        setCourse(response.data)
-      })
-      .catch((error) => {
-        //Server shut down
-        if (error.message === 'Network Error') navigate('/server-shutdown')
-        //Connection error
-        if (error.response.status === 500) navigate('/500error')
-        //Unauthorized. Need login
-        if (error.response.status === 401) navigate('/401error')
-        //Forbidden. Token != userAuth
-        if (error.response.status === 403) navigate('/403error')
-      })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadCourseWelcome()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
-    <CourseListWrapper className="container white-space-medium">
-      <Element name="courses">
-        <h2 className="heading-tertiary">Courses</h2>
-      </Element>
-      <div className="courses">
-        {courses.map((course) => (
-          <Course key={course.course_id} course={course} />
-        ))}
-      </div>
-    </CourseListWrapper>
+    <>
+      <CourseListWrapper className="container white-space-medium">
+        <Element name="courses">
+          <h2 className="heading-tertiary">Courses</h2>
+        </Element>
+        <div className="courses">
+          {courses.map((course) => (
+            <Course key={course.course_id} course={course} />
+          ))}
+        </div>
+      </CourseListWrapper>
+      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
+    </>
   )
 }
 

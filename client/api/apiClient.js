@@ -39,11 +39,7 @@ export class ApiClient {
 
   async getListInformation() {
     try {
-      const response = await axios.get(`${this.domain}`, {
-        headers: {
-          //authentication
-        }
-      })
+      const response = await axios.get(`${this.domain}`)
       return response
     }
     catch (error) {

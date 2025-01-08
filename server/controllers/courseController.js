@@ -115,6 +115,77 @@ const getTotalVideo = (courseID) => {
   })
 }
 
+const getCourseWithParams = (connection, params) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT c.courseID,
+    u.fullname AS instructor,
+    type_of_course,
+    title,
+    method,
+    c.language,
+    price,
+    currency,
+    program,
+    category,
+    course_for,
+    status,
+    num_lecture as num_lectures,
+    avg.star,
+    avg.raters as number_reviews
+    FROM course AS c
+    LEFT JOIN user AS u ON c.userID = u.userID
+    LEFT JOIN avg_rating AS avg ON c.courseID = avg.courseID
+    WHERE status = 'published'
+            -- Find on search box  
+            and (
+              u.fullname like ? or
+              title like ? or
+              course_for like ?
+            )
+            -- Find on filter
+            and (
+                (avg.star >= ? or avg.star is null) and
+                c.language like ? and 
+                method like ? and 
+                price >= ? and 
+                program like ?
+            )
+            -- Find on category
+            and (
+                category like ?
+            )
+    ORDER BY star DESC
+    LIMIT ?`
+
+    let queryParams = [
+      `%${params.title}%`,
+      `%${params.title}%`,
+      `%${params.title}%`,
+      params.ratings,
+      `%${params.language}%`,
+      `%${params.method}%`,
+      params.price,
+      `%${params.program}%`,
+      `%${params.category}%`,
+      params.limit
+    ]
+
+    try {
+      const [rowsInfo] = await connection.query(query, queryParams)
+      if (rowsInfo.affectedRows !== 0) {
+        resolve(rowsInfo)
+      }
+      else {
+        reject("Error when get course for welcome page")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+
+  })
+}
+
 const getAllCourses = catchAsync(async (req, res, next) => {
   // Implement here
 })
@@ -173,6 +244,64 @@ const getCourseById = catchAsync(async (req, res, next) => {
 // Tìm kiếm khóa học
 const searchCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const mysqlTransaction = connectMysql.promise()
+  const { 
+    category = '', 
+    title = '', 
+    ratings = 0, 
+    language = '', 
+    method = '', 
+    program = '', 
+    price = 0,
+    limit = 9,
+    page = 'welcome'
+  } = req.query
+
+  const queryObject = {
+    category,
+    title,
+    ratings: Number(ratings) || 0,
+    language,
+    method,
+    program,
+    price: Number(price) || 0,
+    limit: Number(limit) || 9,
+    page
+  }
+
+  console.log(queryObject)
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  try {
+    const info_mysql = await getCourseWithParams(mysqlTransaction, queryObject)
+    // Use Promise.all to handle async operations inside map
+    const mergeData = await Promise.all(
+      info_mysql.map(async (course) => {
+        const info_mongo = await getFullInfoMongo(course.courseID)
+        if (queryObject.page === 'welcome') {
+          return {
+            ...course,
+            image_introduce: info_mongo[0] ? info_mongo[0].image_introduce : null
+          }
+        }
+        else if (queryObject.page === 'searchcourse') {
+          return {
+            ...course,
+            image_introduce: info_mongo[0] ? info_mongo[0].image_introduce : null,
+            keywords: info_mongo[0] ? info_mongo[0].keywords : [],
+            targets: info_mongo[0] ? info_mongo[0].targets : []
+          }
+        }
+      })
+    )
+    await mysqlTransaction.query("COMMIT")
+    res.status(200).send(mergeData)
+  }
+  catch (error) {
+    await mysqlTransaction.query("ROLLBACK")
+    next(error)
+  }
+  
 })
 
 // Thông tin truy cập vào khóa học
