@@ -9,12 +9,11 @@ import { Helmet } from 'react-helmet' // dùng để thay đổi title của tra
 import Logo from '../../../assets/hdh.png'
 import { admin, instructor, student } from 'api'
 import styled from 'styled-components'
-import { useEffect, useContext } from 'react'
-import { UserContext } from "~/context/UserContext"
+import { useEffect } from 'react'
+import { userStore } from '~/context/UserStore'
 
 function Welcome() {
-  const { setUserInfo } = useContext(UserContext)
-
+  const { updateInfor } = userStore()
   const getInformation = async (userID) => {
     let userInfo
     switch (userID[0]) {
@@ -30,7 +29,7 @@ function Welcome() {
     }
 
     if (userInfo) {
-      setUserInfo(userInfo.data)
+      updateInfor(userInfo.data)
     }
   }
 

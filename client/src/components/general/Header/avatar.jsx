@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Box,
   Avatar,
@@ -20,11 +20,10 @@ import {
 import ManageSearchIcon from '@mui/icons-material/ManageSearch'
 import DesignServicesIcon from '@mui/icons-material/DesignServices'
 import { useNavigate } from 'react-router-dom'
-import { UserContext } from "~/context/UserContext"
+import { userStore } from '~/context/UserStore'
 import { anonymous } from 'api'
 
 export default function AvatarAction({ setReload }) {
-  const { userInfo } = useContext(UserContext)
   const navigate = useNavigate()
   const userID = localStorage.getItem("userID")
 
@@ -33,7 +32,6 @@ export default function AvatarAction({ setReload }) {
 
   const handleClick = (event) => setAnchorEl(event.currentTarget)
   const handleClose = () => setAnchorEl(null)
-
   const handleLogout = async() => {
     localStorage.clear()
     await anonymous.logOut()
@@ -87,7 +85,7 @@ export default function AvatarAction({ setReload }) {
     <React.Fragment>
       <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
         <Tooltip
-          title={<span style={{ fontSize: '1.6rem' }}>{userInfo.fullname}</span>}
+          title={<span style={{ fontSize: '1.6rem' }}>{ userStore.getState().fullname ? userStore.getState().fullname : ''}</span>}
         >
           <IconButton
             onClick={handleClick}
@@ -105,7 +103,7 @@ export default function AvatarAction({ setReload }) {
                 border: '2px solid #1971c2',
                 marginLeft: '-20px'
               }}
-              src={userInfo.avatar}
+              src={ userStore.getState().avatar ? userStore.getState().avatar : ''}
             />
           </IconButton>
         </Tooltip>

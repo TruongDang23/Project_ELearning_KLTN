@@ -20,7 +20,7 @@ function System () {
       <Routes>
         <Route path = '/login' element = {<Login/>} />
         <Route path = '/signup' element = {<Signup/>} />
-        <Route path = '/' element = {<Welcome/>} />
+        <Route path='/' element={<Welcome />} />
         <Route path = '/401error' element = {<UnauthorizedPage/>} />
         <Route path = '/403error' element = {<ForbiddenPage/>} />
         <Route path = '/500error' element = {<ConnectError/>} />

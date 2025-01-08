@@ -100,19 +100,18 @@ const getReview = (courseID) => {
 
 const getTotalVideo = (courseID) => {
   return new Promise(async (resolve, reject) => {
-    resolve()
-    // const [files] = await storage
-    //   .bucket("e-learning-bucket")
-    //   .getFiles({ prefix: courseID })
+    const [files] = await storage
+      .bucket("e-learning-bucket")
+      .getFiles({ prefix: courseID })
 
-    // let totalVideo = 0
+    let totalVideo = 0
 
-    // for (const file of files) {
-    //   if (file.name.endsWith(".mp4")) {
-    //     totalVideo += 1
-    //   }
-    // }
-    // resolve(totalVideo)
+    for (const file of files) {
+      if (file.name.endsWith(".mp4")) {
+        totalVideo += 1
+      }
+    }
+    resolve(totalVideo)
   })
 }
 
