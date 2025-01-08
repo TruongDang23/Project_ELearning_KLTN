@@ -19,6 +19,6 @@ export function Notify() {
   return <Notification />
 }
 
-export function Snackbar() {
-  return <SnackbarCustom/>
+export function Snackbar({ vertical, horizontal, severity, message }) {
+  return <SnackbarCustom vertical={vertical} horizontal={horizontal} severity={severity} message={message}/>
 }

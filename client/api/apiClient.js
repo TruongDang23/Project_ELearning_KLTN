@@ -1,7 +1,9 @@
 import axios from 'axios'
-
+axios.defaults.withCredentials = true
+axios.interceptors.response
 export class ApiClient {
-  domain = 'http://localhost:5173'
+  domain = 'http://localhost:3000/api'
+
   constructor(role) {
     this.domain = `${this.domain}/${role}`
   }
@@ -27,11 +29,7 @@ export class ApiClient {
 
   async getInformation(id) {
     try {
-      const response = await axios.get(`${this.domain}/${id}`, {
-        headers: {
-          //authentication
-        }
-      })
+      const response = await axios.get(`${this.domain}/${id}`)
       return response
     }
     catch (error) {
@@ -41,11 +39,7 @@ export class ApiClient {
 
   async getListInformation() {
     try {
-      const response = await axios.get(`${this.domain}`, {
-        headers: {
-          //authentication
-        }
-      })
+      const response = await axios.get(`${this.domain}`)
       return response
     }
     catch (error) {

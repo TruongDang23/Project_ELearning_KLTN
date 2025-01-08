@@ -1,93 +1,132 @@
-import imgLogin from "../assets/image_loginNew.png";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import LockIcon from "@mui/icons-material/Lock";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import CloseIcon from "@mui/icons-material/Close";
-import { Link, useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.css";
-import styled from "styled-components";
-import { useState } from "react";
-import axios from "axios";
-import CryptoJS from "crypto-js";
+/* eslint-disable no-unused-vars */
+import imgLogin from "../assets/image_loginNew.png"
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline"
+import LockIcon from "@mui/icons-material/Lock"
+import ExitToAppIcon from "@mui/icons-material/ExitToApp"
+import CloseIcon from "@mui/icons-material/Close"
+import { Link, useNavigate } from "react-router-dom"
+import "bootstrap/dist/css/bootstrap.css"
+import styled from "styled-components"
+import { useState } from "react"
+import CryptoJS from "crypto-js"
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
+import { anonymous } from 'api'
+import { Snackbar } from "~/components/general"
 
 function Login() {
   const [username, setUsername] = useState("")
   const [pass, setPass] = useState("");
   const [role, setRole] = useState("");
   const [message, setMessage] = useState("")
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   const navigate = useNavigate()
 
   const typeUsername = (e) => {
     setUsername(e.target.value);
     setMessage("");
-  };
+  }
 
   const typePassword = (e) => {
     setPass(e.target.value);
     setMessage("");
-  };
+  }
 
   const typeRole = (e) => {
     setRole(e.target.value);
     setMessage("");
-  };
+  }
 
   const hashPassword = (password) => {
     return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
-  };
+  }
 
   const handleSuccess = async (response) => {
     try {
-      const res = await axios.post("http://localhost:3000/s/loginWithGoogle", {
-        loginCredential: response.credential
-      });
-      if (res.data === "error")
-        setMessage("An error occurred when logging in with Google!")
-      else if (res.data === "locked")
-        setMessage("Your account is locked. Please choose another one")
+      const res = await anonymous.authenticateGoogle(response.credential)
+      if (res.status === 200) {
+        //login successfully
+        setOpenSuccess(true)
+        localStorage.setItem("userID", res.data.userID)
+        setTimeout(async () => {
+          navigate('/')
+        }, 2000)
+      }
       else {
-        const { token, userID, role } = res.data;
-        const userData = JSON.stringify({ userID, role })
-        alert("Login successfully")
-        sessionStorage.setItem(`token`, token)
-        sessionStorage.setItem(`userAuth`, userData)
-        navigate(`/`)
+        setOpenError({
+          status: true,
+          message: res.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
       }
     } catch (error) {
-      alert("An error occurred while trying to log in.");
-      //console.error(error)
+      setOpenError({
+        status: true,
+        message: "Error occurred when login!"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
     }
-  };
+  }
 
   const handleFailure = () => {
-    setMessage("An error occurred when logging in with Google!")
-  };
+    setOpenError({
+      status: true,
+      message: "An error occurred when logging in with Google!"
+    })
+  }
 
   const checkLogin = async () => {
     try {
-      const hassed = hashPassword(pass);
-      const res = await axios.post("http://localhost:3000/s/login", {
+      const hassed = hashPassword(pass)
+      const res = await anonymous.authenticate({
         username,
         pass: hassed,
         role
-      });
-      if (res.data === "User are not existed")
-        setMessage("Username or Password is incorrect");
+      })
+      if (res.status === 200) {
+        //login successfully
+        setOpenSuccess(true)
+        localStorage.setItem("userID", res.data.userID)
+        setTimeout(async () => {
+          navigate('/')
+        }, 2000)
+      }
       else {
-        const { token, userID, role } = res.data;
-        const userData = JSON.stringify({ userID, role });
-        alert("Login successfully")
-        sessionStorage.setItem(`token`, token)
-        sessionStorage.setItem(`userAuth`, userData)
-        navigate(`/`)
+        setOpenError({
+          status: true,
+          message: res.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
       }
     } catch (error) {
-      alert("An error occurred while trying to log in.");
-      //console.error(error)
+      setOpenError({
+        status: true,
+        message: "Error occurred when login!"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
     }
-  };
+  }
+
   return (
     <>
       <Helmet>
@@ -173,7 +212,7 @@ function Login() {
                   <span className="custom-radio"></span>
                   Instructor
                 </label>
-                {/* <label>
+                <label>
                   <input
                     type="radio"
                     value="Admin"
@@ -182,7 +221,7 @@ function Login() {
                   />
                   <span className="custom-radio"></span>
                   Admin
-                </label> */}
+                </label>
               </div>
 
               {message && (
@@ -226,6 +265,9 @@ function Login() {
           </div>
         </div>
       </LoginWrapper>
+
+      { openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Login Successfully"/> </> : <> </> }
+      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
     </>
   );
 }

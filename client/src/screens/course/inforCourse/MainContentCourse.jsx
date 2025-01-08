@@ -46,7 +46,7 @@ function MainContentCourse({ inforCourseData }) {
         {inforCourseData.review.map((review, index) => (
           <div key={index} className="course-personal-review">
             <div className="course-personal-review-info">
-              <Avatar />
+              <Avatar src={review.avatar ? review.avatar : ''}/>
               <h4>{review.reviewerName}</h4>
               <span>
                 {formatDistanceToNow(new Date(review.date), {

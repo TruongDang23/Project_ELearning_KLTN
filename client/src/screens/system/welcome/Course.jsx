@@ -3,7 +3,7 @@ import StarRating from './StarRating'
 import { Link } from 'react-router-dom'
 
 function Course({ course }) {
-  const { courseID, title, price, star, raters, image_introduce, fullname } =
+  const { courseID, title, price, star, number_reviews, image_introduce, instructor } =
     course
   return (
     <CourseWrapper>
@@ -12,11 +12,11 @@ function Course({ course }) {
       </div>
       <div className="item-body">
         <h3 className="item-title">{title}</h3>
-        <span className="item-creator">{fullname}</span>
+        <span className="item-creator">{instructor}</span>
         <div className="item-rating">
           <span className="rating-star-val">{star}</span>
           <StarRating rating_star={star} />
-          <span className="rating-count">({raters})</span>
+          <span className="rating-count">({number_reviews})</span>
         </div>
         <div className="item-price">
           <span className="item-price-new">Free</span>

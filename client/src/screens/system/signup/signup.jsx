@@ -1,16 +1,16 @@
-import imgLogin from "../assets/image_signup_new.png";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import LockIcon from "@mui/icons-material/Lock";
-import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
-import CloseIcon from "@mui/icons-material/Close";
-import "bootstrap/dist/css/bootstrap.css";
-import styled from "styled-components";
-import { useState } from "react";
-import axios from "axios";
-import CryptoJS from "crypto-js";
-import { Link } from "react-router-dom";
+import imgLogin from "../assets/image_signup_new.png"
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline"
+import LockIcon from "@mui/icons-material/Lock"
+import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt"
+import CloseIcon from "@mui/icons-material/Close"
+import "bootstrap/dist/css/bootstrap.css"
+import styled from "styled-components"
+import { useState } from "react"
+import CryptoJS from "crypto-js"
+import { Link, useNavigate } from "react-router-dom"
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
-
+import { anonymous } from 'api'
+import { Snackbar } from "~/components/general"
 
 function Signup() {
   const [username, setUsername] = useState("");
@@ -18,10 +18,15 @@ function Signup() {
   const [repass, setRepass] = useState("");
   const [role, setRole] = useState("");
   const [message, setMessage] = useState("");
-
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const navigate = useNavigate()
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   const hashPassword = (password) => {
     return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
-  };
+  }
 
   const typeRepass = (e) => {
     setRepass(e.target.value);
@@ -35,18 +40,41 @@ function Signup() {
   const createUser = async () => {
     try {
       const hassed = hashPassword(pass);
-      const res = await axios.post("http://localhost:3000/s/signup", {
+      const res = await anonymous.signUp({
         username,
         pass: hassed,
         role
-      });
-      if (res.data === true) alert("Signup Successfully");
-      else alert("Signup Failed");
+      })
+      if (res.status === 201) {
+        //login successfully
+        setOpenSuccess(true)
+        setTimeout(() => {
+          navigate('/login')
+        }, 2000)
+      }
+      else {
+        setOpenError({
+          status: true,
+          message: res.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
+      }
     } catch (error) {
-      alert("An error occurred while trying to sign up.");
-      //console.error(error)
+      setOpenError({
+        status: true,
+        message: "Error occurred when signup!"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
     }
-  };
+  }
 
   return (
     <>
@@ -157,7 +185,7 @@ function Signup() {
                   <span className="custom-radio"></span>
                   Instructor
                 </label>
-                {/* <label>
+                <label>
                   <input
                     type="radio"
                     value="Admin"
@@ -166,7 +194,7 @@ function Signup() {
                   />
                   <span className="custom-radio"></span>
                   Admin
-                </label> */}
+                </label>
               </div>
 
               {message && (
@@ -206,6 +234,8 @@ function Signup() {
           </div>
         </div>
       </SignupWrapper>
+      { openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Signup Successfully"/> </> : <> </> }
+      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
     </>
   );
 }

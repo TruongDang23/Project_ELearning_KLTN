@@ -71,7 +71,7 @@ export class AdminClient extends ApiClient {
     }
   }
 
-  async lockAccount(id) { 
+  async lockAccount(id) {
     try {
       const response = await axios.put(`${this.domain}/locked/${id}`, {
         headers: {
