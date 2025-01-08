@@ -1,14 +1,13 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-async-promise-executor */
 import catchAsync from '../utils/catchAsync.js'
 import jwt from 'jsonwebtoken'
-import { promisify } from 'util'
 import Email from '../utils/email.js'
 import crypto from 'crypto'
-import bcrypt from 'bcryptjs'
 import connectMysql from '../config/connMySql.js'
 import User from '../models/user.js'
 import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
-import AppError from '../utils/appError.js'
 
 const hashPassword = (password) => {
   // Create a SHA-512 hash
@@ -264,7 +263,7 @@ const login = catchAsync(async (req, res, next) => {
           if (results != null && results.length > 0) {
             createSendToken(results[0].userID, 200, res)
           } else {
-            return next({ status: 404, message: 'User does not exit'})
+            return next({ status: 404, message: 'User does not exit' })
           }
         }
       )
@@ -344,15 +343,15 @@ const protect = catchAsync(async (req, res, next) => {
         process.env.JWT_SECRET
       )
       switch (tokenDecode.id[0]) {
-        case 'A':
-          req.role = 'admin'
-          break
-        case 'I':
-          req.role = 'instructor'
-          break
-        case 'S':
-          req.role = 'student'
-          break
+      case 'A':
+        req.role = 'admin'
+        break
+      case 'I':
+        req.role = 'instructor'
+        break
+      case 'S':
+        req.role = 'student'
+        break
       }
       req.userID = tokenDecode.id
       next()

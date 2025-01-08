@@ -1,8 +1,8 @@
+/* eslint-disable no-async-promise-executor */
 import Course from '../models/courseInfo.js'
 import catchAsync from '../utils/catchAsync.js'
 import mongoose from 'mongoose'
-import User from '../models/user.js'
-import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
+import { formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
 
@@ -54,7 +54,7 @@ const getFullInfoMongo = (courseID) => {
   return new Promise(async (resolve, reject) => {
     try {
       const mongoData = await Course.find({ courseID: { $in: courseID } }).select()
-      
+
       if (mongoData) {
         resolve(mongoData)
       }
@@ -222,12 +222,12 @@ const getCourseById = catchAsync(async (req, res, next) => {
     // End the MongoDB session
     await mongoTransaction.endSession()
   }
-  
+
   // Merge data
   const mergeData = info_mysql.map(course => {
     return {
       ...course,
-      // videos: videos,
+      videos: videos,
       review: reviews,
       image_introduce: info_mongo[0].image_introduce,
       video_introduce: info_mongo[0].video_introduce,
@@ -245,13 +245,13 @@ const getCourseById = catchAsync(async (req, res, next) => {
 const searchCourse = catchAsync(async (req, res, next) => {
   // Implement here
   const mysqlTransaction = connectMysql.promise()
-  const { 
-    category = '', 
-    title = '', 
-    ratings = 0, 
-    language = '', 
-    method = '', 
-    program = '', 
+  const {
+    category = '',
+    title = '',
+    ratings = 0,
+    language = '',
+    method = '',
+    program = '',
     price = 0,
     limit = 9,
     page = 'welcome'
@@ -268,8 +268,6 @@ const searchCourse = catchAsync(async (req, res, next) => {
     limit: Number(limit) || 9,
     page
   }
-
-  console.log(queryObject)
   // Start Transaction
   await mysqlTransaction.query("START TRANSACTION")
   try {
@@ -301,7 +299,7 @@ const searchCourse = catchAsync(async (req, res, next) => {
     await mysqlTransaction.query("ROLLBACK")
     next(error)
   }
-  
+
 })
 
 // Thông tin truy cập vào khóa học

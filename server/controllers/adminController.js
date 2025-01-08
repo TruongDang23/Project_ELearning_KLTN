@@ -1,3 +1,4 @@
+/* eslint-disable no-async-promise-executor */
 import catchAsync from '../utils/catchAsync.js'
 import mongoose from 'mongoose'
 import User from '../models/user.js'
@@ -34,7 +35,7 @@ const getFullInfoMongo = async (userID) => {
       if (mongoData)
         resolve(mongoData)
     }
-    catch (error) { 
+    catch (error) {
       reject(error)
     }
   })
@@ -56,7 +57,7 @@ const getByID = catchAsync(async (req, res, next) => {
     // Run both functions asynchronously
     [info_mysql, info_mongo] = await Promise.all([
       getFullInfoMySQL(mysqlTransaction, userID), // Fetch MySQL data
-      getFullInfoMongo(userID), // Fetch MongoDB data
+      getFullInfoMongo(userID) // Fetch MongoDB data
     ])
 
     // Commit Transactions
