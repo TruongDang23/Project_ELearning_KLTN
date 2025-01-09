@@ -1,6 +1,6 @@
 import axios from 'axios'
 axios.defaults.withCredentials = true
-axios.interceptors.response
+
 export class ApiClient {
   domain = 'http://localhost:3000/api'
 
@@ -10,6 +10,16 @@ export class ApiClient {
 
   getDomain() {
     return this.domain
+  }
+
+  async refreshToken() {
+    try {
+      const response = await axios.get(`${this.domain}/refreshtoken`)
+      return response
+    }
+    catch (error) {
+      return error
+    }
   }
 
   async update(id, newdata) {
@@ -47,3 +57,24 @@ export class ApiClient {
     }
   }
 }
+
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Kiểm tra lỗi 401 (Unauthorized)
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      try {
+        // Gọi endpoint để refresh token
+        const res = await axios.post('http://localhost:3000/api/refreshtoken')
+        console.log('res', res)
+        // Thêm access_token mới vào header của request ban đầu
+        return axios(originalRequest)
+      } catch (refreshError) {
+        return Promise.reject(refreshError)
+      }
+    }
+    return Promise.reject(error)
+  }
+)

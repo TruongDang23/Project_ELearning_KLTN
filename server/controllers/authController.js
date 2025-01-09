@@ -9,6 +9,8 @@ import User from '../models/user.js'
 import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
 
+let tokenList = []
+
 const hashPassword = (password) => {
   // Create a SHA-512 hash
   const hash = crypto.createHash('sha512')
@@ -162,6 +164,8 @@ const createSendToken = (userID, statusCode, res) => {
     process.env.JWT_SECRET,
     process.env.REFRESH_JWT_EXPIRES_IN
   )
+  //Assume Store token into mongoDB
+  tokenList[refresh] = {token, refresh}
 
   // Lưu token vào cookie
   res.cookie('access_token', token, {
@@ -356,10 +360,10 @@ const protect = catchAsync(async (req, res, next) => {
       req.userID = tokenDecode.id
       next()
     } catch (error) {
-      next(error)
+      next({ status: 401, message: 'Unauthorized' })
     }
   } else {
-    next({ status: 401, message: 'Missing access token!' })
+    next({ status: 403, message: 'No token provided!' })
   }
 })
 
@@ -377,4 +381,41 @@ const restrictTo = (...roles) => {
   }
 }
 
-export default { signup, login, protect, restrictTo, loginWithGoogle, logout }
+const refreshToken = catchAsync(async (req, res, next) => {
+  //refeshToken will be stored in mongoDB. Must find that token exist in db then processing
+  const refresh = req.cookies.refresh_token
+
+  if (refresh) {//&& (tokenList[refresh])) {
+    try {
+      const tokenDecode = jwt.verify(
+        refresh,
+        process.env.JWT_SECRET
+      )
+
+      const userID = tokenDecode.id
+      const newAccessToken = signToken(
+        userID,
+        process.env.JWT_SECRET,
+        process.env.JWT_EXPIRES_IN
+      )
+
+      // Lưu token vào cookie
+      res.cookie('access_token', newAccessToken, {
+        httpOnly: true,
+        sameSite: 'Strict', // Ngăn chặn CSRF
+        maxAge: 60 * 60 * 1000, // Token có hiệu lực trong 60 phút
+        secure: true,
+        path: '/'
+      })
+      res.status(200).send('Refresh token successfully')
+    }
+    catch (error) {
+      next({ status: 500, message: 'Invalid refresh token.'})
+    }
+  }
+  else {
+    next({ status: 500, message: 'No refresh token provided.' })
+  }
+})
+
+export default { signup, login, protect, restrictTo, refreshToken, loginWithGoogle, logout }
