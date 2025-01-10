@@ -68,9 +68,8 @@ axios.interceptors.response.use(
       try {
         // Gọi endpoint để refresh token
         const res = await axios.post('http://localhost:3000/api/refreshtoken')
-        console.log('res', res)
         // Thêm access_token mới vào header của request ban đầu
-        return axios(originalRequest)
+        if (res) return axios(originalRequest)
       } catch (refreshError) {
         return Promise.reject(refreshError)
       }

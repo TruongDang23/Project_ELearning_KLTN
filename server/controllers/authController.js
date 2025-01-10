@@ -6,10 +6,9 @@ import Email from '../utils/email.js'
 import crypto from 'crypto'
 import connectMysql from '../config/connMySql.js'
 import User from '../models/user.js'
+import TokenList from '../models/token.js'
 import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
-
-let tokenList = []
 
 const hashPassword = (password) => {
   // Create a SHA-512 hash
@@ -133,7 +132,13 @@ const signToken = (id, secret, expire) => {
   })
 }
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
+
+  const refresh = req.cookies.refresh_token
+
+  //Clear refresh token from mongoDB
+  await TokenList.findOneAndDelete({ refresh_token: refresh })
+
   res.cookie('access_token', '', {
     httpOnly: true,
     sameSite: 'None',
@@ -153,7 +158,7 @@ const logout = (req, res) => {
   res.status(200).send({ message: 'Logged out successfully' })
 }
 
-const createSendToken = (userID, statusCode, res) => {
+const createSendToken = async (userID, statusCode, res) => {
   const token = signToken(
     userID,
     process.env.JWT_SECRET,
@@ -164,8 +169,8 @@ const createSendToken = (userID, statusCode, res) => {
     process.env.JWT_SECRET,
     process.env.REFRESH_JWT_EXPIRES_IN
   )
-  //Assume Store token into mongoDB
-  tokenList[refresh] = {token, refresh}
+
+  await TokenList.create({ refresh_token: refresh })
 
   // Lưu token vào cookie
   res.cookie('access_token', token, {
@@ -384,8 +389,9 @@ const restrictTo = (...roles) => {
 const refreshToken = catchAsync(async (req, res, next) => {
   //refeshToken will be stored in mongoDB. Must find that token exist in db then processing
   const refresh = req.cookies.refresh_token
+  const stored_token = await TokenList.findOne({ refresh_token: refresh }).select('refresh_token')
 
-  if (refresh) {//&& (tokenList[refresh])) {
+  if (refresh && stored_token.refresh_token) {
     try {
       const tokenDecode = jwt.verify(
         refresh,
@@ -410,7 +416,7 @@ const refreshToken = catchAsync(async (req, res, next) => {
       res.status(200).send('Refresh token successfully')
     }
     catch (error) {
-      next({ status: 500, message: 'Invalid refresh token.'})
+      next({ status: 500, message: 'Invalid refresh token.' })
     }
   }
   else {
