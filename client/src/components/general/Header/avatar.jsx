@@ -24,6 +24,7 @@ import { userStore } from '~/context/UserStore'
 import { anonymous } from 'api'
 
 export default function AvatarAction({ setReload }) {
+  const { resetInfor } = userStore()
   const navigate = useNavigate()
   const userID = localStorage.getItem("userID")
 
@@ -35,6 +36,7 @@ export default function AvatarAction({ setReload }) {
   const handleLogout = async() => {
     localStorage.clear()
     await anonymous.logOut()
+    resetInfor()
     setReload(true)
     navigate('/')
   }

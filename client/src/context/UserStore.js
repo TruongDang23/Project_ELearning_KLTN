@@ -1,7 +1,7 @@
 import { create } from "zustand"
 
-const userStore = create((set) => ({
-  //MySQL
+const defaultState = {
+  // MySQL
   userID: '',
   avatar: '',
   fullname: '',
@@ -12,7 +12,7 @@ const userStore = create((set) => ({
   country: '',
   language: '',
   role: '',
-  //MongoDB
+  // MongoDB
   social_networks: [],
   expertise: [],
   self_introduce: "",
@@ -21,11 +21,19 @@ const userStore = create((set) => ({
   projects: [],
   course_enrolled: [],
   course_published: [],
-  activity_status: '',
+  activity_status: ''
+}
+
+const userStore = create((set) => ({
+  ...defaultState,
 
   updateInfor: (newInfor) => set((state) => ({
     ...state,
     ...newInfor
+  })),
+
+  resetInfor: () => set(() => ({
+    ...defaultState // Reset to initial state
   }))
 }))
 

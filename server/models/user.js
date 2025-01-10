@@ -2,9 +2,9 @@ import mongoose from 'mongoose'
 
 const userSchema = new mongoose.Schema({
   // Định nghĩa các thuộc tính
-  userID: { 
+  userID: {
     type: String,
-    required: [true, 'User ID is required'] 
+    required: [true, 'User ID is required']
   },
   social_networks: [{ type: String }],
   self_introduce: { type: String },
