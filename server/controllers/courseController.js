@@ -6,6 +6,30 @@ import { formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
 
+const getListInforPublish = (connection, listID) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT c.courseID, title, time, method
+                    FROM course as c
+                    INNER JOIN published_course as pc ON c.courseID = pc.courseID
+                    WHERE c.courseID IN (?)`
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          listID
+        ])
+      if (rowsInfo.affectedRows !== 0) {
+        resolve(rowsInfo)
+      }
+      else {
+        reject("This course does not contain data")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
 const getFullInfoMySQL = (connection, courseID) => {
   return new Promise(async (resolve, reject) => {
     let query =
@@ -325,3 +349,5 @@ export default {
   createCourse,
   updateCourse
 }
+
+export { getListInforPublish }
