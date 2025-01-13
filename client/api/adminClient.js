@@ -14,6 +14,20 @@ export class AdminClient extends ApiClient {
     this.student = new StudentClient()
   }
 
+  async updateAvatar(id, formData) {
+    try {
+      const response = await axios.put(`${this.domain}/avatar/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async acceptCourse(id) {
     try {
       const response = await axios.put(`${this.domain}/accept/${id}`, {

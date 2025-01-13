@@ -2,64 +2,84 @@
 import styled from 'styled-components'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { languages } from '~/constants/listLanguage'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import EditIcon from '@mui/icons-material/Edit'
+import { userStore } from '~/context/UserStore'
+import { admin } from 'api'
+import { Snackbar } from "~/components/general"
 
 function UserProfile({ profile, setUserProfile }) {
   const [isReadOnly, setIsReadOnly] = useState(true)
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
-  const navigate = useNavigate()
+  const formData = useRef(new FormData())
+  const userID = localStorage.getItem("userID")
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero indexed
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0') // Months are zero indexed
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
 
   const handleSocialNetworkChange = (index, newUrl) => {
     setUserProfile((prevProfile) => {
-      const updatedSocialNetwork = [...prevProfile.social_network];
-      updatedSocialNetwork[index] = newUrl;
+      const updatedSocialNetwork = [...prevProfile.social_network]
+      updatedSocialNetwork[index] = newUrl
       return {
         ...prevProfile,
         social_network: updatedSocialNetwork
-      };
-    });
-  };
+      }
+    })
+  }
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0]
+    formData.current.set(`${userID}-avatar`, file)
+
+    if (file) {
+      const objectUrl = URL.createObjectURL(file)
+      //Update avatar in EditProfile screen
+      setUserProfile((prevProfile) => ({
+        ...prevProfile,
+        avatar: objectUrl
+      }))
+
+      //Update avatar in header
+      userStore.getState().updateInfor({ avatar: objectUrl })
+
+      // Cleanup Blob URL khi không cần nữa
+      return () => URL.revokeObjectURL(objectUrl)
+    }
+  }
 
   const updateInfor = async() => {
-    try
-    {
-      const res = await axios.post('http://localhost:3000/ad/updateInformation',
-        { profile },
-        {
-          headers: {
-            'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            'user': userAuth
-          }
-        }
-      )
-      if (res.data === true)
-        alert('Update Successfully')
-      else
-        alert('Update Failed')
-    }
-    catch (error) {
-      //Server shut down
-      if (error.message === 'Network Error')
-        navigate('/server-shutdown')
-      //Connection error
-      if (error.response.status === 500)
-        navigate('/500error')
-      //Unauthorized. Need login
-      if (error.response.status === 401)
-        navigate('/401error')
-      //Forbidden. Token != userAuth
-      if (error.response.status === 403)
-        navigate('/403error')
+    if (!formData.current.keys().next().done) {
+      //FormData has data
+      const res_avatar = await admin.updateAvatar(userID, formData.current)
+      console.log(res_avatar)
+      if (res_avatar.status === 201) {
+        setUserProfile((prevProfile) => ({
+          ...prevProfile,
+          avatar: res_avatar.data
+        }))
+      }
+      else {
+        setOpenError({
+          status: true,
+          message: res_avatar.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
+      }
+    } else {
+      //FormData is empty
+
     }
   }
 
@@ -67,7 +87,19 @@ function UserProfile({ profile, setUserProfile }) {
     <>
       <ProfileContainer>
         <div className="avt">
-          <img src={ profile.avatar } alt='avatar' />
+          <div className="avatar-container">
+            <img src={profile.avatar} alt="avatar" />
+            <EditIcon sx={{ fontSize: '3rem', color: '#898989' }}
+              onClick={() => document.getElementById('upload-avatar').click()}
+              className="edit-icon" />
+            <input
+              type="file"
+              id="upload-avatar"
+              style={{ display: 'none' }}
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </div>
         </div>
         <div className="content">
           <h3>UserID: </h3>
@@ -203,6 +235,7 @@ function UserProfile({ profile, setUserProfile }) {
           </div>
         </div>
       </ProfileContainer>
+      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
     </>
   )
 }
@@ -211,20 +244,30 @@ const ProfileContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  .avt{
+  .avt {
     align-self: center;
     margin-top: 20px;
     margin-bottom: 20px;
-    img{
-      width: 200px;
-      height: 200px;
-      object-fit: cover;
-      ${"" /* bo hai góc trên của ảnh */}
-      border-top-left-radius: 40%;
-      border-top-right-radius: 40%;
-      border-bottom-left-radius: 40%;
-      border-bottom-right-radius: 40%;
-    }
+  }
+
+  .avatar-container {
+    position: relative; /* Để định vị phần tử con */
+    width: 200px;
+    height: 200px;
+  }
+
+  .avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 40%; /* Làm tròn các góc */
+  }
+
+  .avatar-container .edit-icon {
+    position: absolute;
+    bottom: 10px; /* Cách đáy 10px */
+    right: -10px; /* Cách phải 10px */
+    cursor: pointer; /* Thêm hiệu ứng khi hover */
   }
   .content{
     margin-left: 50px;

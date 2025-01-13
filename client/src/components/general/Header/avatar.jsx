@@ -26,7 +26,8 @@ import { anonymous } from 'api'
 export default function AvatarAction({ setReload }) {
   const navigate = useNavigate()
   const userID = localStorage.getItem("userID")
-
+  const fullname = userStore((state) => state.fullname)
+  const avatar = userStore((state) => state.avatar)
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
 
@@ -85,7 +86,7 @@ export default function AvatarAction({ setReload }) {
     <React.Fragment>
       <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
         <Tooltip
-          title={<span style={{ fontSize: '1.6rem' }}>{ userStore.getState().fullname ? userStore.getState().fullname : ''}</span>}
+          title={<span style={{ fontSize: '1.6rem' }}>{ fullname ? fullname : ''}</span>}
         >
           <IconButton
             onClick={handleClick}
@@ -103,7 +104,7 @@ export default function AvatarAction({ setReload }) {
                 border: '2px solid #1971c2',
                 marginLeft: '-20px'
               }}
-              src={ userStore.getState().avatar ? userStore.getState().avatar : ''}
+              src={ avatar ? avatar : ''}
             />
           </IconButton>
         </Tooltip>
