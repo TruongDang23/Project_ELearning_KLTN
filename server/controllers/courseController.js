@@ -329,6 +329,7 @@ const searchCourse = catchAsync(async (req, res, next) => {
 // Thông tin truy cập vào khóa học
 const accessCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  res.status(500).send('error')
 })
 
 // Tạo mới khóa học
