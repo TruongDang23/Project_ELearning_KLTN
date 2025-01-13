@@ -13,6 +13,7 @@ function UserProfile({ profile, setUserProfile }) {
   const [isReadOnly, setIsReadOnly] = useState(true)
   const formData = useRef(new FormData())
   const userID = localStorage.getItem("userID")
+  const [openSuccess, setOpenSuccess] = useState(false)
   const [openError, setOpenError] = useState({
     status: false,
     message: ""
@@ -56,15 +57,32 @@ function UserProfile({ profile, setUserProfile }) {
   }
 
   const updateInfor = async() => {
+    //FormData has data
     if (!formData.current.keys().next().done) {
-      //FormData has data
+      //Upload avatar to GCS
       const res_avatar = await admin.updateAvatar(userID, formData.current)
-      console.log(res_avatar)
       if (res_avatar.status === 201) {
         setUserProfile((prevProfile) => ({
           ...prevProfile,
           avatar: res_avatar.data
         }))
+
+        //Update information
+        const res = await admin.update(userID, profile)
+        if (res.status === 200) {
+          setOpenSuccess(true)
+        }
+        else {
+          setOpenError({
+            status: true,
+            message: res.response.data.error
+          })
+          setTimeout(() => {
+            setOpenError({
+              status: false
+            })
+          }, 3000)
+        }
       }
       else {
         setOpenError({
@@ -79,7 +97,22 @@ function UserProfile({ profile, setUserProfile }) {
       }
     } else {
       //FormData is empty
-
+      //Update information
+      const res = await admin.update(userID, profile)
+      if (res.status === 200) {
+        setOpenSuccess(true)
+      }
+      else {
+        setOpenError({
+          status: true,
+          message: res.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
+      }
     }
   }
 
@@ -235,6 +268,7 @@ function UserProfile({ profile, setUserProfile }) {
           </div>
         </div>
       </ProfileContainer>
+      { openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Update Successfully"/> </> : <> </> }
       { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
     </>
   )

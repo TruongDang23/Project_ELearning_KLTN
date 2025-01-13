@@ -42,6 +42,61 @@ const getFullInfoMongo = async (userID) => {
   })
 }
 
+const updateInfoMySQL = (connection, inf) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `UPDATE user 
+                SET avatar = ?,
+                    fullname = ?,
+                    date_of_birth = ?,
+                    street = ?,
+                    province = ?,
+                    country = ?,
+                    language = ?
+                WHERE userID = ?`
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          inf.avatar,
+          inf.fullname,
+          inf.date_of_birth,
+          inf.street,
+          inf.province,
+          inf.country,
+          inf.language,
+          inf.userID
+        ])
+
+      if (rowsInfo.affectedRows !== 0) {
+        resolve(rowsInfo)
+      }
+      else {
+        reject("Failed to update data in mysql")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+
+const updateInfoMongoDB = async (session, inf) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await User.collection.updateOne(
+        { userID: inf.userID }, // Filter condition
+        { $set: { social_networks: inf.social_network } }, // Update operation
+        { session: session } // Attach the session
+      )
+      if (result)
+        resolve(result)
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
 const getByID = catchAsync(async (req, res, next) => {
   // Implement here
   const userID = req.userID
@@ -94,6 +149,34 @@ const getByID = catchAsync(async (req, res, next) => {
 
 const update = catchAsync(async (req, res, next) => {
   // Implement here
+  const newInfo = req.body.data
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  mongoTransaction.startTransaction()
+
+  try {
+    // Run both functions asynchronously
+    await Promise.all([
+      updateInfoMySQL(mysqlTransaction, newInfo), // Fetch MySQL data
+      updateInfoMongoDB(mongoTransaction, newInfo) // Fetch MongoDB data
+    ])
+
+    // Commit Transactions
+    await mysqlTransaction.query("COMMIT")
+    await mongoTransaction.commitTransaction()
+  } catch (error) {
+    // Rollback Transactions in case of an error
+    await mysqlTransaction.query("ROLLBACK")
+    await mongoTransaction.abortTransaction()
+    next(error) // Pass the error to the next middleware
+  } finally {
+    // End the MongoDB session
+    await mongoTransaction.endSession()
+  }
+  res.status(200).send('Update Successfully')
 })
 
 const updateAvatar = catchAsync(async (req, res, next) => {
