@@ -125,7 +125,7 @@ const getReview = (courseID) => {
 const getTotalVideo = (courseID) => {
   return new Promise(async (resolve, reject) => {
     const [files] = await storage
-      .bucket("e-learning-bucket")
+      .bucket(process.env.GCS_COURSE_BUCKET)
       .getFiles({ prefix: courseID })
 
     let totalVideo = 0
@@ -207,6 +207,57 @@ const getCourseWithParams = (connection, params) => {
       reject(error)
     }
 
+  })
+}
+
+const getProgress = async (courseID, userID) => {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        return reject(err)
+      }
+
+      const query = ` SELECT FORMAT(SUM(percent)/num_lecture,1) AS progress
+        from course inner join (
+          SELECT lectureID, courseID, MAX(percent) AS percent 
+            FROM learning
+            where userID = ?
+          group by lectureID, courseID
+        ) AS list_progress
+        ON course.courseID = list_progress.courseID
+        where course.courseID = ?`
+      connection.query(query, [userID, courseID], (error, data) => {
+        connection.release()
+        if (error) {
+          return reject(error)
+        }
+        resolve(data[0].progress)
+      })
+    })
+  })
+}
+
+const getListLearning = async (courseID, userID) => {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        return reject(err)
+      }
+
+      const query = ` SELECT lectureID, MAX(percent) AS progress FROM learning
+        where courseID = ? and userID = ?
+        group by lectureID 
+        order by lectureID asc`
+      connection.query(query, [courseID, userID], (error, learning) => {
+        connection.release()
+        if (error) {
+          return reject(error)
+        }
+        resolve(learning)
+      })
+    })
   })
 }
 
@@ -329,7 +380,54 @@ const searchCourse = catchAsync(async (req, res, next) => {
 // Thông tin truy cập vào khóa học
 const accessCourse = catchAsync(async (req, res, next) => {
   // Implement here
-  res.status(500).send('error')
+  const courseID = req.params.id
+  const userID = req.userID
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  mongoTransaction.startTransaction()
+
+  let info_mysql, info_mongo, reviews, videos, progress, list_learning
+
+  try {
+    // Run both functions asynchronously
+    [info_mysql, info_mongo, reviews, videos, progress, list_learning] = await Promise.all([
+      getFullInfoMySQL(mysqlTransaction, courseID), // Fetch MySQL data
+      getFullInfoMongo(courseID), // Fetch MongoDB data
+      getReview(courseID),
+      getTotalVideo(courseID),
+      getProgress(courseID, userID),
+      getListLearning(courseID, userID)
+    ])
+    // Commit Transactions
+    await mysqlTransaction.query("COMMIT")
+    await mongoTransaction.commitTransaction()
+  } catch (error) {
+    // Rollback Transactions in case of an error
+    await mysqlTransaction.query("ROLLBACK")
+    await mongoTransaction.abortTransaction()
+    next(error) // Pass the error to the next middleware
+  } finally {
+    // End the MongoDB session
+    await mongoTransaction.endSession()
+  }
+
+  // Merge data
+  const mergeData = info_mysql.map(course => {
+    return {
+      ...course,
+      progress: progress ? progress : 0,
+      videos: videos,
+      review: reviews,
+      keywords: info_mongo[0].keywords,
+      chapters: info_mongo[0].chapters,
+      learning: list_learning
+    }
+  })
+
+  res.status(200).send(mergeData[0])
 })
 
 // Tạo mới khóa học

@@ -4,8 +4,6 @@ import CourseBanner from './CourseBanner'
 import MainAccessCourse from './MainAccessCourse'
 import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
 import Loading from '~/screens/system/Loading'
 import { anonymous, admin, instructor, student } from 'api'
 import { createGlobalStyle } from 'styled-components'
@@ -31,6 +29,7 @@ function AccessCourse() {
       course = await student.getCourseDetails(courseID)
       break;
     }
+    console.log(course)
     setIsLoad(false)
     setAccessCourseData(course.data)
   }

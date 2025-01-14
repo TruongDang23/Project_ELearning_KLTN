@@ -1,6 +1,7 @@
 import express from 'express'
 import authController from '../controllers/authController.js'
 import courseController from '../controllers/courseController.js'
+import { checkAccessCourse } from '../utils/precheckAccess.js'
 
 const courseRouter = express.Router()
 
@@ -21,6 +22,7 @@ courseRouter
   .get(
     authController.protect,
     authController.restrictTo('admin', 'instructor', 'student'),
+    checkAccessCourse,
     courseController.accessCourse
   )
 
