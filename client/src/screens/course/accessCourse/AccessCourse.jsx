@@ -31,7 +31,6 @@ function AccessCourse() {
       course = await student.getCourseDetails(courseID)
       break;
     }
-    console.log(course)
     setIsLoad(false)
     setAccessCourseData(course.data)
   }
