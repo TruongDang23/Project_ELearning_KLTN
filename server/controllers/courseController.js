@@ -430,9 +430,18 @@ const accessCourse = catchAsync(async (req, res, next) => {
   res.status(200).send(mergeData[0])
 })
 
+//Upload file media
+const uploadFileGCS = catchAsync(async (req, res, next) => {
+  const files = req.files || []
+  if (files)
+    res.status(201).send('upload file successfully')
+  else next({ status: 500, message: 'Failed to upload files' })
+})
+
 // Tạo mới khóa học
 const createCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  
 })
 
 // cập nhật thông tin khóa học
@@ -446,7 +455,8 @@ export default {
   searchCourse,
   accessCourse,
   createCourse,
-  updateCourse
+  updateCourse,
+  uploadFileGCS
 }
 
 export { getListInforPublish }

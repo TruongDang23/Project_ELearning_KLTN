@@ -5,7 +5,7 @@ import MainAccessCourse from './MainAccessCourse'
 import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import Loading from '~/screens/system/Loading'
-import { anonymous, admin, instructor, student } from 'api'
+import { admin, instructor, student } from 'api'
 import { createGlobalStyle } from 'styled-components'
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 
@@ -29,7 +29,6 @@ function AccessCourse() {
       course = await student.getCourseDetails(courseID)
       break;
     }
-    console.log(course)
     setIsLoad(false)
     setAccessCourseData(course.data)
   }

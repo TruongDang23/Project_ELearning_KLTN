@@ -28,6 +28,20 @@ export class CourseClient extends ApiClient {
     }
   }
 
+  async uploadFileMedia(formData) {
+    try {
+      const response = await axios.put(`${this.domain}/attach`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async createDataCourse(content) {
     try {
       const response = await axios.post(`${this.domain}`, {

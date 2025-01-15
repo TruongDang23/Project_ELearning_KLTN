@@ -2,23 +2,23 @@ import { GeneralHeader } from '~/components/general'
 import FooterNew from '~/components/general/Footer/FooterNew'
 import styled, { createGlobalStyle } from 'styled-components'
 import Sticky from 'react-sticky-el'
-
 import MainDesignCourse from './MainDesignCourse'
 import Sidebar from './Sidebar'
 import { DesignCourseProvider } from './DesignCourseContext'
 import Logo from '../../../assets/hdh.png'
-
 import { useState } from 'react'
-
-import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import Loading from '~/screens/system/Loading'
+import { instructor } from 'api'
+import { Snackbar } from "~/components/general"
 
 function DesignCourse() {
   const formData = new FormData()
-
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   const userData = JSON.parse(sessionStorage.getItem('userAuth'))
   const navigate = useNavigate()
   const [isLoad, setIsLoad] = useState(false)
@@ -51,6 +51,8 @@ function DesignCourse() {
   let lectureId = 1
 
   const handleSave = async () => {
+    setIsLoad(true)
+
     formData.append(
       `image_introduce-${userData.userID}`,
       structure.image_introduce
@@ -70,59 +72,25 @@ function DesignCourse() {
       })
     })
 
-    //API upload file into folder uploads
-    await axios
-      .post('http://localhost:3000/c/uploadfile', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Token: token,
-          user: userAuth
-        }
-      })
-      .then((response) => {
-        if (response.status === 200) setIsLoad(true) //Start loading page
-      })
-      .catch((error) => {
-        //Server shut down
-        if (error.message === 'Network Error') navigate('/server-shutdown')
-        //Connection error
-        if (error.response.status === 500) navigate('/500error')
-        //Unauthorized. Need login
-        if (error.response.status === 401) navigate('/401error')
-        //Forbidden. Token != userAuth
-        if (error.response.status === 403) navigate('/403error')
-      })
-
-    //API insert data into mysql & mongoDB & GCS
-    await axios
-      .post(
-        'http://localhost:3000/c/createcourse',
-        {
-          structure
-        },
-        {
-          headers: {
-            Token: token,
-            user: userAuth
-          }
-        }
-      )
-      // eslint-disable-next-line no-unused-vars
-      .then((response) => {
-        setIsLoad(false) //Data is loaded successfully
+    const res = await instructor.createCourse(structure, formData)
+    if (res.status === 201) {
+      setOpenSuccess(true)
+      setTimeout(() => {
         navigate('/instructor/manageCourse')
-        alert('Upload Course Successfully')
+      }, 2000)
+    }
+    else {
+      setOpenError({
+        status: true,
+        message: res.response.data.error
       })
-      .catch((error) => {
-        //Server shut down
-        if (error.message === 'Network Error') navigate('/server-shutdown')
-        //Connection error
-        if (error.response.status === 500) navigate('/500error')
-        //Unauthorized. Need login
-        if (error.response.status === 401) navigate('/401error')
-        //Forbidden. Token != userAuth
-        if (error.response.status === 403) navigate('/403error')
-      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
+    }
+    setIsLoad(false)
   }
 
   return (
@@ -144,6 +112,8 @@ function DesignCourse() {
           </DesignCourseProvider>
         </>
       )}
+      {openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Create Successfully" /> </> : <> </>}
+      {openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message} /> </> : <> </>}
     </>
   )
 }

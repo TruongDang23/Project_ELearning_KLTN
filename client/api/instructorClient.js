@@ -55,8 +55,16 @@ export class InstructorClient extends ApiClient {
     }
   }
 
-  async createCourse(data) {
-    return this.course.createDataCourse(data)
+  async createCourse(data, formData) {
+    const res_files = await this.course.uploadFileMedia(formData)
+    //Upload file lên GCS thành công
+    if (res_files.status === 201)
+      //Tạo khóa học
+      return this.course.createDataCourse(data)
+    //Upload file lên GCS thất bại
+    else
+      //return lỗi
+      return res_files
   }
 
   async updateCourse(courseID, newdata) {

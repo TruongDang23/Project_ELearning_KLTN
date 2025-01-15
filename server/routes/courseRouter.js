@@ -2,6 +2,7 @@ import express from 'express'
 import authController from '../controllers/authController.js'
 import courseController from '../controllers/courseController.js'
 import { checkAccessCourse } from '../utils/precheckAccess.js'
+import { uploadDisk } from '../utils/multer.js'
 
 const courseRouter = express.Router()
 
@@ -32,6 +33,15 @@ courseRouter
     authController.protect,
     authController.restrictTo('instructor'),
     courseController.createCourse
+  )
+
+courseRouter
+  .route('/attach')
+  .post(
+    authController.protect,
+    authController.restrictTo('instructor'),
+    uploadDisk.any(),
+    courseController.uploadFileGCS
   )
 
 courseRouter
