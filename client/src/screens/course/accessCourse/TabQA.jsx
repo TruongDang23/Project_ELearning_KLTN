@@ -8,7 +8,7 @@ import { useParams } from 'react-router-dom'
 import io from 'socket.io-client'
 
 function TabQA({ lectureQA, setReload, lectureId }) {
-  // console.log(lectureQA)
+  console.log(lectureQA)
   const [courseQA, setCourseQA] = useState([])
   const [newResponse, setNewResponse] = useState('')
   const [newQuestion, setNewQuestion] = useState('')

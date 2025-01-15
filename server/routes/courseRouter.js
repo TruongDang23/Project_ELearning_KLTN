@@ -8,31 +8,31 @@ const courseRouter = express.Router()
 
 courseRouter.route('/:id/summary').get(courseController.getCourseById)
 
-courseRouter
-  .route('/')
-  .get(
-    authController.protect,
-    authController.restrictTo('admin'),
-    courseController.getAllCourses
-  )
-
 courseRouter.route('/search').get(courseController.searchCourse)
 
 courseRouter
-  .route('/:id')
+  .route('/')
+  .all(authController.protect)
   .get(
-    authController.protect,
+    authController.restrictTo('admin'),
+    courseController.getAllCourses
+  )
+  .post(
+    authController.restrictTo('instructor'),
+    courseController.createCourse
+  )
+
+courseRouter
+  .route('/:id')
+  .all(authController.protect)
+  .get(
     authController.restrictTo('admin', 'instructor', 'student'),
     checkAccessCourse,
     courseController.accessCourse
   )
-
-courseRouter
-  .route('/')
-  .post(
-    authController.protect,
+  .put(
     authController.restrictTo('instructor'),
-    courseController.createCourse
+    courseController.updateCourse
   )
 
 courseRouter
@@ -45,11 +45,16 @@ courseRouter
   )
 
 courseRouter
-  .route('/:id')
-  .put(
-    authController.protect,
-    authController.restrictTo('instructor'),
-    courseController.updateCourse
+  .route('/:id/:lectureID/QA')
+  .all(authController.protect)
+  .all(checkAccessCourse)
+  .post(
+    authController.restrictTo('instructor', 'student'),
+    courseController.newQnA
+  )
+  .get(
+    authController.restrictTo('instructor', 'student', 'admin'),
+    courseController.getQnA
   )
 
 export default courseRouter

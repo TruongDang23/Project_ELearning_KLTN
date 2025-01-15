@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 import { formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
+import { getUserByID } from '../utils/userHandler.js'
 
 const getListInforPublish = (connection, listID) => {
   return new Promise(async (resolve, reject) => {
@@ -261,6 +262,36 @@ const getListLearning = async (courseID, userID) => {
   })
 }
 
+const loadOriginQnA = (courseID, lectureID) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Query the course document by courseID and lectureID
+      const course = await Course.findOne(
+        {
+          courseID,
+          "chapters.lectures.id": lectureID // Match the lectureID within nested chapters
+        },
+        {
+          "chapters.$": 1 // Use positional projection to include only the matching chapter
+        }
+      )
+
+      if (course) {
+        const chapter = course.chapters[0] // Get the matched chapter
+        const lecture = chapter.lectures.find((lec) => lec.id == lectureID) // Find the specific lecture
+        if (lecture && lecture.QnA) {
+          resolve(lecture.QnA)// Return the QnA array
+        }
+      }
+
+      resolve([])
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
 const getAllCourses = catchAsync(async (req, res, next) => {
   // Implement here
 })
@@ -441,12 +472,58 @@ const uploadFileGCS = catchAsync(async (req, res, next) => {
 // Tạo mới khóa học
 const createCourse = catchAsync(async (req, res, next) => {
   // Implement here
-  
+
 })
 
 // cập nhật thông tin khóa học
 const updateCourse = catchAsync(async (req, res, next) => {
   // Implement here
+})
+
+const newQnA = catchAsync(async (req, res, next) => {
+
+})
+
+const getQnA = catchAsync(async (req, res, next) => {
+  const { id, lectureID } = req.params
+  const lectureQA = await loadOriginQnA(id, lectureID)
+  const lectures = (lectureQA) ? lectureQA : [] //Avoid case lectureQA is empty
+  if (lectures.length > 0)
+  {
+    const QA = await Promise.all(
+      lectures.map(async (lecture) => {
+        // Convert the lecture to a plain object
+        const lectureData = lecture.toObject()
+
+        // Fetch information for the questioner
+        const infQuestion = await getUserByID(lectureData.questionerID)
+        // Process responses
+        const responses = lectureData.responses && lectureData.responses.length > 0
+          ? await Promise.all(
+            lectureData.responses.map(async (response) => {
+              const infResponse = await getUserByID(response.responseID)
+              return {
+                ...response,
+                name: infResponse.fullname || "Unknown",
+                avatar: infResponse.avatar || "default-avatar.png"
+              }
+            })
+          )
+          : []
+
+        return {
+          ...lectureData, // Use the plain object without Mongoose metadata
+          name: infQuestion.fullname || "Unknown",
+          avatar: infQuestion.avatar || "default-avatar.png",
+          responses
+        }
+      })
+    )
+    res.status(200).send(QA)
+  }
+  else {
+    res.status(200).send([])
+  }
 })
 
 export default {
@@ -456,7 +533,9 @@ export default {
   accessCourse,
   createCourse,
   updateCourse,
-  uploadFileGCS
+  uploadFileGCS,
+  newQnA,
+  getQnA
 }
 
 export { getListInforPublish }

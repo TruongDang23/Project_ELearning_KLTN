@@ -54,14 +54,6 @@ adminRouter
   )
 
 adminRouter
-  .route('/:id/:courseID/:lectureID/QA')
-  .post(
-    authController.protect,
-    authController.restrictTo('admin'),
-    adminController.getQnA
-  )
-
-adminRouter
   .route('/locked/:id')
   .put(
     authController.protect,

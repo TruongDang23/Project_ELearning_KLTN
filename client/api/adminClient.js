@@ -70,19 +70,12 @@ export class AdminClient extends ApiClient {
     }
   }
 
-  async QnA(id, courseID, lectureID, content) {
-    try {
-      const response = await axios.post(`${this.domain}/${id}/${courseID}/${lectureID}/QA`, {
-        headers: {
-          //authentication
-        },
-        data: content
-      })
-      return response
-    }
-    catch (error) {
-      return error
-    }
+  async getQnA(courseID, lectureID) {
+    return this.course.getLectureQnA(courseID, lectureID)
+  }
+
+  async QnA(courseID, lectureID, content) {
+    return this.course.newLectureQnA(courseID, lectureID, content)
   }
 
   async lockAccount(id) {
