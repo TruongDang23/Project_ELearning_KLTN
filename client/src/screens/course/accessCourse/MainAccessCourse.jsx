@@ -10,6 +10,7 @@ function MainAccessCourse({ accessCourseData, setReload }) {
   const token = sessionStorage.getItem('token')
   const userAuth = sessionStorage.getItem('userAuth')
   const userData = JSON.parse(sessionStorage.getItem('userAuth'))
+  const userID = localStorage.getItem('userID')
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams({
     id: accessCourseData.chapters[0].lectures[0].id,
@@ -18,7 +19,7 @@ function MainAccessCourse({ accessCourseData, setReload }) {
   })
 
   const [progress, setProgress] = useState({
-    userID: userData.userID,
+    userID: userID,
     courseID: accessCourseData.courseID,
     lectureID: searchParams.get('id'),
     percent: 0

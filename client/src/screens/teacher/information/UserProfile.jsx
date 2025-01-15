@@ -67,7 +67,6 @@ function UserProfile({ profile, setProfile }) {
           ...prevProfile,
           avatar: res_avatar.data
         }))
-
         //Update information
         const res = await instructor.update(userID, profile)
         if (res.status === 200) {
