@@ -6,96 +6,79 @@ import axios from "axios";
 import SearchIcon from '@mui/icons-material/Search'
 import { useParams } from 'react-router-dom'
 import io from 'socket.io-client'
+import { admin, instructor, student } from 'api'
 
 function TabQA({ lectureQA, setReload, lectureId }) {
-  console.log(lectureQA)
   const [courseQA, setCourseQA] = useState([])
   const [newResponse, setNewResponse] = useState('')
   const [newQuestion, setNewQuestion] = useState('')
   const [replyingTo, setReplyingTo] = useState(null)
   const [reCall, setRecall] = useState(true)
   const navigate = useNavigate()
-  const token = sessionStorage.getItem("token")
-  const userAuth = sessionStorage.getItem("userAuth")
-  const userData = JSON.parse(sessionStorage.getItem("userAuth"))
-  const userID = userData ? userData.userID : ""
+  const userID = localStorage.getItem('userID')
   const { courseID } = useParams()
   const url = window.location.href
   const socket = io('http://localhost:3001')
 
-  useEffect(() => {
-    //Call backend to get name and avatar with quesionerID and responseID
-    axios.get('http://localhost:3000/c/getUserQnA',
-      {
-        params: {
-          lectureQA
-        }
-      },
-      {
-        headers: {
-          Token: token, // Thêm token và user vào header để đưa xuống Backend xác thực
-          user: userAuth
-        }
-      }
-    )
-      .then(response => {
-        setCourseQA(response.data)
-      })
-      .catch(error => {
-        //Server shut down
-        if (error.message === 'Network Error')
-          navigate('/server-shutdown')
-        //Connection error
-        if (error.response.status === 500)
-          navigate('/500error')
-        //Unauthorized. Need login
-        if (error.response.status === 401)
-          navigate('/401error')
-        //Forbidden. Token != userAuth
-        if (error.response.status === 403)
-          navigate('/403error')
-      })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lectureQA])
+  const loadListQnA = async() => {
+    let qna
+    switch (userID[0]) {
+    case 'A':
+      qna = await admin.getQnA(courseID, lectureId)
+      break
+    case 'I':
+      qna = await instructor.getQnA(courseID, lectureId)
+      break
+    case 'S':
+      qna = await student.getQnA(courseID, lectureId)
+      break
+    }
+    setCourseQA(qna.data)
+  }
 
   useEffect(() => {
-    axios.post('http://localhost:3000/c/updateNewQA',
-      {
-        courseQA,
-        courseID,
-        lectureId,
-        url
-      },
-      {
-        headers: {
-          Token: token, // Thêm token và user vào header để đưa xuống Backend xác thực
-          user: userAuth
-        }
-      }
-    )
-      // eslint-disable-next-line no-unused-vars
-      .then(response => {
-        socket.emit("newNotify", courseID, userID)
-        setReload((prev) => ({ //Reload course data
-          reload: !prev.reload
-        }))
-      })
-      .catch(error => {
-        //Server shut down
-        if (error.message === 'Network Error')
-          navigate('/server-shutdown')
-        //Connection error
-        if (error.response.status === 500)
-          navigate('/500error')
-        //Unauthorized. Need login
-        if (error.response.status === 401)
-          navigate('/401error')
-        //Forbidden. Token != userAuth
-        if (error.response.status === 403)
-          navigate('/403error')
-      })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reCall])
+    loadListQnA()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lectureQA])
+
+  // useEffect(() => {
+  //   axios.post('http://localhost:3000/c/updateNewQA',
+  //     {
+  //       courseQA,
+  //       courseID,
+  //       lectureId,
+  //       url
+  //     },
+  //     {
+  //       headers: {
+  //         Token: token, // Thêm token và user vào header để đưa xuống Backend xác thực
+  //         user: userAuth
+  //       }
+  //     }
+  //   )
+  //     // eslint-disable-next-line no-unused-vars
+  //     .then(response => {
+  //       socket.emit("newNotify", courseID, userID)
+  //       setReload((prev) => ({ //Reload course data
+  //         reload: !prev.reload
+  //       }))
+  //     })
+  //     .catch(error => {
+  //       //Server shut down
+  //       if (error.message === 'Network Error')
+  //         navigate('/server-shutdown')
+  //       //Connection error
+  //       if (error.response.status === 500)
+  //         navigate('/500error')
+  //       //Unauthorized. Need login
+  //       if (error.response.status === 401)
+  //         navigate('/401error')
+  //       //Forbidden. Token != userAuth
+  //       if (error.response.status === 403)
+  //         navigate('/403error')
+  //     })
+  // // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [reCall])
 
   const handleResponseChange = (e) => setNewResponse(e.target.value)
   const handleSubmitChange = (e) => setNewQuestion(e.target.value)
