@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { create } from "zustand"
 import { notify } from "api"
 
@@ -8,8 +9,17 @@ const notifyStore = create((set) => ({
   markAsRead: async (userID, notifyID) => {
     try {
       const response = await notify.updateUnreadNotify(userID, notifyID)
-      if (response.status == 200)
-        set((state) => ({ unreadCount: state.unreadCount - 1 }))
+      console.log('response', response)
+      if (response.status == 200) {
+        set((state) => ({
+          unreadCount: state.unreadCount - 1,
+          listNotifies: state.listNotifies.map((notification) =>
+            notification.notifyID == notifyID
+              ? { ...notification, isRead: 1 }
+              : notification
+          )
+        }))
+      }
       else
         console.log('error mark as read')
     }

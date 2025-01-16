@@ -20,7 +20,7 @@ const getByID = catchAsync(async (req, res, next) => {
         where userID = ?
         order by time desc`
 
-  let queryUnreadCount = `SELECT COUNT(*) AS unread FROM projectelearning.receive_notify WHERE userID = ? AND isRead = 0;`
+  let queryUnreadCount = `SELECT COUNT(*) AS unread FROM projectelearning.receive_notify WHERE userID = ? AND isRead = false;`
 
   try {
     const [rowNotifies] = await mysqlTransaction.query(queryNotify, [userID])
@@ -40,6 +40,23 @@ const getByID = catchAsync(async (req, res, next) => {
 // Cập nhật số lượng tin đã đọc
 const updateRead = catchAsync(async (req, res, next) => {
   // Implement here
+  const { id, notifyID } = req.params
+  connectMysql.getConnection((err, connection) => {
+    if (err) {
+      res.status(500).send(err)
+    }
+    else {
+      //Change status of notify is read
+      let query = `update receive_notify set isRead = true where userID = ? and notifyID = ?`
+      connection.query(query, [id, notifyID], async (error) => {
+        connection.release() //Giải phóng connection khi truy vấn xong
+        if (error) {
+          next(error)
+        }
+        res.status(200).send()
+      })
+    }
+  })
 })
 
 export default { getByID, updateRead }

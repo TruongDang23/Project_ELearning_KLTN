@@ -17,6 +17,10 @@ function Header() {
   const userID = localStorage.getItem('userID')
   const [title, setTitle] = useState(search.get('q') || '')
 
+  const navigation = (path) => {
+    navigate(path)
+  }
+
   const handleSearch = (event) => {
     if (event.key === 'Enter') {
       navigate({
@@ -110,7 +114,7 @@ function Header() {
                 <ShoppingCartOutlinedIcon />
               </StyledBadge>
             </a>
-            <a href="/notification">
+            <a href="#!" onClick={() => navigation('/notification')}>
               <StyledBadge badgeContent={unread} color="primary">
                 <NotificationsOutlinedIcon />
               </StyledBadge>
