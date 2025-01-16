@@ -11,9 +11,12 @@ import { admin, instructor, student } from 'api'
 import styled from 'styled-components'
 import { useEffect } from 'react'
 import { userStore } from '~/context/UserStore'
+import { notifyStore } from '~/context/NotifyStore'
 
 function Welcome() {
   const { updateInfor } = userStore()
+  const fetchNotify = notifyStore((state) => state.fetchNotify)
+
   const getInformation = async (userID) => {
     let userInfo
     switch (userID[0]) {
@@ -35,8 +38,10 @@ function Welcome() {
 
   useEffect(() => {
     const userID = localStorage.getItem("userID")
-    if (userID)
+    if (userID) {
+      fetchNotify(userID)
       getInformation(userID)
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return (

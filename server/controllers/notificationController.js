@@ -1,8 +1,40 @@
+import connectMysql from '../config/connMySql.js'
 import catchAsync from '../utils/catchAsync.js'
-import AppError from '../utils/appError.js'
 
 const getByID = catchAsync(async (req, res, next) => {
   // Implement here
+  const userID = req.userID
+  const mysqlTransaction = connectMysql.promise()
+
+  await mysqlTransaction.query('START TRANSACTION')
+  let queryNotify = `
+      select noti.notifyID,
+             title,
+             message,
+             routing,
+             isRead,
+             image_course,
+             time 
+        from receive_notify as rece
+        inner join notify as noti on noti.notifyID = rece.notifyID
+        where userID = ?
+        order by time desc`
+
+  let queryUnreadCount = `SELECT COUNT(*) AS unread FROM projectelearning.receive_notify WHERE userID = ? AND isRead = 0;`
+
+  try {
+    const [rowNotifies] = await mysqlTransaction.query(queryNotify, [userID])
+
+    const [rowUnread] = await mysqlTransaction.query(queryUnreadCount, [userID])
+    res.status(200).json({
+      listNotifications: rowNotifies,
+      unreadCount: rowUnread[0].unread
+    })
+    await mysqlTransaction.query('COMMIT')
+  } catch (error) {
+    await mysqlTransaction.query('ROLLBACK')
+    next(error)
+  }
 })
 
 // Cập nhật số lượng tin đã đọc

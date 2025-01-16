@@ -2,8 +2,8 @@ import styled from 'styled-components'
 import NotifyPreview from './NotifyPreview'
 import { useState, useContext } from 'react'
 import Loading from '~/screens/system/Loading'
-
 import { NotificationContext } from '~/context/NotificationContext'
+import { notifyStore } from '~/context/NotifyStore'
 
 function ListNotifications() {
   const userData = JSON.parse(sessionStorage.getItem('userAuth'))
