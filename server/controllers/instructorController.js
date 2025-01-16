@@ -2,9 +2,9 @@
 import catchAsync from '../utils/catchAsync.js'
 import mongoose from 'mongoose'
 import User from '../models/user.js'
-import { formatDate } from '../utils/dateTimeHandler.js'
+import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
-import { getListInforPublish } from './courseController.js'
+import { getListInforPublish, switchCourseStatus } from './courseController.js'
 import { attachFile } from './googleCloudController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
@@ -235,6 +235,15 @@ const getQnA = catchAsync(async (req, res, next) => {
 // Gửi xét duyệt khóa học
 const sendApproveCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const { courseID } = req.params
+  const time = formatDateTime(new Date())
+  try {
+    await switchCourseStatus(courseID, "mornitor", "created_course", "send_mornitor", time)
+    res.status(200).send()
+  }
+  catch {
+    next({ status: 500, message: 'Failed to send approval' })
+  }
 })
 
 export default { getByID, getAll, update, getQnA, sendApproveCourse, updateAvatar }

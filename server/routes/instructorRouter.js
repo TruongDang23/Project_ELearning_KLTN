@@ -35,7 +35,7 @@ instructorRouter
   )
 
 instructorRouter
-  .route('/:id/sendapprove/:courseID')
+  .route('/sendapprove/:courseID')
   .put(
     authController.protect,
     authController.restrictTo('instructor'),

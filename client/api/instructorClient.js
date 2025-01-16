@@ -34,13 +34,9 @@ export class InstructorClient extends ApiClient {
     return this.course.getLectureQnA(courseID, lectureID)
   }
 
-  async sendApproveCourse(id, courseID) {
+  async sendApproveCourse(courseID) {
     try {
-      const response = await axios.put(`${this.domain}/${id}/sendapprove/${courseID}`, {
-        headers: {
-          //authentication
-        }
-      })
+      const response = await axios.put(`${this.domain}/sendapprove/${courseID}`)
       return response
     }
     catch (error) {

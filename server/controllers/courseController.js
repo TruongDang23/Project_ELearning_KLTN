@@ -292,6 +292,46 @@ const loadOriginQnA = (courseID, lectureID) => {
   })
 }
 
+const switchCourseStatus = async (courseID, to_status, delete_db, insert_db, time) => {
+  return new Promise(async (resolve, reject) => {
+    const mysqlTransaction = connectMysql.promise()
+    await mysqlTransaction.query("START TRANSACTION")
+
+    //Update Status of course
+    let updStatus = "UPDATE course SET status = ? WHERE courseID = ?"
+    let deleteCourse = "DELETE FROM ?? WHERE courseID = ?"
+    let insertCourse = ""
+    let rows_ins = 0
+
+    if (insert_db === 'terminated_course') {
+      const to_time = time[0]
+      const end_time = time[1] == "" ? null : time[1]
+
+      insertCourse = "INSERT INTO ?? (courseID, to_time, end_time)\
+        VALUES (?, ?, ?)"
+      rows_ins = await mysqlTransaction.query(insertCourse, [insert_db, courseID, to_time, end_time])
+    }
+    else {
+      insertCourse = "INSERT INTO ?? (courseID, time)\
+        VALUES (?, ?)"
+      rows_ins = await mysqlTransaction.query(insertCourse, [insert_db, courseID, time])
+    }
+
+    const [rows_upd] = await mysqlTransaction.query(updStatus, [to_status, courseID])
+    const [rows_del] = await mysqlTransaction.query(deleteCourse, [delete_db, courseID])
+    //const [rows_ins] = await mysqlTransaction.query(insertCourse, [insert_db, courseID, time])
+
+    if (rows_upd.affectedRows == 0 || rows_del.affectedRows == 0 || rows_ins.affectedRows == 0) {
+      await mysqlTransaction.query("ROLLBACK")
+      reject(false)
+    }
+    else {
+      await mysqlTransaction.query("COMMIT")
+      resolve(true)
+    }
+  })
+}
+
 const getAllCourses = catchAsync(async (req, res, next) => {
   // Implement here
 })
@@ -538,4 +578,4 @@ export default {
   getQnA
 }
 
-export { getListInforPublish }
+export { getListInforPublish, switchCourseStatus }

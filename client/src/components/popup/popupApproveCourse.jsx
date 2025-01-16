@@ -1,34 +1,16 @@
 import styled from "styled-components"
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined'
-import axios from "axios"
+import { instructor } from "api"
 
 const PopupApproveCourse = ({ handleClose, course, reload, setReload }) => {
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
-
   const handleSave = async() => {
-    try
-    {
-      const res = await axios.post('http://localhost:3000/in/sendapprove',
-        { course },
-        {
-          headers: {
-            'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            'user': userAuth
-          }
-        }
-      )
-      if (res.data === true)
-      {
-        alert('Action Successfully')
-        setTimeout(() => setReload(!reload), 100);
-      }
-      else
-        alert('Action Failed')
+    const res = await instructor.sendApproveCourse(course)
+    if (res.status == 200) {
+      //
+      setTimeout(() => setReload(!reload), 100)
     }
-    catch (error) {
-      alert('An error occurred while trying to send for approval.')
-      //console.error(error)
+    else {
+      //
     }
   }
 
