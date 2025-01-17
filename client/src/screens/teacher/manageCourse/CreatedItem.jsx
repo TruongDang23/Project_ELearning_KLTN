@@ -73,7 +73,6 @@ export function Items({ courseItem, reload, setReload }) {
                 Edit course
               </a> */}
               <button onClick={toggleApprove} className="btn-approval">
-                {/* <button onClick={toggleApprove}>Submit for approval</button> */}
                 Submit for approval
               </button>
             </div>

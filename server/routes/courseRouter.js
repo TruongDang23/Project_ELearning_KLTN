@@ -14,7 +14,7 @@ courseRouter
   .route('/')
   .all(authController.protect)
   .get(
-    authController.restrictTo('admin'),
+    authController.restrictTo('admin', 'instructor'),
     courseController.getAllCourses
   )
   .post(

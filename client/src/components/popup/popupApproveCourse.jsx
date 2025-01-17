@@ -1,37 +1,35 @@
 import styled from "styled-components"
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined'
 import { instructor } from "api"
-
 const PopupApproveCourse = ({ handleClose, course, reload, setReload }) => {
   const handleSave = async() => {
     const res = await instructor.sendApproveCourse(course)
     if (res.status == 200) {
-      //
       setTimeout(() => setReload(!reload), 100)
-    }
-    else {
-      //
     }
   }
 
   return (
-    <WrapperPopup>
-      <div className="popup-box">
-        <div className="box">
-          <span className="close-icon" onClick={handleClose}>x</span>
-          <label>
-            <SendOutlinedIcon sx={{ color: '#008105', fontSize: '3.0rem', margin: 'auto' }}/>
-            <h1>The course <strong>{course}</strong> will be send to approval</h1>
-          </label>
-          <div className="item-btns">
-            <button className="item-btn" onClick={() => {
-              handleSave()
-              handleClose()
-            }}>Save</button>
+    <>
+      <WrapperPopup>
+        <div className="popup-box">
+          <div className="box">
+            <span className="close-icon" onClick={handleClose}>x</span>
+            <label>
+              <SendOutlinedIcon sx={{ color: '#008105', fontSize: '3.0rem', margin: 'auto' }} />
+              <h1>The course <strong>{course}</strong> will be send to approval</h1>
+            </label>
+            <div className="item-btns">
+              <button className="item-btn" onClick={() => {
+                handleSave()
+                handleClose()
+              }}>Save</button>
+            </div>
           </div>
         </div>
-      </div>
-    </WrapperPopup>
+      </WrapperPopup>
+    </>
+
   )
 }
 
