@@ -7,18 +7,27 @@ import SearchIcon from '@mui/icons-material/Search'
 import { useParams } from 'react-router-dom'
 import io from 'socket.io-client'
 import { admin, instructor, student } from 'api'
+import { userStore } from '~/context/UserStore'
 
 function TabQA({ lectureQA, setReload, lectureId }) {
   const [courseQA, setCourseQA] = useState([])
+  const avatar = userStore((state) => state.avatar)
+  const fullname = userStore((state) => state.fullname)
   const [newResponse, setNewResponse] = useState('')
   const [newQuestion, setNewQuestion] = useState('')
   const [replyingTo, setReplyingTo] = useState(null)
-  const [reCall, setRecall] = useState(true)
   const navigate = useNavigate()
   const userID = localStorage.getItem('userID')
   const { courseID } = useParams()
   const url = window.location.href
   const socket = io('http://localhost:3001')
+  let res
+  let client
+
+  if (userID[0] === 'I')
+    client = instructor
+  else if (userID[0] === 'S')
+    client = student
 
   const loadListQnA = async() => {
     let qna
@@ -83,7 +92,7 @@ function TabQA({ lectureQA, setReload, lectureId }) {
   const handleResponseChange = (e) => setNewResponse(e.target.value)
   const handleSubmitChange = (e) => setNewQuestion(e.target.value)
 
-  const handleSubmitQA = () => {
+  const handleSubmitQA = async () => {
     const currentDate = new Date()
     const formattedDate = currentDate
       .toLocaleString('sv-SE', {
@@ -100,14 +109,21 @@ function TabQA({ lectureQA, setReload, lectureId }) {
       questionerID: userID,
       question: newQuestion,
       date: formattedDate,
+      avatar: avatar,
+      fullname: fullname,
       responses: []
     }
 
     setCourseQA((prev) => [...prev, newData])
     setNewQuestion('')
-    setRecall((prev) => !prev) //Recall API update QnA
+    res = await client.QnA(courseID, lectureId, courseQA)
+    if (res.status === 201) {
+    }
+    else {
+      //Raise error
+    }
   }
-  const handleResponseSubmit = () => {
+  const handleResponseSubmit = async () => {
     if (newResponse.trim() && replyingTo !== null) {
       const updatedQA = courseQA.map((QA, index) => {
         if (index === replyingTo) {
@@ -130,7 +146,9 @@ function TabQA({ lectureQA, setReload, lectureId }) {
               {
                 response: newResponse,
                 responseID: userID,
-                date: formattedDate
+                date: formattedDate,
+                avatar: avatar,
+                fullname: fullname
               },
               ...QA.responses
             ]
@@ -138,11 +156,15 @@ function TabQA({ lectureQA, setReload, lectureId }) {
         }
         return QA
       })
-
-      setCourseQA(updatedQA)
-      setNewResponse('')
-      setReplyingTo(null)
-      setRecall((prev) => !prev) //Recall API update QnA
+      res = await client.QnA(courseID, lectureId, updatedQA)
+      if (res.status === 201) {
+        setCourseQA(updatedQA)
+        setNewResponse('')
+        setReplyingTo(null)
+      }
+      else {
+        //Raise error
+      }
     }
   }
 

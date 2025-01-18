@@ -172,29 +172,6 @@ const getAll = catchAsync(async (req, res, next) => {
   // Implement here
 })
 
-const updateAvatar = catchAsync(async (req, res, next) => {
-  // Implement here
-  if (!req.files || req.files.length === 0) {
-    return next({ status: 400, message: 'No file uploaded!' })
-  }
-
-  const file = req.files[0]; // Lấy file đầu tiên (nếu có nhiều file)
-
-  // Gọi hàm để upload file lên GCS
-  // eslint-disable-next-line no-undef
-  const bucketName = process.env.GCS_USER_BUCKET
-  const userID = req.params.id // Sử dụng ID từ URL
-  const destName = file.originalname
-
-  try {
-    const fileUrl = await attachFile(bucketName, userID, file, destName);
-
-    res.status(201).send(fileUrl)
-  } catch (err) {
-    return next({ status: 500, message: 'Failed to upload avatar' })
-  }
-})
-
 const update = catchAsync(async (req, res, next) => {
   // Implement here
   const newInfo = req.body.data
@@ -246,4 +223,4 @@ const sendApproveCourse = catchAsync(async (req, res, next) => {
   }
 })
 
-export default { getByID, getAll, update, getQnA, sendApproveCourse, updateAvatar }
+export default { getByID, getAll, update, getQnA, sendApproveCourse }

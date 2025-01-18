@@ -5,21 +5,40 @@ import mongoose from 'mongoose'
 import { formatDateTime, formatDate } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
-import { getUserByID } from '../utils/userHandler.js'
+import { getUserByID } from './userController.js'
 
 const getListInforPublish = (connection, listID) => {
   return new Promise(async (resolve, reject) => {
-    let query = `SELECT c.courseID, title, time, method
-                    FROM course as c
-                    INNER JOIN published_course as pc ON c.courseID = pc.courseID
+    let query = `SELECT c.courseID,
+                        title,
+                        time,
+                        method,
+                        fullname as instructor,
+                        star,
+                        raters,
+                        price,
+                        currency
+                    FROM course as c\
+                    INNER JOIN published_course as pc ON c.courseID = pc.courseID\
+                    INNER JOIN user as u ON u.userID = c.userID\
+                    LEFT JOIN avg_rating as avg ON avg.courseID = c.courseID\
                     WHERE c.courseID IN (?)`
     try {
       const [rowsInfo] = await connection.query(query,
         [
           listID
         ])
+      const mongoData = await Course.find({ courseID: { $in: listID } }).select('courseID image_introduce')
       if (rowsInfo.affectedRows !== 0) {
-        resolve(rowsInfo)
+        //Merge data with Mysql and MongoDB
+        const mergeData = rowsInfo.map(course => {
+          const data = mongoData.find(mc => mc.courseID === course.courseID)
+          return {
+            ...course,
+            image_introduce: data ? data.image_introduce : null
+          }
+        })
+        resolve(mergeData)
       }
       else {
         reject("This course does not contain data")

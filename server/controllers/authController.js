@@ -8,7 +8,8 @@ import User from '../models/user.js'
 import TokenList from '../models/token.js'
 import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
-import { getUserByEmail, countUserOfRole } from '../utils/userHandler.js'
+import { getUserByEmail, countUserOfRole } from '../controllers/userController.js'
+
 const hashPassword = (password) => {
   // Create a SHA-512 hash
   const hash = crypto.createHash('sha512')

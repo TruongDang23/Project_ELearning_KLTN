@@ -1,6 +1,7 @@
 import express from 'express'
 import authController from '../controllers/authController.js'
 import instructorController from '../controllers/instructorController.js'
+import userController from '../controllers/userController.js'
 import { uploadTemp } from '../utils/multer.js'
 
 const instructorRouter = express.Router()
@@ -31,7 +32,7 @@ instructorRouter
     authController.protect,
     authController.restrictTo('instructor'),
     uploadTemp.any(),
-    instructorController.updateAvatar
+    userController.updateAvatar
   )
 
 instructorRouter
