@@ -3,15 +3,13 @@ import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
-import axios from 'axios'
+import { admin } from 'api'
 
 const PopupTerminate = ({ handleClose, course, reload, setReload }) => {
   const [dateRange, setDateRange] = useState(['', ''])
   const [showCalendar, setShowCalendar] = useState(false)
   const [currentInput, setCurrentInput] = useState(null)
   const calendarRef = useRef()
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
 
   const handleDateChange = (date) => {
     if (currentInput === 'from') {
@@ -41,31 +39,9 @@ const PopupTerminate = ({ handleClose, course, reload, setReload }) => {
   }, []);
 
   const handleSave = async() => {
-    try
-    {
-      const res = await axios.post('http://localhost:3000/c/terminated',
-        {
-          course,
-          dateRange
-        },
-        {
-          headers: {
-            'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            'user': userAuth
-          }
-        }
-      )
-      if (res.data === true)
-      {
-        alert('Action Successfully')
-        setTimeout(() => setReload(!reload), 100);
-      }
-      else
-        alert('Action Failed')
-    }
-    catch (error) {
-      alert('An error occurred while trying to terminate course.')
-      //console.error(error)
+    const res = await admin.terminateCourse(course, dateRange)
+    if (res.status == 200) {
+      setTimeout(() => setReload(!reload), 1000)
     }
   }
   return (

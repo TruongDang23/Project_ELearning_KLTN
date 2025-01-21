@@ -35,6 +35,14 @@ adminRouter
   )
 
 adminRouter
+  .route('/republish/:id')
+  .put(
+    authController.protect,
+    authController.restrictTo('admin'),
+    adminController.republishCourse
+  )
+
+adminRouter
   .route('/reject/:id')
   .put(
     authController.protect,
@@ -55,7 +63,7 @@ adminRouter
   .put(
     authController.protect,
     authController.restrictTo('admin'),
-    adminController.blockUser
+    adminController.lockUser
   )
 
 adminRouter

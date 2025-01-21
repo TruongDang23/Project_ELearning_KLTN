@@ -1,15 +1,16 @@
-import React from "react";
-import InforIMG from "../../../assets/dash1.png";
-import styled from "styled-components";
+import InforIMG from "../../../assets/dash1.png"
+import styled from "styled-components"
+import { useNavigate } from "react-router-dom"
 
 function InforDashboard() {
+  const navigate = useNavigate()
   return (
     <InforDashboardWrapper>
       <div className="infor-card">
         <h3>Information</h3>
         <div className="infor-button">
-          <button className="btn-edit">Edit</button>
-          <button className="btn-view">View</button>
+          <button className="btn-edit" onClick={() => navigate('/Admin/information')}>Edit</button>
+          <button className="btn-view" onClick={() => navigate('/Admin/profile')}>View</button>
         </div>
       </div>
     </InforDashboardWrapper>

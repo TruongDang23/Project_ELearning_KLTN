@@ -1,34 +1,13 @@
 import styled from "styled-components"
 import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined'
-import axios from "axios"
+import { admin } from "api"
 
 const PopupUnLockAcc = ({ handleClose, account, reload, setReload }) => {
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
 
   const handleSave = async() => {
-    try
-    {
-      const res = await axios.post('http://localhost:3000/ad/unlockacc',
-        { account },
-        {
-          headers: {
-            'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            'user': userAuth
-          }
-        }
-      )
-      if (res.data === true)
-      {
-        alert('Action Successfully')
-        setTimeout(() => setReload(!reload), 100);
-      }
-      else
-        alert('Action Failed')
-    }
-    catch (error) {
-      alert('An error occurred while trying to lock account.')
-      //console.error(error)
+    const res = await admin.lockAccount(account)
+    if (res.status == 200) {
+      setTimeout(() => setReload(!reload), 100)
     }
   }
 

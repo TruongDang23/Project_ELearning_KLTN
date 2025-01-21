@@ -30,11 +30,17 @@ export class AdminClient extends ApiClient {
 
   async acceptCourse(id) {
     try {
-      const response = await axios.put(`${this.domain}/accept/${id}`, {
-        headers: {
-          //authentication
-        }
-      })
+      const response = await axios.put(`${this.domain}/accept/${id}`)
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
+  async republishCourse(id) {
+    try {
+      const response = await axios.put(`${this.domain}/republish/${id}`)
       return response
     }
     catch (error) {
@@ -44,11 +50,7 @@ export class AdminClient extends ApiClient {
 
   async rejectCourse(id) {
     try {
-      const response = await axios.put(`${this.domain}/reject/${id}`, {
-        headers: {
-          //authentication
-        }
-      })
+      const response = await axios.put(`${this.domain}/reject/${id}`)
       return response
     }
     catch (error) {
@@ -56,13 +58,9 @@ export class AdminClient extends ApiClient {
     }
   }
 
-  async terminateCourse(id) {
+  async terminateCourse(id, dateRange) {
     try {
-      const response = await axios.put(`${this.domain}/terminate/${id}`, {
-        headers: {
-          //authentication
-        }
-      })
+      const response = await axios.put(`${this.domain}/terminate/${id}`, { time: dateRange })
       return response
     }
     catch (error) {

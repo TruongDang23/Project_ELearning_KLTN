@@ -1,10 +1,11 @@
 import styled from "styled-components"
-
+import { useNavigate } from "react-router-dom"
 import PublishIcon from "@mui/icons-material/Publish"
 import DraftsIcon from "@mui/icons-material/Drafts"
 import CancelIcon from "@mui/icons-material/Cancel"
 
 function CourseDashboard() {
+  const navigate = useNavigate()
   return (
     <CourseDashboardWrapper>
       <h3>Courses</h3>
@@ -45,7 +46,7 @@ function CourseDashboard() {
       </div>
       <div className="course-all">
         <h4>See all</h4>
-        <button>Go to list of all courses</button>
+        <button onClick={() => navigate('/admin/manageCourse')}>Go to list of all courses</button>
       </div>
     </CourseDashboardWrapper>
   );

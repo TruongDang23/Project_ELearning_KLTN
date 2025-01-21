@@ -1,9 +1,10 @@
 import styled from "styled-components";
-
+import { useNavigate } from "react-router-dom";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 
 function AccountDashboard() {
+  const navigate = useNavigate()
   return (
     <AccountDashboardWrapper>
       <h3>Account</h3>
@@ -33,7 +34,7 @@ function AccountDashboard() {
       </div>
       <div className="account-all">
         <h4>See all</h4>
-        <button>Go to list of all accounts</button>
+        <button onClick={() => navigate('/admin/manageAccount')}>Go to list of all accounts</button>
       </div>
     </AccountDashboardWrapper>
   );
