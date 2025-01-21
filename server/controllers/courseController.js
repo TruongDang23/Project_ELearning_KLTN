@@ -2,9 +2,53 @@
 import Course from '../models/courseInfo.js'
 import catchAsync from '../utils/catchAsync.js'
 import mongoose from 'mongoose'
-import { formatDateTime } from '../utils/dateTimeHandler.js'
+import { formatDateTime, formatDate } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
+import { getUserByID } from './userController.js'
+
+const getListInforPublish = (connection, listID) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT c.courseID,
+                        title,
+                        time,
+                        method,
+                        fullname as instructor,
+                        star,
+                        raters,
+                        price,
+                        currency
+                    FROM course as c\
+                    INNER JOIN published_course as pc ON c.courseID = pc.courseID\
+                    INNER JOIN user as u ON u.userID = c.userID\
+                    LEFT JOIN avg_rating as avg ON avg.courseID = c.courseID\
+                    WHERE c.courseID IN (?)`
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          listID
+        ])
+      const mongoData = await Course.find({ courseID: { $in: listID } }).select('courseID image_introduce')
+      if (rowsInfo.affectedRows !== 0) {
+        //Merge data with Mysql and MongoDB
+        const mergeData = rowsInfo.map(course => {
+          const data = mongoData.find(mc => mc.courseID === course.courseID)
+          return {
+            ...course,
+            image_introduce: data ? data.image_introduce : null
+          }
+        })
+        resolve(mergeData)
+      }
+      else {
+        reject("This course does not contain data")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
 
 const getFullInfoMySQL = (connection, courseID) => {
   return new Promise(async (resolve, reject) => {
@@ -101,7 +145,7 @@ const getReview = (courseID) => {
 const getTotalVideo = (courseID) => {
   return new Promise(async (resolve, reject) => {
     const [files] = await storage
-      .bucket("e-learning-bucket")
+      .bucket(process.env.GCS_COURSE_BUCKET)
       .getFiles({ prefix: courseID })
 
     let totalVideo = 0
@@ -186,8 +230,518 @@ const getCourseWithParams = (connection, params) => {
   })
 }
 
+const getProgress = async (courseID, userID) => {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        return reject(err)
+      }
+
+      const query = ` SELECT FORMAT(SUM(percent)/num_lecture,1) AS progress
+        from course inner join (
+          SELECT lectureID, courseID, MAX(percent) AS percent 
+            FROM learning
+            where userID = ?
+          group by lectureID, courseID
+        ) AS list_progress
+        ON course.courseID = list_progress.courseID
+        where course.courseID = ?`
+      connection.query(query, [userID, courseID], (error, data) => {
+        connection.release()
+        if (error) {
+          return reject(error)
+        }
+        resolve(data[0].progress)
+      })
+    })
+  })
+}
+
+const getListLearning = async (courseID, userID) => {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        return reject(err)
+      }
+
+      const query = ` SELECT lectureID, MAX(percent) AS progress FROM learning
+        where courseID = ? and userID = ?
+        group by lectureID 
+        order by lectureID asc`
+      connection.query(query, [courseID, userID], (error, learning) => {
+        connection.release()
+        if (error) {
+          return reject(error)
+        }
+        resolve(learning)
+      })
+    })
+  })
+}
+
+const loadOriginQnA = (courseID, lectureID) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Query the course document by courseID and lectureID
+      const course = await Course.findOne(
+        {
+          courseID,
+          "chapters.lectures.id": lectureID // Match the lectureID within nested chapters
+        },
+        {
+          "chapters.$": 1 // Use positional projection to include only the matching chapter
+        }
+      )
+
+      if (course) {
+        const chapter = course.chapters[0] // Get the matched chapter
+        const lecture = chapter.lectures.find((lec) => lec.id == lectureID) // Find the specific lecture
+        if (lecture && lecture.QnA) {
+          resolve(lecture.QnA)// Return the QnA array
+        }
+      }
+
+      resolve([])
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const switchCourseStatus = async (courseID, to_status, delete_db, insert_db, time) => {
+  return new Promise(async (resolve, reject) => {
+    const mysqlTransaction = connectMysql.promise()
+    await mysqlTransaction.query("START TRANSACTION")
+
+    //Update Status of course
+    let updStatus = "UPDATE course SET status = ? WHERE courseID = ?"
+    let deleteCourse = "DELETE FROM ?? WHERE courseID = ?"
+    let insertCourse = ""
+    let rows_ins = 0
+
+    if (insert_db === 'terminated_course') {
+      const to_time = time[0]
+      const end_time = time[1] == "" ? null : time[1]
+
+      insertCourse = "INSERT INTO ?? (courseID, to_time, end_time)\
+        VALUES (?, ?, ?)"
+      rows_ins = await mysqlTransaction.query(insertCourse, [insert_db, courseID, to_time, end_time])
+    }
+    else {
+      insertCourse = "INSERT INTO ?? (courseID, time)\
+        VALUES (?, ?)"
+      rows_ins = await mysqlTransaction.query(insertCourse, [insert_db, courseID, time])
+    }
+
+    const [rows_upd] = await mysqlTransaction.query(updStatus, [to_status, courseID])
+    const [rows_del] = await mysqlTransaction.query(deleteCourse, [delete_db, courseID])
+    //const [rows_ins] = await mysqlTransaction.query(insertCourse, [insert_db, courseID, time])
+
+    if (rows_upd.affectedRows == 0 || rows_del.affectedRows == 0 || rows_ins.affectedRows == 0) {
+      await mysqlTransaction.query("ROLLBACK")
+      reject(false)
+    }
+    else {
+      await mysqlTransaction.query("COMMIT")
+      resolve(true)
+    }
+  })
+}
+
+const getPendingCourseAdmin = (mysqlTransaction) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT 
+                  s.courseID,
+                  title,
+                  method,
+                  program,
+                  u.fullname AS teacher,
+                  s.time
+                FROM send_mornitor AS s
+                LEFT JOIN course AS c 
+                  ON s.courseID = c.courseID
+                LEFT JOIN user AS u 
+                  ON c.userID = u.userID
+                ORDER BY s.time DESC`
+    try {
+      const [rowCourses] = await mysqlTransaction.query(query)
+      if (rowCourses.length > 0) {
+        const courseIDs = rowCourses.map((course) => course.courseID)
+        const mongoData = await Course.find({
+          courseID: { $in: courseIDs }
+        }).select("courseID image_introduce")
+
+        const mergeData = rowCourses.map((course) => {
+          const data = mongoData.find(
+            (mc) => mc.courseID === course.courseID
+          )
+          return {
+            ...course,
+            time: formatDate(course.time),
+            image_introduce: data ? data.image_introduce : null
+          }
+        })
+        resolve(mergeData)
+      }
+      else {
+        resolve([])
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getPublishedCourseAdmin = (mysqlTransaction) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT 
+                  s.courseID,
+                  title,
+                  method,
+                  program,
+                  u.fullname AS teacher,
+                  s.time
+                FROM published_course AS s
+                LEFT JOIN course AS c 
+                  ON s.courseID = c.courseID
+                LEFT JOIN user AS u 
+                  ON c.userID = u.userID
+                ORDER BY s.time DESC`
+    try {
+      const [rowCourses] = await mysqlTransaction.query(query)
+      if (rowCourses.length > 0) {
+        const courseIDs = rowCourses.map((course) => course.courseID)
+        const mongoData = await Course.find({
+          courseID: { $in: courseIDs }
+        }).select("courseID image_introduce")
+
+        const mergeData = rowCourses.map((course) => {
+          const data = mongoData.find(
+            (mc) => mc.courseID === course.courseID
+          )
+          return {
+            ...course,
+            time: formatDate(course.time),
+            image_introduce: data ? data.image_introduce : null
+          }
+        })
+        resolve(mergeData)
+      }
+      else {
+        resolve([])
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getTerminatedCourseAdmin = async(mysqlTransaction) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT 
+                  s.courseID,
+                  title,
+                  method,
+                  program,
+                  u.fullname AS teacher,
+                  s.to_time,
+                  s.end_time
+                FROM terminated_course AS s
+                LEFT JOIN course AS c 
+                  ON s.courseID = c.courseID
+                LEFT JOIN user AS u 
+                  ON c.userID = u.userID
+                ORDER BY s.to_time DESC, s.end_time ASC`
+    try {
+      const [rowCourses] = await mysqlTransaction.query(query)
+      if (rowCourses.length > 0) {
+        const courseIDs = rowCourses.map((course) => course.courseID)
+        const mongoData = await Course.find({
+          courseID: { $in: courseIDs }
+        }).select("courseID image_introduce")
+
+        const mergeData = rowCourses.map((course) => {
+          const data = mongoData.find(
+            (mc) => mc.courseID === course.courseID
+          )
+          return {
+            ...course,
+            to_time: formatDate(course.to_time),
+            end_time: course.end_time
+              ? formatDate(course.end_time)
+              : "permanently",
+            image_introduce: data ? data.image_introduce : null
+          }
+        })
+        resolve(mergeData)
+      }
+      else {
+        resolve([])
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getCreatedCourse = async(mysqlTransaction, userID) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT course.courseID, 
+                  title, 
+                  method, 
+                  program, 
+                  category, 
+                  time,
+                  price,
+                  currency,
+                  userID
+                  FROM course 
+                  INNER JOIN created_course AS c ON course.courseID = c.courseID
+                  WHERE userID = ?`
+    try {
+      const [rowCourses] = await mysqlTransaction.query(query, [userID])
+      if (rowCourses.length > 0) {
+        const courseIDs = rowCourses.map((course) => course.courseID)
+        const mongoData = await Course.find({
+          courseID: { $in: courseIDs }
+        }).select("courseID image_introduce keywords")
+
+        const mergeData = rowCourses.map((course) => {
+          const data = mongoData.find(
+            (mc) => mc.courseID === course.courseID
+          )
+          return {
+            ...course,
+            time: formatDateTime(course.time),
+            image_introduce: data ? data.image_introduce : null,
+            keywords: data.keywords
+          }
+        })
+        resolve(mergeData)
+      }
+      else {
+        resolve([])
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getPendingCourse = async(mysqlTransaction, userID) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT course.courseID, 
+                  title, 
+                  method, 
+                  program, 
+                  category, 
+                  time,
+                  price,
+                  currency,
+                  userID
+                  FROM course 
+                  INNER JOIN send_mornitor AS s ON course.courseID = s.courseID
+                  WHERE userID = ?`
+    try {
+      const [rowCourses] = await mysqlTransaction.query(query, [userID])
+      if (rowCourses.length > 0) {
+        const courseIDs = rowCourses.map((course) => course.courseID)
+        const mongoData = await Course.find({
+          courseID: { $in: courseIDs }
+        }).select("courseID image_introduce keywords")
+
+        const mergeData = rowCourses.map((course) => {
+          const data = mongoData.find(
+            (mc) => mc.courseID === course.courseID
+          )
+          return {
+            ...course,
+            time: formatDateTime(course.time),
+            image_introduce: data ? data.image_introduce : null,
+            keywords: data.keywords
+          }
+        })
+        resolve(mergeData)
+      }
+      else {
+        resolve([])
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getPublishedCourse = async(mysqlTransaction, userID) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT course.courseID, 
+                  title, 
+                  method, 
+                  program, 
+                  category, 
+                  time,
+                  price,
+                  currency,
+                  userID
+                  FROM course 
+                  INNER JOIN published_course AS p ON course.courseID = p.courseID
+                  WHERE userID = ?`
+    try {
+      const [rowCourses] = await mysqlTransaction.query(query, [userID])
+      if (rowCourses.length > 0) {
+        const courseIDs = rowCourses.map((course) => course.courseID)
+        const mongoData = await Course.find({
+          courseID: { $in: courseIDs }
+        }).select("courseID image_introduce keywords")
+
+        const mergeData = rowCourses.map((course) => {
+          const data = mongoData.find(
+            (mc) => mc.courseID === course.courseID
+          )
+          return {
+            ...course,
+            time: formatDateTime(course.time),
+            image_introduce: data ? data.image_introduce : null,
+            keywords: data.keywords
+          }
+        })
+        resolve(mergeData)
+      }
+      else {
+        resolve([])
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getTerminatedCourse = async(mysqlTransaction, userID) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT course.courseID, 
+                  title, 
+                  method, 
+                  program, 
+                  category, 
+                  to_time,
+                  end_time,
+                  price,
+                  currency,
+                  userID
+                  FROM course 
+                  INNER JOIN terminated_course AS c ON course.courseID = c.courseID
+                  WHERE userID = ?`
+    try {
+      const [rowCourses] = await mysqlTransaction.query(query, [userID])
+      if (rowCourses.length > 0) {
+        const courseIDs = rowCourses.map((course) => course.courseID)
+        const mongoData = await Course.find({
+          courseID: { $in: courseIDs }
+        }).select("courseID image_introduce keywords")
+
+        //Merge data with Mysql and MongoDB
+        const mergeData = rowCourses.map((course) => {
+          const data = mongoData.find(
+            (mc) => mc.courseID === course.courseID
+          )
+          return {
+            ...course,
+            to_time: course.to_time ? formatDateTime(course.to_time) : 'permanently',
+            end_time: course.end_time ? formatDateTime(course.end_time) : 'permanently',
+            image_introduce: data ? data.image_introduce : null,
+            keywords: data.keywords
+          }
+        })
+        resolve(mergeData)
+      }
+      else {
+        resolve([])
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
 const getAllCourses = catchAsync(async (req, res, next) => {
   // Implement here
+  const userID = req.userID
+  const role = req.role
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  mongoTransaction.startTransaction()
+
+  let created, pending, published, terminated
+  switch (role) {
+  case 'admin':
+    try {
+      [pending, published, terminated] = await Promise.all([
+        getPendingCourseAdmin(mysqlTransaction),
+        getPublishedCourseAdmin(mysqlTransaction),
+        getTerminatedCourseAdmin(mysqlTransaction)
+      ])
+      // Commit Transactions
+      await mysqlTransaction.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+    } catch (error) {
+      // Rollback Transactions in case of an error
+      await mysqlTransaction.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next(error)
+    } finally {
+      // End the MongoDB session
+      await mongoTransaction.endSession()
+    }
+
+    res.status(200).json({
+      pending,
+      published,
+      terminated
+    })
+    break;
+
+  case 'instructor':
+    try {
+      [created, pending, published, terminated] = await Promise.all([
+        getCreatedCourse(mysqlTransaction, userID),
+        getPendingCourse(mysqlTransaction, userID),
+        getPublishedCourse(mysqlTransaction, userID),
+        getTerminatedCourse(mysqlTransaction, userID)
+      ])
+      // Commit Transactions
+      await mysqlTransaction.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+    } catch (error) {
+      // Rollback Transactions in case of an error
+      await mysqlTransaction.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next(error)
+    } finally {
+      // End the MongoDB session
+      await mongoTransaction.endSession()
+    }
+
+    res.status(200).json({
+      created,
+      pending,
+      published,
+      terminated
+    })
+    break;
+  }
 })
 
 const getCourseById = catchAsync(async (req, res, next) => {
@@ -305,16 +859,115 @@ const searchCourse = catchAsync(async (req, res, next) => {
 // Thông tin truy cập vào khóa học
 const accessCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const courseID = req.params.id
+  const userID = req.userID
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  mongoTransaction.startTransaction()
+
+  let info_mysql, info_mongo, reviews, videos, progress, list_learning
+
+  try {
+    // Run both functions asynchronously
+    [info_mysql, info_mongo, reviews, videos, progress, list_learning] = await Promise.all([
+      getFullInfoMySQL(mysqlTransaction, courseID), // Fetch MySQL data
+      getFullInfoMongo(courseID), // Fetch MongoDB data
+      getReview(courseID),
+      getTotalVideo(courseID),
+      getProgress(courseID, userID),
+      getListLearning(courseID, userID)
+    ])
+    // Commit Transactions
+    await mysqlTransaction.query("COMMIT")
+    await mongoTransaction.commitTransaction()
+  } catch (error) {
+    // Rollback Transactions in case of an error
+    await mysqlTransaction.query("ROLLBACK")
+    await mongoTransaction.abortTransaction()
+    next(error) // Pass the error to the next middleware
+  } finally {
+    // End the MongoDB session
+    await mongoTransaction.endSession()
+  }
+
+  // Merge data
+  const mergeData = info_mysql.map(course => {
+    return {
+      ...course,
+      progress: progress ? progress : 0,
+      videos: videos,
+      review: reviews,
+      keywords: info_mongo[0].keywords,
+      chapters: info_mongo[0].chapters,
+      learning: list_learning
+    }
+  })
+
+  res.status(200).send(mergeData[0])
+})
+
+//Upload file media
+const uploadFileGCS = catchAsync(async (req, res, next) => {
+  const files = req.files || []
+  if (files)
+    res.status(201).send('upload file successfully')
+  else next({ status: 500, message: 'Failed to upload files' })
 })
 
 // Tạo mới khóa học
 const createCourse = catchAsync(async (req, res, next) => {
   // Implement here
+
 })
 
 // cập nhật thông tin khóa học
 const updateCourse = catchAsync(async (req, res, next) => {
   // Implement here
+})
+
+const getQnA = catchAsync(async (req, res, next) => {
+  const { id, lectureID } = req.params
+  const lectureQA = await loadOriginQnA(id, lectureID)
+  const lectures = (lectureQA) ? lectureQA : [] //Avoid case lectureQA is empty
+  if (lectures.length > 0)
+  {
+    const QA = await Promise.all(
+      lectures.map(async (lecture) => {
+        // Convert the lecture to a plain object
+        const lectureData = lecture.toObject()
+
+        // Fetch information for the questioner
+        const infQuestion = await getUserByID(lectureData.questionerID)
+        // Process responses
+        const responses = lectureData.responses && lectureData.responses.length > 0
+          ? await Promise.all(
+            lectureData.responses.map(async (response) => {
+              const infResponse = await getUserByID(response.responseID)
+              return {
+                ...response,
+                name: infResponse.fullname || "Unknown",
+                avatar: infResponse.avatar || "default-avatar.png"
+              }
+            })
+          )
+          : []
+
+        return {
+          ...lectureData, // Use the plain object without Mongoose metadata
+          name: infQuestion.fullname || "Unknown",
+          avatar: infQuestion.avatar || "default-avatar.png",
+          responses
+        }
+      })
+    )
+    res.status(200).send(QA)
+  }
+  else {
+    res.status(200).send([])
+  }
 })
 
 export default {
@@ -323,5 +976,9 @@ export default {
   searchCourse,
   accessCourse,
   createCourse,
-  updateCourse
+  updateCourse,
+  uploadFileGCS,
+  getQnA
 }
+
+export { getListInforPublish, switchCourseStatus }

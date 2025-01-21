@@ -12,26 +12,11 @@ export class InstructorClient extends ApiClient {
     this.notify = new NotifyClient()
   }
 
-  async QnA(id, courseID, lectureID, content) {
+  async updateAvatar(id, formData) {
     try {
-      const response = await axios.post(`${this.domain}/${id}/${courseID}/${lectureID}/QA`, {
+      const response = await axios.put(`${this.domain}/avatar/${id}`, formData, {
         headers: {
-          //authentication
-        },
-        data: content
-      })
-      return response
-    }
-    catch (error) {
-      return error
-    }
-  }
-
-  async sendApproveCourse(id, courseID) {
-    try {
-      const response = await axios.put(`${this.domain}/${id}/sendapprove/${courseID}`, {
-        headers: {
-          //authentication
+          'Content-Type': 'multipart/form-data'
         }
       })
       return response
@@ -41,8 +26,40 @@ export class InstructorClient extends ApiClient {
     }
   }
 
-  async createCourse(data) {
-    return this.course.createDataCourse(data)
+  async QnA(courseID, lectureID, content) {
+    try {
+      const response = await axios.post(`${this.domain}/${courseID}/${lectureID}/QA`, { data: content })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
+  async getQnA(courseID, lectureID) {
+    return this.course.getLectureQnA(courseID, lectureID)
+  }
+
+  async sendApproveCourse(courseID) {
+    try {
+      const response = await axios.put(`${this.domain}/sendapprove/${courseID}`)
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
+  async createCourse(data, formData) {
+    const res_files = await this.course.uploadFileMedia(formData)
+    //Upload file lên GCS thành công
+    if (res_files.status === 201)
+      //Tạo khóa học
+      return this.course.createDataCourse(data)
+    //Upload file lên GCS thất bại
+    else
+      //return lỗi
+      return res_files
   }
 
   async updateCourse(courseID, newdata) {

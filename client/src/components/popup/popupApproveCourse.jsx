@@ -1,55 +1,35 @@
 import styled from "styled-components"
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined'
-import axios from "axios"
-
+import { instructor } from "api"
 const PopupApproveCourse = ({ handleClose, course, reload, setReload }) => {
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
-
   const handleSave = async() => {
-    try
-    {
-      const res = await axios.post('http://localhost:3000/in/sendapprove',
-        { course },
-        {
-          headers: {
-            'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            'user': userAuth
-          }
-        }
-      )
-      if (res.data === true)
-      {
-        alert('Action Successfully')
-        setTimeout(() => setReload(!reload), 100);
-      }
-      else
-        alert('Action Failed')
-    }
-    catch (error) {
-      alert('An error occurred while trying to send for approval.')
-      //console.error(error)
+    const res = await instructor.sendApproveCourse(course)
+    if (res.status == 200) {
+      setTimeout(() => setReload(!reload), 100)
     }
   }
 
   return (
-    <WrapperPopup>
-      <div className="popup-box">
-        <div className="box">
-          <span className="close-icon" onClick={handleClose}>x</span>
-          <label>
-            <SendOutlinedIcon sx={{ color: '#008105', fontSize: '3.0rem', margin: 'auto' }}/>
-            <h1>The course <strong>{course}</strong> will be send to approval</h1>
-          </label>
-          <div className="item-btns">
-            <button className="item-btn" onClick={() => {
-              handleSave()
-              handleClose()
-            }}>Save</button>
+    <>
+      <WrapperPopup>
+        <div className="popup-box">
+          <div className="box">
+            <span className="close-icon" onClick={handleClose}>x</span>
+            <label>
+              <SendOutlinedIcon sx={{ color: '#008105', fontSize: '3.0rem', margin: 'auto' }} />
+              <h1>The course <strong>{course}</strong> will be send to approval</h1>
+            </label>
+            <div className="item-btns">
+              <button className="item-btn" onClick={() => {
+                handleSave()
+                handleClose()
+              }}>Save</button>
+            </div>
           </div>
         </div>
-      </div>
-    </WrapperPopup>
+      </WrapperPopup>
+    </>
+
   )
 }
 

@@ -2,20 +2,15 @@
 import { GeneralFooter, GeneralHeader } from '~/components/general'
 import styled from 'styled-components'
 import { useState, useEffect } from 'react'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
 import ActiveList from './ActiveList'
 import LockedList from './LockedList'
 import Logo from '../../../assets/hdh.png'
-
+import { admin } from 'api'
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 
 function ManageAccount() {
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
   const [reload, setReload] = useState(false)
   const [activeTab, setActiveTab] = useState('Tab1')
-  const navigate = useNavigate()
 
   const handleTabClick = (tab) => {
     setActiveTab(tab)
@@ -24,54 +19,25 @@ function ManageAccount() {
   const [active, setActive] = useState([])
   const [locked, setLocked] = useState([])
 
-  useEffect(() => {
-    axios
-      .get('http://localhost:3000/ad/getActiveAccounts', {
-        headers: {
-          Token: token, // Thêm token và user vào header để đưa xuống Backend xác thực
-          User: userAuth
-        }
-      })
-      .then((response) => {
-        setActive(response.data)
-      })
-      .catch((error) => {
-        //Server shut down
-        if (error.message === 'Network Error') navigate('/server-shutdown')
-        //Connection error
-        else if (error.response.status === 500) navigate('/500error')
-        //Unauthorized. Need login
-        else if (error.response.status === 401) navigate('/401error')
-        //Forbidden. Token != userAuth
-        else if (error.response.status === 403) navigate('/403error')
-        else navigate('/error-get-data')
-      })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reload])
+  const loadListStudent = async () => {
+    const res = await admin.loadListStudent()
+    if (res.status == 200) {
+      setActive((prev) => [...prev, ...res.data.active])
+      setLocked((prev) => [...prev, ...res.data.locked])
+    }
+  }
+
+  const loadListInstructor = async () => {
+    const res = await admin.loadListInstructor()
+    if (res.status == 200) {
+      setActive((prev) => [...prev, ...res.data.active])
+      setLocked((prev) => [...prev, ...res.data.locked])
+    }
+  }
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3000/ad/getLockedAccounts', {
-        headers: {
-          Token: token, // Thêm token và user vào header để đưa xuống Backend xác thực
-          User: userAuth
-        }
-      })
-      .then((response) => {
-        setLocked(response.data)
-      })
-      .catch((error) => {
-        //Server shut down
-        if (error.message === 'Network Error') navigate('/server-shutdown')
-        //Connection error
-        else if (error.response.status === 500) navigate('/500error')
-        //Unauthorized. Need login
-        else if (error.response.status === 401) navigate('/401error')
-        //Forbidden. Token != userAuth
-        else if (error.response.status === 403) navigate('/403error')
-        else navigate('/error-get-data')
-      })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadListStudent()
+    loadListInstructor()
   }, [reload])
 
   return (

@@ -2,13 +2,13 @@
 /* eslint-disable no-async-promise-executor */
 import catchAsync from '../utils/catchAsync.js'
 import jwt from 'jsonwebtoken'
-import Email from '../utils/email.js'
 import crypto from 'crypto'
 import connectMysql from '../config/connMySql.js'
 import User from '../models/user.js'
 import TokenList from '../models/token.js'
 import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
+import { getUserByEmail, countUserOfRole } from '../controllers/userController.js'
 
 const hashPassword = (password) => {
   // Create a SHA-512 hash
@@ -78,51 +78,6 @@ const createUserMongo = (transaction, user) => {
     } catch (error) {
       reject(error)
     }
-  })
-}
-
-//Define some function use in that routes (controller)
-const countUserOfRole = (role) => {
-  return new Promise((resolve, reject) => {
-    connectMysql.getConnection((err, connection) => {
-      if (err) {
-        reject(err)
-        return
-      }
-
-      let query =
-        'SELECT count(*) AS count FROM account WHERE LEFT(userID, 1) = ?'
-      connection.query(query, [role], (error, results) => {
-        connection.release() //Giải phóng connection khi truy vấn xong
-        if (error) {
-          reject(error)
-          return
-        }
-        resolve(results[0].count)
-      })
-    })
-  })
-}
-
-const getUserIDBasedEmail = (mail) => {
-  return new Promise((resolve, reject) => {
-    connectMysql.getConnection((err, connection) => {
-      if (err) {
-        reject(err)
-        return
-      }
-
-      let query = 'SELECT userID FROM user WHERE mail = ?'
-      connection.query(query, [mail], (error, results) => {
-        connection.release() //Giải phóng connection khi truy vấn xong
-        if (error) {
-          reject(error)
-          return
-        }
-        if (results.length == 0) resolve('null')
-        else resolve(results[0].userID)
-      })
-    })
   })
 }
 
@@ -284,8 +239,8 @@ const loginWithGoogle = catchAsync(async (req, res, next) => {
   // Implement here
   const { loginCredential } = req.body
   const decode = jwt.decode(loginCredential)
-  const userID = await getUserIDBasedEmail(decode.email)
-  if (userID === 'null') {
+  const user = await getUserByEmail(decode.email)
+  if (user.userID === 'null') {
     //Sign up new user with role = Student
     const mysqlTransaction = connectMysql.promise()
     const mongoTransaction = await mongoose.startSession()

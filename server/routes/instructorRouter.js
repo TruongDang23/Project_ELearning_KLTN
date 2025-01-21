@@ -1,6 +1,9 @@
 import express from 'express'
 import authController from '../controllers/authController.js'
 import instructorController from '../controllers/instructorController.js'
+import userController from '../controllers/userController.js'
+import { uploadTemp } from '../utils/multer.js'
+import { checkAccessCourse } from '../utils/precheckAccess.js'
 
 const instructorRouter = express.Router()
 
@@ -25,19 +28,29 @@ instructorRouter
   )
 
 instructorRouter
-  .route('/:id/:courseID/:lectureID/QA')
-  .post(
+  .route('/avatar/:id')
+  .put(
     authController.protect,
     authController.restrictTo('instructor'),
-    instructorController.getQnA
+    uploadTemp.any(),
+    userController.updateAvatar
   )
 
 instructorRouter
-  .route('/:id/sendapprove/:courseID')
+  .route('/sendapprove/:courseID')
   .put(
     authController.protect,
     authController.restrictTo('instructor'),
     instructorController.sendApproveCourse
+  )
+
+instructorRouter
+  .route('/:id/:lectureID/QA')
+  .post(
+    authController.protect,
+    checkAccessCourse,
+    authController.restrictTo('admin', 'instructor', 'student'),
+    userController.newQnA
   )
 
 export default instructorRouter

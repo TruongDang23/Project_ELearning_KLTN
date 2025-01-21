@@ -27,19 +27,18 @@ export class StudentClient extends ApiClient {
     }
   }
 
-  async QnA(id, courseID, lectureID, content) {
+  async QnA(courseID, lectureID, content) {
     try {
-      const response = await axios.post(`${this.domain}/${id}/${courseID}/${lectureID}/QA`, {
-        headers: {
-          //authentication
-        },
-        data: content
-      })
+      const response = await axios.post(`${this.domain}/${courseID}/${lectureID}/QA`, { data: content })
       return response
     }
     catch (error) {
       return error
     }
+  }
+
+  async getQnA(courseID, lectureID) {
+    return this.course.getLectureQnA(courseID, lectureID)
   }
 
   async ratingsCourse(id, courseID, star, content) {

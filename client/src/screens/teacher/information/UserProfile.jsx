@@ -2,14 +2,21 @@
 import styled from 'styled-components'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import { useState } from 'react'
+import EditIcon from '@mui/icons-material/Edit'
+import { useState, useRef } from 'react'
 import { languages } from '~/constants/listLanguage'
-import axios from 'axios'
+import { userStore } from '~/context/UserStore'
+import { instructor } from 'api'
+import { Snackbar } from "~/components/general"
 
 function UserProfile({ profile, setProfile }) {
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
-
+  const formData = useRef(new FormData())
+  const userID = localStorage.getItem("userID")
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   const [isReadOnly, setIsReadOnly] = useState(true)
 
   const formatDate = (date) => {
@@ -30,192 +37,267 @@ function UserProfile({ profile, setProfile }) {
     })
   }
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0]
+    formData.current.set(`${userID}-avatar`, file)
+
+    if (file) {
+      const objectUrl = URL.createObjectURL(file)
+      //Update avatar in EditProfile screen
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        avatar: objectUrl
+      }))
+
+      //Update avatar in header
+      userStore.getState().updateInfor({ avatar: objectUrl })
+
+      // Cleanup Blob URL khi không cần nữa
+      return () => URL.revokeObjectURL(objectUrl)
+    }
+  }
+
   const updateInfor = async () => {
-    try {
-      const res = await axios.post(
-        'http://localhost:3000/in/updateInformation',
-        { profile },
-        {
-          headers: {
-            Token: token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            user: userAuth
-          }
+    //FormData has data
+    if (!formData.current.keys().next().done) {
+      //Upload avatar to GCS
+      const res_avatar = await instructor.updateAvatar(userID, formData.current)
+      if (res_avatar.status === 201) {
+        setProfile((prevProfile) => ({
+          ...prevProfile,
+          avatar: res_avatar.data
+        }))
+        //Update information
+        const res = await instructor.update(userID, profile)
+        if (res.status === 200) {
+          setOpenSuccess(true)
         }
-      )
-      if (res.data === true) alert('Update Successfully')
-      else alert('Update Failed')
-    } catch (error) {
-      alert('An error occurred while trying to update information.')
-      //console.error(error)
+        else {
+          setOpenError({
+            status: true,
+            message: res.response.data.error
+          })
+          setTimeout(() => {
+            setOpenError({
+              status: false
+            })
+          }, 3000)
+        }
+      }
+      else {
+        setOpenError({
+          status: true,
+          message: res_avatar.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
+      }
+    } else {
+      //FormData is empty
+      //Update information
+      const res = await instructor.update(userID, profile)
+      if (res.status === 200) {
+        setOpenSuccess(true)
+      }
+      else {
+        setOpenError({
+          status: true,
+          message: res.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
+      }
     }
   }
 
   return (
-    <ProfileContainer>
-      <div className="avt">
-        <img src={profile.avatar} alt="avatar" />
-      </div>
-      <div className="content">
-        <h3>UserID: </h3>
-        <Input
-          type="text"
-          value={profile.userID}
-          isReadOnly={true}
-          readOnly={true}
-        />
-
-        <h3>Full name:</h3>
-        <Input
-          type="text"
-          value={profile.fullname}
-          onChange={(e) => {
-            setProfile((prevProfile) => ({
-              ...prevProfile,
-              fullname: e.target.value
-            }))
-          }}
-          isReadOnly={isReadOnly}
-          readOnly={isReadOnly}
-        />
-
-        <h3>Date of birth:</h3>
-        <Calendar
-          //onChange={handleDateChange}
-          value={profile.date_of_birth}
-          view="month" // Hiển thị lịch tháng
-          showNeighboringMonth={false} // Ẩn các ngày của tháng liền kề
-          onChange={(date) => {
-            setProfile((prevProfile) => ({
-              ...prevProfile,
-              date_of_birth: formatDate(date)
-            }))
-          }}
-          disabled={isReadOnly}
-        />
-
-        <h3>Location:</h3>
-        <div className="location">
-          <Input
-            type="text"
-            value={profile.street}
-            onChange={(e) => {
-              setProfile((prevProfile) => ({
-                ...prevProfile,
-                street: e.target.value
-              }))
-            }}
-            isReadOnly={isReadOnly}
-            readOnly={isReadOnly}
-          />
-          <Input
-            type="text"
-            value={profile.province}
-            onChange={(e) => {
-              setProfile((prevProfile) => ({
-                ...prevProfile,
-                province: e.target.value
-              }))
-            }}
-            isReadOnly={isReadOnly}
-            readOnly={isReadOnly}
-          />
-          <Input
-            type="text"
-            value={profile.country}
-            onChange={(e) => {
-              setProfile((prevProfile) => ({
-                ...prevProfile,
-                country: e.target.value
-              }))
-            }}
-            isReadOnly={isReadOnly}
-            readOnly={isReadOnly}
-          />
+    <>
+      <ProfileContainer>
+        <div className="avt">
+          <div className="avatar-container">
+            <img src={profile.avatar} alt="avatar" />
+            <EditIcon sx={{ fontSize: '3rem', color: '#898989' }}
+              onClick={() => document.getElementById('upload-avatar').click()}
+              className="edit-icon" />
+            <input
+              type="file"
+              id="upload-avatar"
+              style={{ display: 'none' }}
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </div>
         </div>
+        <div className="content">
+          <h3>UserID: </h3>
+          <Input
+            type="text"
+            value={profile.userID}
+            isReadOnly={true}
+            readOnly={true}
+          />
 
-        <h3>Language:</h3>
-        <div className="language-select">
-          <select
-            id="language"
-            value={profile.language}
-            className="language-select"
+          <h3>Full name:</h3>
+          <Input
+            type="text"
+            value={profile.fullname}
+            onChange={(e) => {
+              setProfile((prevProfile) => ({
+                ...prevProfile,
+                fullname: e.target.value
+              }))
+            }}
+            isReadOnly={isReadOnly}
+            readOnly={isReadOnly}
+          />
+
+          <h3>Date of birth:</h3>
+          <Calendar
+            //onChange={handleDateChange}
+            value={profile.date_of_birth}
+            view="month" // Hiển thị lịch tháng
+            showNeighboringMonth={false} // Ẩn các ngày của tháng liền kề
+            onChange={(date) => {
+              setProfile((prevProfile) => ({
+                ...prevProfile,
+                date_of_birth: formatDate(date)
+              }))
+            }}
             disabled={isReadOnly}
-            onChange={(e) => {
-              setProfile((prevProfile) => ({
-                ...prevProfile,
-                language: e.target.value
-              }))
-            }}
-          >
-            {languages.map((language, index) => (
-              <option key={index} value={language}>
-                {language}
-              </option>
-            ))}
-          </select>
+          />
+
+          <h3>Location:</h3>
+          <div className="location">
+            <Input
+              type="text"
+              value={profile.street}
+              onChange={(e) => {
+                setProfile((prevProfile) => ({
+                  ...prevProfile,
+                  street: e.target.value
+                }))
+              }}
+              isReadOnly={isReadOnly}
+              readOnly={isReadOnly}
+            />
+            <Input
+              type="text"
+              value={profile.province}
+              onChange={(e) => {
+                setProfile((prevProfile) => ({
+                  ...prevProfile,
+                  province: e.target.value
+                }))
+              }}
+              isReadOnly={isReadOnly}
+              readOnly={isReadOnly}
+            />
+            <Input
+              type="text"
+              value={profile.country}
+              onChange={(e) => {
+                setProfile((prevProfile) => ({
+                  ...prevProfile,
+                  country: e.target.value
+                }))
+              }}
+              isReadOnly={isReadOnly}
+              readOnly={isReadOnly}
+            />
+          </div>
+
+          <h3>Language:</h3>
+          <div className="language-select">
+            <select
+              id="language"
+              value={profile.language}
+              className="language-select"
+              disabled={isReadOnly}
+              onChange={(e) => {
+                setProfile((prevProfile) => ({
+                  ...prevProfile,
+                  language: e.target.value
+                }))
+              }}
+            >
+              {languages.map((language, index) => (
+                <option key={index} value={language}>
+                  {language}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <h3>Social networks:</h3>
+          <Input
+            type="text"
+            placeholder="Link to social profile"
+            value={profile.social_network[0]}
+            onChange={(e) => handleSocialNetworkChange(0, e.target.value)}
+            isReadOnly={isReadOnly}
+            readOnly={isReadOnly}
+          />
+          <Input
+            type="text"
+            placeholder="Link to social profile"
+            value={profile.social_network[1]}
+            onChange={(e) => handleSocialNetworkChange(1, e.target.value)}
+            isReadOnly={isReadOnly}
+            readOnly={isReadOnly}
+          />
+          <Input
+            type="text"
+            placeholder="Link to social profile"
+            value={profile.social_network[2]}
+            onChange={(e) => handleSocialNetworkChange(2, e.target.value)}
+            isReadOnly={isReadOnly}
+            readOnly={isReadOnly}
+          />
+          <Input
+            type="text"
+            placeholder="Link to social profile"
+            value={profile.social_network[3]}
+            onChange={(e) => handleSocialNetworkChange(3, e.target.value)}
+            isReadOnly={isReadOnly}
+            readOnly={isReadOnly}
+          />
+
+          <h3>Activity status:</h3>
+          <Input
+            type="text"
+            value={profile.activity_status}
+            isReadOnly={true}
+            readOnly={true}
+          />
+
+          <div className="item-btns">
+            <button
+              className="item-btn save-btn"
+              onClick={() => {
+                setIsReadOnly(true)
+                updateInfor()
+              }}
+            >
+              Save
+            </button>
+            <button
+              className="item-btn update-btn"
+              onClick={() => setIsReadOnly(false)}
+            >
+              Update
+            </button>
+          </div>
         </div>
-
-        <h3>Social networks:</h3>
-        <Input
-          type="text"
-          placeholder="Link to social profile"
-          value={profile.social_network[0]}
-          onChange={(e) => handleSocialNetworkChange(0, e.target.value)}
-          isReadOnly={isReadOnly}
-          readOnly={isReadOnly}
-        />
-        <Input
-          type="text"
-          placeholder="Link to social profile"
-          value={profile.social_network[1]}
-          onChange={(e) => handleSocialNetworkChange(1, e.target.value)}
-          isReadOnly={isReadOnly}
-          readOnly={isReadOnly}
-        />
-        <Input
-          type="text"
-          placeholder="Link to social profile"
-          value={profile.social_network[2]}
-          onChange={(e) => handleSocialNetworkChange(2, e.target.value)}
-          isReadOnly={isReadOnly}
-          readOnly={isReadOnly}
-        />
-        <Input
-          type="text"
-          placeholder="Link to social profile"
-          value={profile.social_network[3]}
-          onChange={(e) => handleSocialNetworkChange(3, e.target.value)}
-          isReadOnly={isReadOnly}
-          readOnly={isReadOnly}
-        />
-
-        <h3>Activity status:</h3>
-        <Input
-          type="text"
-          value={profile.activity_status}
-          isReadOnly={true}
-          readOnly={true}
-        />
-
-        <div className="item-btns">
-          <button
-            className="item-btn save-btn"
-            onClick={() => {
-              setIsReadOnly(true)
-              updateInfor()
-            }}
-          >
-            Save
-          </button>
-          <button
-            className="item-btn update-btn"
-            onClick={() => setIsReadOnly(false)}
-          >
-            Update
-          </button>
-        </div>
-      </div>
-    </ProfileContainer>
+      </ProfileContainer>
+      {openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Update Successfully" /> </> : <> </>}
+      {openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message} /> </> : <> </>}
+    </>
   )
 }
 
@@ -246,20 +328,33 @@ const Input = styled.input`
 
 const ProfileContainer = styled.div`
   display: flex;
-  height: auto;
+  height: 100%;
   flex-direction: column;
   background-color: #fff;
   .avt {
     align-self: center;
     margin-top: 20px;
     margin-bottom: 20px;
-    img {
-      width: 180px;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 3px solid #1971c2;
-    }
+  }
+
+  .avatar-container {
+    position: relative; /* Để định vị phần tử con */
+    width: 200px;
+    height: 200px;
+  }
+
+  .avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 40%; /* Làm tròn các góc */
+  }
+
+  .avatar-container .edit-icon {
+    position: absolute;
+    bottom: 10px; /* Cách đáy 10px */
+    right: -10px; /* Cách phải 10px */
+    cursor: pointer; /* Thêm hiệu ứng khi hover */
   }
   .content {
     display: flex;

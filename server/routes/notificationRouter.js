@@ -14,7 +14,7 @@ notificationRouter
 
 notificationRouter
   .route('/:id/:notifyID')
-  .get(
+  .put(
     authController.protect,
     authController.restrictTo('admin', 'instructor', 'student'),
     notificationController.updateRead

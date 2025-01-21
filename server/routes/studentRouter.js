@@ -1,6 +1,8 @@
 import express from 'express'
 import authController from '../controllers/authController.js'
 import studentController from '../controllers/studentController.js'
+import { checkAccessCourse } from '../utils/precheckAccess.js'
+import userController from '../controllers/userController.js'
 
 const studentRouter = express.Router()
 
@@ -44,6 +46,15 @@ studentRouter
     authController.protect,
     authController.restrictTo('student', 'admin'),
     studentController.buyCourse
+  )
+
+studentRouter
+  .route('/:id/:lectureID/QA')
+  .post(
+    authController.protect,
+    checkAccessCourse,
+    authController.restrictTo('admin', 'instructor', 'student'),
+    userController.newQnA
   )
 
 export default studentRouter

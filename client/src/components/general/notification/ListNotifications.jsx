@@ -1,33 +1,24 @@
 import styled from 'styled-components'
 import NotifyPreview from './NotifyPreview'
-import { useState, useContext } from 'react'
-import Loading from '~/screens/system/Loading'
-
-import { NotificationContext } from '~/context/NotificationContext'
+import { useState } from 'react'
+import { notifyStore } from '~/context/NotifyStore'
 
 function ListNotifications() {
-  const userData = JSON.parse(sessionStorage.getItem('userAuth'))
-
-  const userID = userData ? userData.userID : ''
-
-  const { notifications, isLoading, markAsRead, unreadCount } =
-    useContext(NotificationContext)
+  const userID = localStorage.getItem('userID')
+  const notifications = notifyStore((state) => state.listNotifies)
+  const markAsRead = notifyStore((state) => state.markAsRead)
   const [selectedNotify, setSelectedNotify] = useState(null)
 
   const handleSelectNotify = async (notify) => {
     setSelectedNotify(notify)
     if (!notify.isRead) {
-      markAsRead(notify.notifyID, userID)
+      markAsRead(userID, notify.notifyID)
     }
   }
 
   const handleClick = (courselink) => {
     const url = courselink
     window.open(url, '_blank')
-  }
-
-  if (isLoading) {
-    return <Loading />
   }
 
   return (

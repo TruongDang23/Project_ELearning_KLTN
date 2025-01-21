@@ -8,14 +8,18 @@ import Categories from './categories'
 import AvatarAction from './avatar'
 import { useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { NotificationContext } from '~/context/NotificationContext'
+import { notifyStore } from '~/context/NotifyStore'
 
 function Header() {
   const navigate = useNavigate()
-  // eslint-disable-next-line no-unused-vars
+  const unread = notifyStore((state) => state.unreadCount)
   const [search, setSearch] = useSearchParams()
   const userID = localStorage.getItem('userID')
   const [title, setTitle] = useState(search.get('q') || '')
+
+  const navigation = (path) => {
+    navigate(path)
+  }
 
   const handleSearch = (event) => {
     if (event.key === 'Enter') {
@@ -110,8 +114,8 @@ function Header() {
                 <ShoppingCartOutlinedIcon />
               </StyledBadge>
             </a>
-            <a href="/notification">
-              <StyledBadge badgeContent={0} color="primary">
+            <a href="#!" onClick={() => navigation('/notification')}>
+              <StyledBadge badgeContent={unread} color="primary">
                 <NotificationsOutlinedIcon />
               </StyledBadge>
             </a>

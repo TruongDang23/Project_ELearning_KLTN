@@ -1,34 +1,13 @@
 import styled from "styled-components"
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
-import axios from "axios"
+import { admin } from "api"
 
 const PopupPub = ({ handleClose, course, reload, setReload }) => {
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
 
   const handleSave = async() => {
-    try
-    {
-      const res = await axios.post('http://localhost:3000/c/publish',
-        { course },
-        {
-          headers: {
-            'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            'user': userAuth
-          }
-        }
-      )
-      if (res.data === true)
-      {
-        alert('Action Successfully')
-        setTimeout(() => setReload(!reload), 100);
-      }
-      else
-        alert('Action Failed')
-    }
-    catch (error) {
-      alert('An error occurred while trying to re-publish course.')
-      //console.error(error)
+    const res = await admin.acceptCourse(course)
+    if (res.status == 200) {
+      setTimeout(() => setReload(!reload), 1000)
     }
   }
 

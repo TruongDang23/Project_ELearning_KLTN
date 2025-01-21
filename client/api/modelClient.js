@@ -8,9 +8,7 @@ export class ModelClient extends ApiClient {
   async chatAI(content) {
     try {
       const response = await axios.post(`${this.domain}/chatAI`, {
-        data: {
-          context: content
-        }
+        context: content
       })
       return response
     }

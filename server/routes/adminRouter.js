@@ -1,23 +1,29 @@
 import express from 'express'
 import authController from '../controllers/authController.js'
 import adminController from '../controllers/adminController.js'
+import userController from '../controllers/userController.js'
 import { uploadTemp } from '../utils/multer.js'
+import { checkAccessCourse } from '../utils/precheckAccess.js'
 const adminRouter = express.Router()
 
 adminRouter
   .route('/:id')
+  .all(authController.protect)
+  .all(authController.restrictTo('admin'))
   .get(
-    authController.protect,
-    authController.restrictTo('admin'),
     adminController.getByID
+  )
+  .put(
+    adminController.update
   )
 
 adminRouter
-  .route('/:id')
+  .route('/avatar/:id')
   .put(
     authController.protect,
     authController.restrictTo('admin'),
-    adminController.update
+    uploadTemp.any(),
+    userController.updateAvatar
   )
 
 adminRouter
@@ -38,6 +44,14 @@ adminRouter
   )
 
 adminRouter
+  .route('/republish/:id')
+  .put(
+    authController.protect,
+    authController.restrictTo('admin'),
+    adminController.republishCourse
+  )
+
+adminRouter
   .route('/reject/:id')
   .put(
     authController.protect,
@@ -54,19 +68,19 @@ adminRouter
   )
 
 adminRouter
-  .route('/:id/:courseID/:lectureID/QA')
-  .post(
-    authController.protect,
-    authController.restrictTo('admin'),
-    adminController.getQnA
-  )
-
-adminRouter
   .route('/locked/:id')
   .put(
     authController.protect,
     authController.restrictTo('admin'),
-    adminController.blockUser
+    adminController.lockUser
   )
 
+adminRouter
+  .route('/:id/:lectureID/QA')
+  .post(
+    authController.protect,
+    checkAccessCourse,
+    authController.restrictTo('admin', 'instructor', 'student'),
+    userController.newQnA
+  )
 export default adminRouter

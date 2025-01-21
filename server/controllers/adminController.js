@@ -2,9 +2,10 @@
 import catchAsync from '../utils/catchAsync.js'
 import mongoose from 'mongoose'
 import User from '../models/user.js'
-import { formatDate } from '../utils/dateTimeHandler.js'
+import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
-import { attachFile, putFileToStorage } from './googleCloudController.js'
+import { attachFile } from './googleCloudController.js'
+import { switchCourseStatus } from './courseController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -204,27 +205,83 @@ const updateAvatar = catchAsync(async (req, res, next) => {
 
 // Xét duyệt khóa học dựa vào courseID
 const approveCourse = catchAsync(async (req, res, next) => {
-  // Implement here
+  const courseID = req.params.id
+  const time = formatDateTime(new Date())
+  try {
+    await switchCourseStatus(courseID, "published", "send_mornitor", "published_course", time)
+    res.status(200).send()
+  }
+  catch {
+    next({ status: 500, message: 'Failed to publish course' })
+  }
+})
+
+const republishCourse = catchAsync(async (req, res, next) => {
+  const courseID = req.params.id
+  const time = formatDateTime(new Date())
+  try {
+    await switchCourseStatus(courseID, "published", "terminated_course", "published_course", time)
+    res.status(200).send()
+  }
+  catch {
+    next({ status: 500, message: 'Failed to re-publish course' })
+  }
 })
 
 // Từ chối xét duyệt khóa học dựa vào courseID
 const rejectCourse = catchAsync(async (req, res, next) => {
-  // Implement here
+  const courseID = req.params.id
+  const time = formatDateTime(new Date())
+  try {
+    await switchCourseStatus(courseID, "created", "send_mornitor", "created_course", time)
+    res.status(200).send()
+  }
+  catch {
+    next({ status: 500, message: 'Failed to reject course' })
+  }
 })
 
 // Khóa khóa học dựa vào courseID
 const terminateCourse = catchAsync(async (req, res, next) => {
   // Implement here
-})
-
-// Q&A khóa học
-const getQnA = catchAsync(async (req, res, next) => {
-  // Implement here
+  const courseID = req.params.id
+  const timeRange = req.body.time
+  try {
+    await switchCourseStatus(courseID, "terminated", "published_course", "terminated_course", timeRange)
+    res.status(200).send()
+  }
+  catch {
+    next({ status: 500, message: 'Failed to terminated course' })
+  }
 })
 
 // KHóa tài khoản
-const blockUser = catchAsync(async (req, res, next) => {
-  // Implement here
+const lockUser = catchAsync(async (req, res, next) => {
+  // Implement here'
+  const userID = req.params.id
+  const mysqlTransaction = connectMysql.promise()
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  let query = `UPDATE account SET activity_status = 'active' WHERE userID = ?`
+  try {
+    const [rowsInfo] = await mysqlTransaction.query(query,
+      [
+        userID
+      ])
+
+    await mysqlTransaction.query("COMMIT")
+    if (rowsInfo.affectedRows !== 0) {
+      res.status(200).send()
+    }
+    else {
+      res.status(404).send('UserID not exist')
+    }
+  } catch (error) {
+    // Rollback Transactions in case of an error
+    await mysqlTransaction.query("ROLLBACK")
+    next(error) // Pass the error to the next middleware
+  }
 })
 
 export default {
@@ -233,7 +290,6 @@ export default {
   approveCourse,
   rejectCourse,
   terminateCourse,
-  getQnA,
-  blockUser,
-  updateAvatar
+  lockUser,
+  republishCourse
 }
