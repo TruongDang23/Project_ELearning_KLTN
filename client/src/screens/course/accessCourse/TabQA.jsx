@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { formatDistanceToNow } from 'date-fns'
-import { useNavigate } from 'react-router-dom'
-import axios from "axios";
-import SearchIcon from '@mui/icons-material/Search'
 import { useParams } from 'react-router-dom'
-import io from 'socket.io-client'
 import { admin, instructor, student } from 'api'
 import { userStore } from '~/context/UserStore'
+import { Snackbar } from "~/components/general"
 
 function TabQA({ lectureQA, setReload, lectureId }) {
   const [courseQA, setCourseQA] = useState([])
@@ -16,11 +13,14 @@ function TabQA({ lectureQA, setReload, lectureId }) {
   const [newResponse, setNewResponse] = useState('')
   const [newQuestion, setNewQuestion] = useState('')
   const [replyingTo, setReplyingTo] = useState(null)
-  const navigate = useNavigate()
   const userID = localStorage.getItem('userID')
   const { courseID } = useParams()
   const url = window.location.href
-  const socket = io('http://localhost:3001')
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   let res
   let client
 
@@ -29,7 +29,7 @@ function TabQA({ lectureQA, setReload, lectureId }) {
   else if (userID[0] === 'S')
     client = student
 
-  const loadListQnA = async() => {
+  const loadListQnA = async () => {
     let qna
     switch (userID[0]) {
     case 'A':
@@ -49,45 +49,6 @@ function TabQA({ lectureQA, setReload, lectureId }) {
     loadListQnA()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lectureQA])
-
-  // useEffect(() => {
-  //   axios.post('http://localhost:3000/c/updateNewQA',
-  //     {
-  //       courseQA,
-  //       courseID,
-  //       lectureId,
-  //       url
-  //     },
-  //     {
-  //       headers: {
-  //         Token: token, // Thêm token và user vào header để đưa xuống Backend xác thực
-  //         user: userAuth
-  //       }
-  //     }
-  //   )
-  //     // eslint-disable-next-line no-unused-vars
-  //     .then(response => {
-  //       socket.emit("newNotify", courseID, userID)
-  //       setReload((prev) => ({ //Reload course data
-  //         reload: !prev.reload
-  //       }))
-  //     })
-  //     .catch(error => {
-  //       //Server shut down
-  //       if (error.message === 'Network Error')
-  //         navigate('/server-shutdown')
-  //       //Connection error
-  //       if (error.response.status === 500)
-  //         navigate('/500error')
-  //       //Unauthorized. Need login
-  //       if (error.response.status === 401)
-  //         navigate('/401error')
-  //       //Forbidden. Token != userAuth
-  //       if (error.response.status === 403)
-  //         navigate('/403error')
-  //     })
-  // // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [reCall])
 
   const handleResponseChange = (e) => setNewResponse(e.target.value)
   const handleSubmitChange = (e) => setNewQuestion(e.target.value)
@@ -114,13 +75,29 @@ function TabQA({ lectureQA, setReload, lectureId }) {
       responses: []
     }
 
-    setCourseQA((prev) => [...prev, newData])
+    const updatedCourseQA = [...courseQA, newData]
+    setCourseQA(updatedCourseQA)
     setNewQuestion('')
-    res = await client.QnA(courseID, lectureId, courseQA)
+    res = await client.QnA(courseID, lectureId, updatedCourseQA)
     if (res.status === 201) {
+      setReload((prev) => ({ //Reload course data
+        reload: !prev.reload
+      }))
+      setOpenSuccess(true)
+      setTimeout(() => {
+        setOpenSuccess(false)
+      }, 3000)
     }
     else {
-      //Raise error
+      setOpenError({
+        status: true,
+        message: res.response.data.error
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
     }
   }
   const handleResponseSubmit = async () => {
@@ -161,9 +138,24 @@ function TabQA({ lectureQA, setReload, lectureId }) {
         setCourseQA(updatedQA)
         setNewResponse('')
         setReplyingTo(null)
+        setReload((prev) => ({ //Reload course data
+          reload: !prev.reload
+        }))
+        setOpenSuccess(true)
+        setTimeout(() => {
+          setOpenSuccess(false)
+        }, 3000)
       }
       else {
-        //Raise error
+        setOpenError({
+          status: true,
+          message: res.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
       }
     }
   }
@@ -177,8 +169,9 @@ function TabQA({ lectureQA, setReload, lectureId }) {
   }
 
   return (
-    <TabQAWrapper>
-      {/* <div className="QA-filter">
+    <>
+      <TabQAWrapper>
+        {/* <div className="QA-filter">
         <div className="QA-filter-sortby">
           <h3>Sort by:</h3>
           <select>
@@ -205,91 +198,94 @@ function TabQA({ lectureQA, setReload, lectureId }) {
           </div>
         </div>
       </div> */}
-      <div className="QA-list-question">
-        <h3>All questions:</h3>
-        <div className="QA-question-content">
-          {courseQA
-            .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort questions by date
-            .map((QA, index) => (
-              <div key={index} className="QA-question-item">
-                <div className="QA-question-item-header">
-                  <div className="QA-question-item-header__avatar">
-                    <img src={QA.avatar} alt="avatar" />
+        <div className="QA-list-question">
+          <h3>All questions:</h3>
+          <div className="QA-question-content">
+            {courseQA
+              .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort questions by date
+              .map((QA, index) => (
+                <div key={index} className="QA-question-item">
+                  <div className="QA-question-item-header">
+                    <div className="QA-question-item-header__avatar">
+                      <img src={QA.avatar} alt="avatar" />
+                    </div>
+                    <div className="QA-question-item-header__info">
+                      <h4>{QA.name}</h4>
+                      <span>
+                        {formatDistanceToNow(new Date(QA.date), {
+                          addSuffix: true
+                        })}
+                      </span>
+                    </div>
                   </div>
-                  <div className="QA-question-item-header__info">
-                    <h4>{QA.name}</h4>
-                    <span>
-                      {formatDistanceToNow(new Date(QA.date), {
-                        addSuffix: true
-                      })}
-                    </span>
+                  <div className="QA-question-item-content">
+                    <p>{QA.question}</p>
                   </div>
-                </div>
-                <div className="QA-question-item-content">
-                  <p>{QA.question}</p>
-                </div>
-                <div className="QA-question-item-reply">
-                  <h4>Replies:</h4>
-                  <div className="QA-question-item-reply-content">
-                    {QA.responses
-                      .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort responses by date
-                      .map((response, responseIndex) => (
-                        <div
-                          key={responseIndex}
-                          className="QA-question-item-reply-item"
-                        >
-                          <div className="QA-question-item-reply-item-header">
-                            <div className="QA-question-item-reply-item-header__avatar">
-                              <img src={response.avatar} alt="avatar" />
+                  <div className="QA-question-item-reply">
+                    <h4>Replies:</h4>
+                    <div className="QA-question-item-reply-content">
+                      {QA.responses
+                        .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort responses by date
+                        .map((response, responseIndex) => (
+                          <div
+                            key={responseIndex}
+                            className="QA-question-item-reply-item"
+                          >
+                            <div className="QA-question-item-reply-item-header">
+                              <div className="QA-question-item-reply-item-header__avatar">
+                                <img src={response.avatar} alt="avatar" />
+                              </div>
+                              <div className="QA-question-item-reply-item-header__info">
+                                <h4>{response.name}</h4>
+                                <span>
+                                  {formatDistanceToNow(new Date(response.date), {
+                                    addSuffix: true
+                                  })}
+                                </span>
+                              </div>
                             </div>
-                            <div className="QA-question-item-reply-item-header__info">
-                              <h4>{response.name}</h4>
-                              <span>
-                                {formatDistanceToNow(new Date(response.date), {
-                                  addSuffix: true
-                                })}
-                              </span>
+                            <div className="QA-question-item-reply-item-content">
+                              <p>{response.response}</p>
                             </div>
                           </div>
-                          <div className="QA-question-item-reply-item-content">
-                            <p>{response.response}</p>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                    </div>
                   </div>
-                </div>
-                <div className="QA-question-item-reply-button">
-                  <button onClick={() => handleReplyClick(index)}>
-                    {replyingTo === index ? 'Cancel' : 'Reply'}
-                  </button>
-                </div>
-                {replyingTo === index && (
-                  <div className="QA-question-item-reply-input">
-                    <textarea
-                      value={newResponse}
-                      onChange={handleResponseChange}
-                      placeholder="Write your response here..."
-                    />
-                    <button onClick={handleResponseSubmit}>
-                      Submit Response
+                  <div className="QA-question-item-reply-button">
+                    <button onClick={() => handleReplyClick(index)}>
+                      {replyingTo === index ? 'Cancel' : 'Reply'}
                     </button>
                   </div>
-                )}
-              </div>
-            ))}
+                  {replyingTo === index && (
+                    <div className="QA-question-item-reply-input">
+                      <textarea
+                        value={newResponse}
+                        onChange={handleResponseChange}
+                        placeholder="Write your response here..."
+                      />
+                      <button onClick={handleResponseSubmit}>
+                        Submit Response
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+          </div>
         </div>
-      </div>
-      <div className="QA-ask-question">
-        <h3>Ask a question:</h3>
-        <textarea
-          value={newQuestion}
-          onChange={handleSubmitChange}
-          placeholder="Write your question here..." />
-        <button onClick={handleSubmitQA}>
-          Submit
-        </button>
-      </div>
-    </TabQAWrapper>
+        <div className="QA-ask-question">
+          <h3>Ask a question:</h3>
+          <textarea
+            value={newQuestion}
+            onChange={handleSubmitChange}
+            placeholder="Write your question here..." />
+          <button onClick={handleSubmitQA}>
+            Submit
+          </button>
+        </div>
+      </TabQAWrapper>
+      {openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Submit Successfully" /> </> : <> </>}
+      {openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message} /> </> : <> </>}
+    </>
   )
 }
 const TabQAWrapper = styled.div`

@@ -204,11 +204,6 @@ const update = catchAsync(async (req, res, next) => {
   res.status(200).send('Update Successfully')
 })
 
-// Q&A khóa học
-const getQnA = catchAsync(async (req, res, next) => {
-  // Implement here
-})
-
 // Gửi xét duyệt khóa học
 const sendApproveCourse = catchAsync(async (req, res, next) => {
   // Implement here
@@ -223,4 +218,4 @@ const sendApproveCourse = catchAsync(async (req, res, next) => {
   }
 })
 
-export default { getByID, getAll, update, getQnA, sendApproveCourse }
+export default { getByID, getAll, update, sendApproveCourse }

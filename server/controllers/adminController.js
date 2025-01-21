@@ -194,11 +194,6 @@ const terminateCourse = catchAsync(async (req, res, next) => {
   // Implement here
 })
 
-// Q&A khóa học
-const getQnA = catchAsync(async (req, res, next) => {
-  // Implement here
-})
-
 // KHóa tài khoản
 const blockUser = catchAsync(async (req, res, next) => {
   // Implement here
@@ -210,6 +205,5 @@ export default {
   approveCourse,
   rejectCourse,
   terminateCourse,
-  getQnA,
   blockUser
 }

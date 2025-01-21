@@ -928,10 +928,6 @@ const updateCourse = catchAsync(async (req, res, next) => {
   // Implement here
 })
 
-const newQnA = catchAsync(async (req, res, next) => {
-
-})
-
 const getQnA = catchAsync(async (req, res, next) => {
   const { id, lectureID } = req.params
   const lectureQA = await loadOriginQnA(id, lectureID)
@@ -982,7 +978,6 @@ export default {
   createCourse,
   updateCourse,
   uploadFileGCS,
-  newQnA,
   getQnA
 }
 

@@ -1,11 +1,47 @@
 //That controller contains same function of admin, instructor, student
 import User from '../models/user.js'
+import Course from '../models/courseInfo.js'
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from "../config/connMySql.js"
 import { attachFile } from './googleCloudController.js'
+import mongoose from 'mongoose'
 
-const updateUser = catchAsync(async (req, res, next) => {
+const newQnA = catchAsync(async (req, res, next) => {
   // Implement here
+  const { id, lectureID } = req.params
+  const { data } = req.body
+  const lectureIDInt = parseInt(lectureID, 10)
+  const mongoTransaction = await mongoose.startSession()
+  mongoTransaction.startTransaction()
+  try {
+    if (data.length > 0) {
+      await Course.findOneAndUpdate(
+        {
+          courseID: id,
+          'chapters.lectures.id': lectureIDInt
+        },
+        {
+          $set: {
+            'chapters.$[].lectures.$[lecture].QnA': data
+          }
+        },
+        {
+          arrayFilters: [{ 'lecture.id': lectureIDInt }],
+          new: true, // Return the updated document
+          session: mongoTransaction
+        }
+      )
+      await mongoTransaction.commitTransaction()
+      res.status(201).send()
+    }
+  }
+  catch (error) {
+    next(error)
+    await mongoTransaction.abortTransaction()
+  }
+  finally {
+    mongoTransaction.endSession()
+  }
 })
 
 const updateAvatar = catchAsync(async (req, res, next) => {
@@ -93,7 +129,7 @@ const getUserByID = async (userid) => {
   })
 }
 
-export default { updateUser, updateAvatar }
+export default { newQnA, updateAvatar }
 
 export {
   getUserByEmail,

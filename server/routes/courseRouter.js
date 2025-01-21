@@ -46,13 +46,9 @@ courseRouter
 
 courseRouter
   .route('/:id/:lectureID/QA')
-  .all(authController.protect)
-  .all(checkAccessCourse)
-  .post(
-    authController.restrictTo('instructor', 'student'),
-    courseController.newQnA
-  )
   .get(
+    authController.protect,
+    checkAccessCourse,
     authController.restrictTo('instructor', 'student', 'admin'),
     courseController.getQnA
   )

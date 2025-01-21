@@ -3,6 +3,7 @@ import authController from '../controllers/authController.js'
 import instructorController from '../controllers/instructorController.js'
 import userController from '../controllers/userController.js'
 import { uploadTemp } from '../utils/multer.js'
+import { checkAccessCourse } from '../utils/precheckAccess.js'
 
 const instructorRouter = express.Router()
 
@@ -41,6 +42,15 @@ instructorRouter
     authController.protect,
     authController.restrictTo('instructor'),
     instructorController.sendApproveCourse
+  )
+
+instructorRouter
+  .route('/:id/:lectureID/QA')
+  .post(
+    authController.protect,
+    checkAccessCourse,
+    authController.restrictTo('admin', 'instructor', 'student'),
+    userController.newQnA
   )
 
 export default instructorRouter
