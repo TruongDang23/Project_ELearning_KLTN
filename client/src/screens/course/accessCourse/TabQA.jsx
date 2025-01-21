@@ -28,6 +28,8 @@ function TabQA({ lectureQA, setReload, lectureId }) {
     client = instructor
   else if (userID[0] === 'S')
     client = student
+  else if (userID[0] === 'A')
+    client = admin
 
   const loadListQnA = async () => {
     let qna
