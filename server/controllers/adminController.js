@@ -4,6 +4,7 @@ import mongoose from 'mongoose'
 import User from '../models/user.js'
 import { formatDate } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
+import { attachFile, putFileToStorage } from './googleCloudController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -34,6 +35,61 @@ const getFullInfoMongo = async (userID) => {
       const mongoData = await User.findOne({ userID: userID }).select()
       if (mongoData)
         resolve(mongoData)
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const updateInfoMySQL = (connection, inf) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `UPDATE user 
+                SET avatar = ?,
+                    fullname = ?,
+                    date_of_birth = ?,
+                    street = ?,
+                    province = ?,
+                    country = ?,
+                    language = ?
+                WHERE userID = ?`
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          inf.avatar,
+          inf.fullname,
+          inf.date_of_birth,
+          inf.street,
+          inf.province,
+          inf.country,
+          inf.language,
+          inf.userID
+        ])
+
+      if (rowsInfo.affectedRows !== 0) {
+        resolve(rowsInfo)
+      }
+      else {
+        reject("Failed to update data in mysql")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+
+const updateInfoMongoDB = async (session, inf) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await User.collection.updateOne(
+        { userID: inf.userID }, // Filter condition
+        { $set: { social_networks: inf.social_network } }, // Update operation
+        { session: session } // Attach the session
+      )
+      if (result)
+        resolve(result)
     }
     catch (error) {
       reject(error)
@@ -93,7 +149,58 @@ const getByID = catchAsync(async (req, res, next) => {
 
 const update = catchAsync(async (req, res, next) => {
   // Implement here
+  const newInfo = req.body.data
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  mongoTransaction.startTransaction()
+
+  try {
+    // Run both functions asynchronously
+    await Promise.all([
+      updateInfoMySQL(mysqlTransaction, newInfo), // Fetch MySQL data
+      updateInfoMongoDB(mongoTransaction, newInfo) // Fetch MongoDB data
+    ])
+
+    // Commit Transactions
+    await mysqlTransaction.query("COMMIT")
+    await mongoTransaction.commitTransaction()
+  } catch (error) {
+    // Rollback Transactions in case of an error
+    await mysqlTransaction.query("ROLLBACK")
+    await mongoTransaction.abortTransaction()
+    next(error) // Pass the error to the next middleware
+  } finally {
+    // End the MongoDB session
+    await mongoTransaction.endSession()
+  }
+  res.status(200).send('Update Successfully')
 })
+
+const updateAvatar = catchAsync(async (req, res, next) => {
+  if (!req.files || req.files.length === 0) {
+    return next({ status: 400, message: 'No file uploaded!' })
+  }
+
+  const file = req.files[0]; // Lấy file đầu tiên (nếu có nhiều file)
+
+  // Gọi hàm để upload file lên GCS
+  // eslint-disable-next-line no-undef
+  const bucketName = process.env.GCS_USER_BUCKET
+  const userID = req.params.id // Sử dụng ID từ URL
+  const destName = file.originalname
+
+  try {
+    const fileUrl = await attachFile(bucketName, userID, file, destName);
+
+    res.status(201).send(fileUrl)
+  } catch (err) {
+    return next({ status: 500, message: 'Failed to upload avatar' })
+  }
+})
+
 
 // Xét duyệt khóa học dựa vào courseID
 const approveCourse = catchAsync(async (req, res, next) => {
@@ -127,5 +234,6 @@ export default {
   rejectCourse,
   terminateCourse,
   getQnA,
-  blockUser
+  blockUser,
+  updateAvatar
 }

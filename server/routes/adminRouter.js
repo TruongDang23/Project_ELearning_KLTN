@@ -1,7 +1,7 @@
 import express from 'express'
 import authController from '../controllers/authController.js'
 import adminController from '../controllers/adminController.js'
-
+import { uploadTemp } from '../utils/multer.js'
 const adminRouter = express.Router()
 
 adminRouter
@@ -18,6 +18,15 @@ adminRouter
     authController.protect,
     authController.restrictTo('admin'),
     adminController.update
+  )
+
+adminRouter
+  .route('/avatar/:id')
+  .put(
+    authController.protect,
+    authController.restrictTo('admin'),
+    uploadTemp.any(),
+    adminController.updateAvatar
   )
 
 adminRouter
