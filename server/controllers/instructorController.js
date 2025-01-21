@@ -5,7 +5,6 @@ import User from '../models/user.js'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import { getListInforPublish, switchCourseStatus } from './courseController.js'
-import { attachFile } from './googleCloudController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {

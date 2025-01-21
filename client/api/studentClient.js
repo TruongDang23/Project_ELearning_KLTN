@@ -12,6 +12,20 @@ export class StudentClient extends ApiClient {
     this.notify = new NotifyClient
   }
 
+  async updateAvatar(id, formData) {
+    try {
+      const response = await axios.put(`${this.domain}/avatar/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async updateProgress(id, courseID, lectureID, percent) {
     try {
       const response = await axios.post(`${this.domain}/${id}/${courseID}/${lectureID}/updateprogress`, {

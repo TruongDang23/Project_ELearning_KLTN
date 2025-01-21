@@ -3,10 +3,26 @@ import authController from '../controllers/authController.js'
 import studentController from '../controllers/studentController.js'
 import { checkAccessCourse } from '../utils/precheckAccess.js'
 import userController from '../controllers/userController.js'
+import { uploadTemp } from '../utils/multer.js'
 
 const studentRouter = express.Router()
 
-studentRouter.route('/:id').get(studentController.getByID)
+studentRouter
+  .route('/:id')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'student'),
+    studentController.getByID
+  )
+
+studentRouter
+  .route('/avatar/:id')
+  .put(
+    authController.protect,
+    authController.restrictTo('student'),
+    uploadTemp.any(),
+    userController.updateAvatar
+  )
 
 studentRouter
   .route('/')
