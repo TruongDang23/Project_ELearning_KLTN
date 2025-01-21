@@ -180,6 +180,29 @@ const update = catchAsync(async (req, res, next) => {
   res.status(200).send('Update Successfully')
 })
 
+const updateAvatar = catchAsync(async (req, res, next) => {
+  if (!req.files || req.files.length === 0) {
+    return next({ status: 400, message: 'No file uploaded!' })
+  }
+
+  const file = req.files[0]; // Lấy file đầu tiên (nếu có nhiều file)
+
+  // Gọi hàm để upload file lên GCS
+  // eslint-disable-next-line no-undef
+  const bucketName = process.env.GCS_USER_BUCKET
+  const userID = req.params.id // Sử dụng ID từ URL
+  const destName = file.originalname
+
+  try {
+    const fileUrl = await attachFile(bucketName, userID, file, destName);
+
+    res.status(201).send(fileUrl)
+  } catch (err) {
+    return next({ status: 500, message: 'Failed to upload avatar' })
+  }
+})
+
+
 // Xét duyệt khóa học dựa vào courseID
 const approveCourse = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
