@@ -107,6 +107,46 @@ const updateInfoMongoDB = async (session, inf) => {
   })
 }
 
+const buyCourseMySQL = async(connection, userID, courseID) => {
+  return new Promise(async (resolve, reject) => {
+    let query = "INSERT INTO enroll (courseID, userID, time) VALUES (?, ?, ?)"
+    const time = formatDateTime(new Date())
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          courseID,
+          userID,
+          time
+        ])
+
+      if (rowsInfo.affectedRows !== 0) {
+        resolve()
+      }
+      else {
+        reject('Failed to buy course')
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const addEnrollCourse = async(mongoSession, userID, courseID) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await User.findOneAndUpdate(
+        { userID: userID }, // Tìm user trong MongoDB theo userID
+        { $addToSet: { course_enrolled: courseID } }, // Thêm courseID vào mảng course_enrolled (tránh trùng lặp)
+        { new: true, session: mongoSession } // Tùy chọn để trả về document sau khi cập nhật
+      )
+      resolve()
+    } catch (mongoError) {
+      reject(mongoError)
+    }
+  })
+}
+
 const getAll = catchAsync(async (req, res, next) => {
   // Implement here
   const mysqlTransaction = connectMysql.promise()
@@ -354,45 +394,30 @@ const reviewCourse = catchAsync(async (req, res, next) => {
 const buyCourse = catchAsync(async (req, res, next) => {
   // Implement here
   const { courseID } = req.body
+  const connection = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+
   const enrolled = await isEnrolled(courseID, req.userID)
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
     res.send('enrolled')
   }
   else { // Chưa tham gia khóa học
-    // Insert into Mysql & MongoDB (using transaction)
-    connectMysql.getConnection(async (err, connection) => {
-      if (err) {
-        next(err)
-      }
-      else {
-        const time = formatDateTime(new Date())
-        //Insert new data into table learning
-        let query = "INSERT INTO enroll (courseID, userID, time)\
-                       VALUES (?, ?, ?)"
-        connection.query(
-          query,
-          [courseID, req.userID, time],
-          async (error) => {
-            connection.release() //Giải phóng connection khi truy vấn xong
-            if (error) {
-              next(error)
-            }
-
-            // Nếu MySQL insert thành công
-            try {
-              await User.findOneAndUpdate(
-                { userID: req.userID }, // Tìm user trong MongoDB theo userID
-                { $addToSet: { course_enrolled: courseID } }, // Thêm courseID vào mảng course_enrolled (tránh trùng lặp)
-                { new: true } // Tùy chọn để trả về document sau khi cập nhật
-              )
-              res.status(201).send('created')
-            } catch (mongoError) {
-              next(mongoError)
-            }
-          }
-        )
-      }
-    })
+    try {
+      await connection.query("START TRANSACTION")
+      mongoTransaction.startTransaction()
+      await Promise.all([
+        buyCourseMySQL(connection, req.userID, courseID), // Insert course into enroll table
+        addEnrollCourse(mongoTransaction, req.userID, courseID) // Insert new course into field enrolled_course
+      ])
+      await connection.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+      res.status(201).send('created')
+    }
+    catch (error) {
+      await connection.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next({ status: 400, message: "Failed when buying course" })
+    }
   }
 })
 
