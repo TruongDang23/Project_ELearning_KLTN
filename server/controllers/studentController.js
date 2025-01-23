@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import User from '../models/user.js'
 import { getListInforEnroll } from './courseController.js'
+import { isEnrolled } from '../utils/precheckAccess.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -294,10 +295,105 @@ const updateProgressCourse = catchAsync(async (req, res, next) => {
 
 const reviewCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const { courseID, userID, message, star, time } = req.body
+  if (!courseID || !userID || !message || !star || !time) {
+    next({ status: 400, message: "Missing required fiedls" })
+  }
+
+  const formattedTime = formatDateTime(new Date(time))
+
+  connectMysql.getConnection((err, connection) => {
+    if (err) {
+      next({ status: 500, message: "Connection failed" })
+    }
+
+    // First, check if a review with the same courseID and userID already exists
+    const checkQuery =
+      "SELECT * FROM rating WHERE courseID = ? AND userID = ?"
+    connection.query(checkQuery, [courseID, userID], (error, results) => {
+      if (error) {
+        connection.release()
+        next({ status: 500, message: "Failed to check review" })
+      }
+
+      if (results.length > 0) {
+        // If a review exists, update it
+        const updateQuery =
+          "UPDATE rating SET message = ?, star = ?, time = ? WHERE courseID = ? AND userID = ?"
+        connection.query(
+          updateQuery,
+          [message, star, formattedTime, courseID, userID],
+          (updateError) => {
+            connection.release()
+            if (updateError) {
+              next({ status: 500, message: "Failed to update review" })
+            }
+            res.status(201).send("Review updated successfully")
+          }
+        )
+      } else {
+        // If no review exists, insert a new one
+        const insertQuery =
+          "INSERT INTO rating (courseID, userID, message, star, time) VALUES (?, ?, ?, ?, ?)"
+        connection.query(
+          insertQuery,
+          [courseID, userID, message, star, formattedTime],
+          (insertError) => {
+            connection.release()
+            if (insertError) {
+              next({ status: 500, message: "Failed to add review" })
+            }
+            res.status(201).send("Review added successfully")
+          }
+        )
+      }
+    })
+  })
 })
 
 const buyCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const { courseID } = req.body
+  const enrolled = await isEnrolled(courseID, req.userID)
+  if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
+    res.send('enrolled')
+  }
+  else { // Chưa tham gia khóa học
+    // Insert into Mysql & MongoDB (using transaction)
+    connectMysql.getConnection(async (err, connection) => {
+      if (err) {
+        next(err)
+      }
+      else {
+        const time = formatDateTime(new Date())
+        //Insert new data into table learning
+        let query = "INSERT INTO enroll (courseID, userID, time)\
+                       VALUES (?, ?, ?)"
+        connection.query(
+          query,
+          [courseID, req.userID, time],
+          async (error) => {
+            connection.release() //Giải phóng connection khi truy vấn xong
+            if (error) {
+              next(error)
+            }
+
+            // Nếu MySQL insert thành công
+            try {
+              await User.findOneAndUpdate(
+                { userID: req.userID }, // Tìm user trong MongoDB theo userID
+                { $addToSet: { course_enrolled: courseID } }, // Thêm courseID vào mảng course_enrolled (tránh trùng lặp)
+                { new: true } // Tùy chọn để trả về document sau khi cập nhật
+              )
+              res.status(201).send('created')
+            } catch (mongoError) {
+              next(mongoError)
+            }
+          }
+        )
+      }
+    })
+  }
 })
 
 export default {

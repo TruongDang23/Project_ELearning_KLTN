@@ -49,18 +49,19 @@ studentRouter
   )
 
 studentRouter
-  .route('/:id/:courseID/ratings')
+  .route('/:courseID/ratings')
   .post(
     authController.protect,
-    authController.restrictTo('student', 'admin'),
+    checkAccessCourse,
+    authController.restrictTo('student'),
     studentController.reviewCourse
   )
 
 studentRouter
-  .route('/:id/buy/:courseID')
+  .route('/buy/:courseID')
   .post(
     authController.protect,
-    authController.restrictTo('student', 'admin'),
+    authController.restrictTo('student'),
     studentController.buyCourse
   )
 
@@ -68,6 +69,7 @@ studentRouter
   .route('/:id/:lectureID/QA')
   .post(
     authController.protect,
+    checkAccessCourse,
     authController.restrictTo('admin', 'instructor', 'student'),
     userController.newQnA
   )

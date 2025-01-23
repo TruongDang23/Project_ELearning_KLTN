@@ -55,16 +55,10 @@ export class StudentClient extends ApiClient {
     return this.course.getLectureQnA(courseID, lectureID)
   }
 
-  async ratingsCourse(id, courseID, star, content) {
+  async ratingsCourse(courseID, content) {
     try {
-      const response = await axios.post(`${this.domain}/${id}/${courseID}/ratings`, {
-        headers: {
-          //authentication
-        },
-        data: {
-          star: star,
-          content: content
-        }
+      const response = await axios.post(`${this.domain}/${courseID}/ratings`, {
+        data: content
       })
       return response
     }
@@ -73,13 +67,9 @@ export class StudentClient extends ApiClient {
     }
   }
 
-  async buyCourse(id, courseID) {
+  async buyCourse(courseID) {
     try {
-      const response = await axios.post(`${this.domain}/${id}/buy/${courseID}`, {
-        headers: {
-          //authentication
-        }
-      })
+      const response = await axios.post(`${this.domain}/buy/${courseID}`)
       return response
     }
     catch (error) {
