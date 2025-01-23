@@ -2,7 +2,7 @@
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from '../config/connMySql.js'
 import mongoose from 'mongoose'
-import { formatDate } from '../utils/dateTimeHandler.js'
+import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import User from '../models/user.js'
 import { getListInforEnroll } from './courseController.js'
 
@@ -170,7 +170,6 @@ const getByID = catchAsync(async (req, res, next) => {
   const userID = req.userID
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
-  console.log(userID)
   let enrolled
 
   // Start Transaction
@@ -260,6 +259,37 @@ const update = catchAsync(async (req, res, next) => {
 
 const updateProgressCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const { courseID, lectureID } = req.params
+  const userID = req.userID
+  const progress = parseInt(req.body.data, 10)
+  const lectureIDInt = parseInt(lectureID, 10)
+  const time = formatDateTime(new Date())
+  const connection = connectMysql.promise()
+
+  await connection.query("START TRANSACTION")
+
+  let query = "INSERT INTO learning (userID, lectureID, time, courseID, percent) VALUES (?, ?, ?, ?, ?)"
+
+  try {
+    const [rowsInfo] = await connection.query(query,
+      [
+        userID,
+        lectureIDInt,
+        time,
+        courseID,
+        progress
+      ])
+
+    if (rowsInfo.affectedRows !== 0) {
+      res.status(200).send()
+    }
+    else {
+      next({ status: 400, message: 'Failed when updating progress of lecture' })
+    }
+  }
+  catch (error) {
+    next(error)
+  }
 })
 
 const reviewCourse = catchAsync(async (req, res, next) => {

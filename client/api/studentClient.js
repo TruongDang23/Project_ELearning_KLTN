@@ -26,9 +26,9 @@ export class StudentClient extends ApiClient {
     }
   }
 
-  async updateProgress(id, courseID, lectureID, percent) {
+  async updateProgress(courseID, lectureID, percent) {
     try {
-      const response = await axios.post(`${this.domain}/${id}/${courseID}/${lectureID}/updateprogress`, {
+      const response = await axios.post(`${this.domain}/${courseID}/${lectureID}/updateprogress`, {
         headers: {
           //authentication
         },

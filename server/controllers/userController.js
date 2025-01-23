@@ -1,5 +1,4 @@
 //That controller contains same function of admin, instructor, student
-import User from '../models/user.js'
 import Course from '../models/courseInfo.js'
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from "../config/connMySql.js"

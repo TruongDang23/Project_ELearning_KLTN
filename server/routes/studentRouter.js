@@ -41,10 +41,10 @@ studentRouter
   )
 
 studentRouter
-  .route('/:id/:courseID/:lectureID/updateprogress')
+  .route('/:courseID/:lectureID/updateprogress')
   .post(
     authController.protect,
-    authController.restrictTo('student', 'admin'),
+    authController.restrictTo('student'),
     studentController.updateProgressCourse
   )
 
@@ -68,7 +68,6 @@ studentRouter
   .route('/:id/:lectureID/QA')
   .post(
     authController.protect,
-    checkAccessCourse,
     authController.restrictTo('admin', 'instructor', 'student'),
     userController.newQnA
   )
