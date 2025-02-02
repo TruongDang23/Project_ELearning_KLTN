@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import styled from 'styled-components'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle'
+import useNavigation from '~/utils/navigate'
 
 function CourseMyLearning({ course }) {
   const [isCourseHovered, setIsCourseHovered] = useState(false)
@@ -8,10 +9,11 @@ function CourseMyLearning({ course }) {
 
   // Giới hạn số ký tự của title, nếu title dài quá thì cắt bớt và thêm dấu "..."
   const titleLimit = title.length > 25 ? title.slice(0, 25) + '...' : title
-
+  const { goTo } = useNavigation()
   // Thay đổi URL khi nhấn vào khóa học
   const handleClick = () => {
-    window.open(`/course/details/${courseID}`, '_blank')
+    //window.open(`/course/details/${courseID}`, '_blank')
+    goTo(`/course/details/${courseID}`)
   }
 
   return (
