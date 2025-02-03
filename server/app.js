@@ -4,20 +4,20 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import http from 'http'
 
+const app = express()
+
+const server = http.createServer(app)
+
 // Import các route
 import guestRouter from './routes/guestRouter.js'
 import adminRouter from './routes/adminRouter.js'
 import instructorRouter from './routes/instructorRouter.js'
 import studentRouter from './routes/studentRouter.js'
-import courseRouter from './routes/courseRouter.js'
 import notificationRouter from './routes/notificationRouter.js'
 import modelRouter from './routes/modelRouter.js'
+import courseRouter from './routes/courseRouter.js'
 import errorHandler from './utils/errorHandler.js'
 import globalErrorHandler from './controllers/errorController.js'
-
-const app = express()
-
-const server = http.createServer(app)
 
 // Cấu hình CORS
 app.use(
@@ -29,6 +29,7 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(cookieParser())
+
 // Middleware log thời gian xử lý request
 app.use((req, res, next) => {
   const start = Date.now()

@@ -873,6 +873,7 @@ const searchCourse = catchAsync(async (req, res, next) => {
       })
     )
     await mysqlTransaction.query("COMMIT")
+    //io.emit('sendNotify', { groupID: 'C000', data: 'test' })
     res.status(200).send(mergeData)
   }
   catch (error) {

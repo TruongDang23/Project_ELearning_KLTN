@@ -1,4 +1,6 @@
 import axios from 'axios'
+import { socket } from './socketClient'
+
 axios.defaults.withCredentials = true
 
 export class ApiClient {
@@ -55,6 +57,14 @@ export class ApiClient {
     catch (error) {
       return error
     }
+  }
+
+  async joinIndividualGroup(id) {
+    socket.emit('joinIndividual', id)
+  }
+
+  async joinCourseGroup(id, role) {
+    socket.emit('joinListRooms', id, role)
   }
 }
 

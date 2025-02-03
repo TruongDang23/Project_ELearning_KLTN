@@ -23,9 +23,13 @@ io.on('connection', (socket) => {
     })
   })
 
-  socket.on('sendNotify', (data) => {
+  socket.on('joinIndividual', (userID) => {
+    socket.join(userID)
+  })
+
+  socket.on('sendNotify', ({ groupID, data }) => {
     console.log('Message received:', data)
-    io.emit('receiveMessage', data) // Broadcast to all users
+    io.to(groupID).emit('receiveNotify', data) // Broadcast to all users
   })
 
   socket.on('disconnect', () => {
