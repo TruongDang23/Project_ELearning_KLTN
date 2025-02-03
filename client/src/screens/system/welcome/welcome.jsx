@@ -7,7 +7,7 @@ import FooterNew from '~/components/general/Footer/FooterNew'
 import Sticky from 'react-sticky-el'
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 import Logo from '../../../assets/hdh.png'
-import { admin, instructor, student } from 'api'
+import { admin, instructor, student, socket } from 'api'
 import styled from 'styled-components'
 import { useEffect } from 'react'
 import { userStore } from '~/context/UserStore'
@@ -16,6 +16,7 @@ import { notifyStore } from '~/context/NotifyStore'
 function Welcome() {
   const { updateInfor } = userStore()
   const fetchNotify = notifyStore((state) => state.fetchNotify)
+  let userID, role
 
   const getInformation = async (userID) => {
     let userInfo
@@ -36,12 +37,28 @@ function Welcome() {
     }
   }
 
+  userID = localStorage.getItem("userID")
+  switch (userID[0]) {
+  case 'A': {
+    role = 'admin'
+    break;
+  }
+  case 'I': {
+    role = 'instructor'
+    break;
+  }
+  case 'S': {
+    role = 'student'
+    break;
+  }
+  }
   useEffect(() => {
-    const userID = localStorage.getItem("userID")
     if (userID) {
       fetchNotify(userID)
       getInformation(userID)
     }
+    if (userID && role)
+      socket.emit('joinListRooms', userID, role)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return (

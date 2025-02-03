@@ -2,7 +2,6 @@ import cors from 'cors'
 import express from 'express'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
-import { Server } from 'socket.io'
 import http from 'http'
 
 // Import các route

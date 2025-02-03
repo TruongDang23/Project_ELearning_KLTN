@@ -1,5 +1,7 @@
+/* eslint-disable no-console */
 import { Server } from 'socket.io'
-import { server } from '../app' // Import HTTP server from app.js
+import { server } from '../app.js' // Import HTTP server from app.js
+import { getListCourseBaseUserID } from './courseController.js'
 
 const io = new Server(server, {
   cors: {
@@ -12,7 +14,16 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`)
 
-  socket.on('sendMessage', (data) => {
+  socket.on('joinListRooms', async (userID, role) => {
+    console.log('UserID', userID, role)
+    const data = await getListCourseBaseUserID(userID, role)
+    data.forEach(course => {
+      console.log('join room: ', course.courseID)
+      socket.join(course.courseID)
+    })
+  })
+
+  socket.on('sendNotify', (data) => {
     console.log('Message received:', data)
     io.emit('receiveMessage', data) // Broadcast to all users
   })

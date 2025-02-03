@@ -7,6 +7,32 @@ import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
 import { getUserByID } from './userController.js'
 
+const getListCourseBaseUserID = (userID, role) => {
+  return new Promise(async (resolve, reject) => {
+    let query
+    let mysqlTransaction = connectMysql.promise()
+    await mysqlTransaction.query("START TRANSACTION")
+
+    if (role === 'instructor') {
+      query = `SELECT courseID FROM course WHERE userID = ?`
+    }
+    else if (role === 'student') {
+      query = `SELECT courseID FROM enroll WHERE userID = ?`
+    }
+
+    try {
+      const [rowsInfo] = await mysqlTransaction.query(query, [userID])
+
+      await mysqlTransaction.query("COMMIT")
+      resolve(rowsInfo)
+    }
+    catch (error) {
+      await mysqlTransaction.query("ROLLBACK")
+      reject(error)
+    }
+  })
+}
+
 const getListInforPublish = (connection, listID) => {
   return new Promise(async (resolve, reject) => {
     let query = `SELECT c.courseID,
@@ -981,4 +1007,4 @@ export default {
   getQnA
 }
 
-export { getListInforPublish, switchCourseStatus }
+export { getListInforPublish, switchCourseStatus, getListCourseBaseUserID }
