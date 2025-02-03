@@ -2,6 +2,8 @@ import cors from 'cors'
 import express from 'express'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
+import { Server } from 'socket.io'
+import http from 'http'
 
 // Import các route
 import guestRouter from './routes/guestRouter.js'
@@ -15,6 +17,8 @@ import errorHandler from './utils/errorHandler.js'
 import globalErrorHandler from './controllers/errorController.js'
 
 const app = express()
+
+const server = http.createServer(app)
 
 // Cấu hình CORS
 app.use(
@@ -55,4 +59,5 @@ app.all('*', (req, res, next) => {
 app.use(errorHandler)
 // app.use(globalErrorHandler)
 
-export default app
+//export default app
+export { app, server }
