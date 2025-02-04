@@ -1,15 +1,6 @@
 /* eslint-disable no-console */
-import { Server } from 'socket.io'
-import { server } from '../app.js' // Import HTTP server from app.js
 import { getListCourseBaseUserID } from './courseController.js'
-
-const io = new Server(server, {
-  cors: {
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-  }
-})
+import { io } from '../app.js'
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`)
@@ -36,5 +27,3 @@ io.on('connection', (socket) => {
     console.log(`User disconnected: ${socket.id}`)
   })
 })
-
-export { io }

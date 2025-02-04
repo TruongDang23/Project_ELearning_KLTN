@@ -3,10 +3,7 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import http from 'http'
-
-const app = express()
-
-const server = http.createServer(app)
+import { Server } from 'socket.io'
 
 // Import các route
 import guestRouter from './routes/guestRouter.js'
@@ -17,7 +14,19 @@ import notificationRouter from './routes/notificationRouter.js'
 import modelRouter from './routes/modelRouter.js'
 import courseRouter from './routes/courseRouter.js'
 import errorHandler from './utils/errorHandler.js'
-import globalErrorHandler from './controllers/errorController.js'
+
+const app = express()
+
+//Create socket server
+const server = http.createServer(app)
+
+const io = new Server(server, {
+  cors: {
+    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+  }
+})
 
 // Cấu hình CORS
 app.use(
@@ -57,7 +66,5 @@ app.all('*', (req, res, next) => {
 })
 
 app.use(errorHandler)
-// app.use(globalErrorHandler)
 
-//export default app
-export { app, server }
+export { app, server, io }
