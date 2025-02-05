@@ -16,6 +16,7 @@ import { notifyStore } from '~/context/NotifyStore'
 function Welcome() {
   const { updateInfor } = userStore()
   const fetchNotify = notifyStore((state) => state.fetchNotify)
+  let userID
 
   const getInformation = async (userID) => {
     let userInfo
@@ -36,14 +37,37 @@ function Welcome() {
     }
   }
 
+  userID = localStorage.getItem("userID")
+
+  const joinGroupSocket = async (userID) => {
+    switch (userID[0]) {
+    case 'A': {
+      await admin.joinIndividualGroup(userID)
+      await admin.joinCourseGroup(userID, 'admin')
+      break;
+    }
+    case 'I': {
+      await instructor.joinIndividualGroup(userID)
+      await instructor.joinCourseGroup(userID, 'instructor')
+      break;
+    }
+    case 'S': {
+      await student.joinIndividualGroup(userID)
+      await student.joinCourseGroup(userID, 'student')
+      break;
+    }
+    }
+  }
+
   useEffect(() => {
-    const userID = localStorage.getItem("userID")
     if (userID) {
       fetchNotify(userID)
       getInformation(userID)
+      joinGroupSocket(userID)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
   return (
     <>
       <Helmet>
