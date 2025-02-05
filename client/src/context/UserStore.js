@@ -12,6 +12,7 @@ const defaultState = {
   country: '',
   language: '',
   role: '',
+
   // MongoDB
   social_networks: [],
   expertise: [],
@@ -21,7 +22,10 @@ const defaultState = {
   projects: [],
   course_enrolled: [],
   course_published: [],
-  activity_status: ''
+  activity_status: '',
+
+  // My Learning (Student)
+  mylearning: []
 }
 
 const userStore = create((set) => ({

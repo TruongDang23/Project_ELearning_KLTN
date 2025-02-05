@@ -5,10 +5,9 @@ import QuizIcon from '@mui/icons-material/Quiz'
 import LocalAtmIcon from '@mui/icons-material/LocalAtm'
 import { Link } from 'react-router-dom'
 import { useParams } from 'react-router-dom'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
 import { BuyCourse } from '~/components/popup'
 import { useState } from 'react'
+import { student } from 'api'
 
 function SideBar({ inforCourseData }) {
   const [openPub, setopenPub] = useState(false)
@@ -19,38 +18,15 @@ function SideBar({ inforCourseData }) {
   }
 
   const { courseID } = useParams()
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
-  const handleBuyCourse = () => {
-    axios
-      .post('http://localhost:3000/c/buycourse',
-        { courseID },
-        {
-          headers: {
-            Token: token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            user: userAuth
-          }
-        })
-      .then((response) => {
-        if (response.data === 'enrolled') {
-          toggleBuy('enrolled')
-        }
-        else if (response.data === 'created') {
-          toggleBuy('created')
-        }
-      })
-      .catch((error) => {
-        //Server shut down
-        if (error.message === 'Network Error') navigate('/server-shutdown')
-        //Connection error
-        if (error.response.status === 500) navigate('/500error')
-        //Unauthorized. Need login
-        if (error.response.status === 401) navigate('/401error')
-        //Forbidden. Token != userAuth
-        if (error.response.status === 403) navigate('/403error')
-      })
+  const handleBuyCourse = async() => {
+    const res = await student.buyCourse(courseID)
+    if (res.data === 'enrolled') {
+      toggleBuy('enrolled')
+    }
+    else if (res.data === 'created') {
+      toggleBuy('created')
+    }
   }
-  const navigate = useNavigate()
 
   return (
     <>

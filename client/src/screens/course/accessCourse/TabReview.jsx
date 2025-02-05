@@ -1,121 +1,128 @@
-import { useState } from "react";
-import styled from "styled-components";
-import StarRating from "~/components/general/Other/StarRating";
-import StarIcon from "@mui/icons-material/Star";
-import Avatar from "@mui/material/Avatar";
-import StarDynamic from "~/components/general/Other/StarDynamic";
-import { formatDistanceToNow } from "date-fns";
-
-import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useState } from "react"
+import styled from "styled-components"
+import StarRating from "~/components/general/Other/StarRating"
+import StarIcon from "@mui/icons-material/Star"
+import Avatar from "@mui/material/Avatar"
+import StarDynamic from "~/components/general/Other/StarDynamic"
+import { formatDistanceToNow } from "date-fns"
+import { useParams } from "react-router-dom"
+import { student } from "api"
+import { Snackbar } from "~/components/general"
 
 function TabReview({ accessCourseData, setReload }) {
-  const [reviews, setReviews] = useState([]);
-  const [newReview, setNewReview] = useState({ star: 0, message: "" });
-
-  const token = sessionStorage.getItem("token");
+  const [reviews, setReviews] = useState([])
+  const [newReview, setNewReview] = useState({ star: 0, message: "" })
   const courseId = useParams().courseID;
-  const userAuth = sessionStorage.getItem("userAuth");
-  const userData = JSON.parse(sessionStorage.getItem("userAuth"));
-
+  const userID = localStorage.getItem('userID')
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   const handleReviewChange = (e) => {
     setNewReview({ ...newReview, [e.target.name]: e.target.value });
   };
 
   const handleSubmitReview = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:3000/c/addReview",
-        {
-          courseID: courseId,
-          userID: userData.userID,
-          message: newReview.message,
-          star: newReview.star,
-          time: new Date().toISOString()
-        },
-        {
-          headers: {
-            Token: token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            user: userAuth
-          }
-        }
-      );
-
-      if (response.data.success) {
-        alert("Review submitted successfully")
-        setReviews([...reviews, { ...newReview, time: new Date() }])
-        setNewReview({ star: 0, message: "" })
-        setReload((prev) => ({
-          reload: !prev.reload
-        }))
-      }
-    } catch (error) {
-      //console.error("Failed to submit review", error);
-      alert("Failed to submit review");
+    const data = {
+      courseID: courseId,
+      userID: userID,
+      message: newReview.message,
+      star: newReview.star,
+      time: new Date().toISOString()
     }
-  };
+
+    const res = await student.ratingsCourse(courseId, data)
+
+    if (res.status == 201) {
+      setOpenSuccess(true)
+      setTimeout(async () => {
+        setOpenSuccess(false)
+      }, 2000)
+      setReviews([...reviews, { ...newReview, time: new Date() }])
+      setNewReview({ star: 0, message: "" })
+      setReload((prev) => ({
+        reload: !prev.reload
+      }))
+    }
+    else {
+      setOpenError({
+        status: true,
+        message: res.response.data.error
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
+    }
+  }
 
   return (
-    <TabRatingWrapper>
-      <div className="review">
-        <div className="review-title">
-          <div className="title">
-            <h2>Reviews:</h2>
+    <>
+      <TabRatingWrapper>
+        <div className="review">
+          <div className="review-title">
+            <div className="title">
+              <h2>Reviews:</h2>
+            </div>
+            <div className="review-star">
+              <span>{accessCourseData.star}</span>
+              <StarIcon />
+              <span>({accessCourseData.review.length} ratings)</span>
+            </div>
           </div>
-          <div className="review-star">
-            <span>{accessCourseData.star}</span>
-            <StarIcon />
-            <span>({accessCourseData.review.length} ratings)</span>
-          </div>
-        </div>
 
-        <div className="review-content">
-          <div className="review-list-review">
-            {accessCourseData.review.map((review, index) => (
-              <div key={index} className="personal-review">
-                <div className="personal-review-info">
-                  <Avatar src={review.avatar ? review.avatar : ''}/>
-                  <h4>{review.reviewerName}</h4>
-                  <span>
-                    {formatDistanceToNow(new Date(review.date), {
-                      addSuffix: true
-                    })}
-                  </span>
-                </div>
-                <div className="personal-review-content">
-                  <div className="personal-review-content-star">
-                    <StarRating rating_star={review.star} />{" "}
-                    <span>({review.star})</span>
+          <div className="review-content">
+            <div className="review-list-review">
+              {accessCourseData.review.map((review, index) => (
+                <div key={index} className="personal-review">
+                  <div className="personal-review-info">
+                    <Avatar src={review.avatar ? review.avatar : ''} />
+                    <h4>{review.reviewerName}</h4>
+                    <span>
+                      {formatDistanceToNow(new Date(review.date), {
+                        addSuffix: true
+                      })}
+                    </span>
                   </div>
-                  <p>{review.message}</p>
+                  <div className="personal-review-content">
+                    <div className="personal-review-content-star">
+                      <StarRating rating_star={review.star} />{" "}
+                      <span>({review.star})</span>
+                    </div>
+                    <p>{review.message}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="review-yours">
-          <h2>Your Review</h2>
-          <div className="review-yours-star">
-            <StarDynamic
-              size="18"
-              onSetRating={(rating) =>
-                setNewReview({ ...newReview, star: rating })
-              }
-            />
-          </div>
-          <div className="review-yours-content">
-            <textarea
-              name="message"
-              placeholder="Write your review here..."
-              value={newReview.message}
-              onChange={handleReviewChange}
-            />
-            <button onClick={handleSubmitReview}>Submit</button>
+          <div className="review-yours">
+            <h2>Your Review</h2>
+            <div className="review-yours-star">
+              <StarDynamic
+                size="18"
+                onSetRating={(rating) =>
+                  setNewReview({ ...newReview, star: rating })
+                }
+              />
+            </div>
+            <div className="review-yours-content">
+              <textarea
+                name="message"
+                placeholder="Write your review here..."
+                value={newReview.message}
+                onChange={handleReviewChange}
+              />
+              <button onClick={handleSubmitReview}>Submit</button>
+            </div>
           </div>
         </div>
-      </div>
-    </TabRatingWrapper>
+      </TabRatingWrapper>
+      {openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Add Review Successfully" /> </> : <> </>}
+      {openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message} /> </> : <> </>}
+    </>
   );
 }
 

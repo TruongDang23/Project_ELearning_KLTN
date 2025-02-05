@@ -68,4 +68,26 @@ const checkAccessCourse = (req, res, next) => {
   })
 }
 
-export { checkAccessCourse }
+const isEnrolled = async (courseID, userID) => {
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        reject(err)
+      }
+      let query = `SELECT 1 AS isEnrolled FROM projectelearning.enroll 
+                   WHERE courseID = ? AND userID = ?`
+      connection.query(query, [courseID, userID], (error, result) => {
+        connection.release()
+        if (error) {
+          reject(error)
+        } else if (result.length != 0) {
+          return resolve(true) //Đã tham gia khóa học rồi
+        } else {
+          return resolve(false) //Chưa tham gia khóa học
+        }
+      })
+    })
+  })
+}
+
+export { checkAccessCourse, isEnrolled }
