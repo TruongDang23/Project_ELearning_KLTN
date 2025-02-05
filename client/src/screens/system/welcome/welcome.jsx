@@ -7,7 +7,7 @@ import FooterNew from '~/components/general/Footer/FooterNew'
 import Sticky from 'react-sticky-el'
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 import Logo from '../../../assets/hdh.png'
-import { admin, instructor, student, socket } from 'api'
+import { admin, instructor, student } from 'api'
 import styled from 'styled-components'
 import { useEffect } from 'react'
 import { userStore } from '~/context/UserStore'
@@ -67,6 +67,7 @@ function Welcome() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
   return (
     <>
       <Helmet>

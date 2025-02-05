@@ -28,6 +28,11 @@ const io = new Server(server, {
   }
 })
 
+//Transfer io to create socket controller
+import registerSocketHandlers from './controllers/socketController.js'
+//Get function in socket controller
+const socketFunction = registerSocketHandlers(io)
+
 // Cấu hình CORS
 app.use(
   cors({
@@ -67,4 +72,4 @@ app.all('*', (req, res, next) => {
 
 app.use(errorHandler)
 
-export { app, server, io }
+export { app, server, io, socketFunction }

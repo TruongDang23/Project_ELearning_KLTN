@@ -6,7 +6,6 @@ import { formatDateTime, formatDate } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
 import { getUserByID } from './userController.js'
-import { io } from '../app.js'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -874,7 +873,6 @@ const searchCourse = catchAsync(async (req, res, next) => {
       })
     )
     await mysqlTransaction.query("COMMIT")
-    io.emit('sendNotify', { groupID: 'C000', data: 'test' })
     res.status(200).send(mergeData)
   }
   catch (error) {
