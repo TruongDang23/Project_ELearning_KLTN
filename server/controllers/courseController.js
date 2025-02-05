@@ -1016,4 +1016,4 @@ export default {
   getQnA
 }
 
-export { getListInforPublish, switchCourseStatus, getListInforEnroll }
+export { getListInforPublish, switchCourseStatus, getListInforEnroll, getProgress }

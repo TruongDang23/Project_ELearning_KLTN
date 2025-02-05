@@ -4,7 +4,7 @@ import connectMysql from '../config/connMySql.js'
 import mongoose from 'mongoose'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import User from '../models/user.js'
-import { getListInforEnroll } from './courseController.js'
+import { getListInforEnroll, getProgress } from './courseController.js'
 import { isEnrolled } from '../utils/precheckAccess.js'
 
 const getFullInfoMySQL = (connection, userID) => {
@@ -211,7 +211,8 @@ const getByID = catchAsync(async (req, res, next) => {
   const userID = req.userID
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
-  let enrolled
+  let enrolled = []
+  let mylearning = []
 
   // Start Transaction
   await mysqlTransaction.query("START TRANSACTION")
@@ -227,7 +228,19 @@ const getByID = catchAsync(async (req, res, next) => {
     ])
 
     //Get information of list course published
-    enrolled = await getListInforEnroll(mysqlTransaction, info_mongo.course_enrolled)
+    if (info_mongo.course_enrolled.length != 0) {
+      enrolled = await getListInforEnroll(mysqlTransaction, info_mongo.course_enrolled)
+
+      mylearning= await Promise.all(
+        enrolled.map(async (course) => {
+          const progress = await getProgress(course.courseID, req.userID)
+          return {
+            ...course,
+            progress: progress || '0.0' // Gán giá trị mặc định là 0.0 nếu không có progress
+          }
+        })
+      )
+    }
 
     // Commit Transactions
     await mysqlTransaction.query("COMMIT")
@@ -259,7 +272,8 @@ const getByID = catchAsync(async (req, res, next) => {
       degrees: info_mongo.degrees,
       projects: info_mongo.projects,
       working_history: info_mongo.working_history,
-      course_enrolled: enrolled
+      course_enrolled: enrolled,
+      mylearning: mylearning
     }
   })
 
