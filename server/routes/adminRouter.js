@@ -27,15 +27,6 @@ adminRouter
   )
 
 adminRouter
-  .route('/avatar/:id')
-  .put(
-    authController.protect,
-    authController.restrictTo('admin'),
-    uploadTemp.any(),
-    adminController.updateAvatar
-  )
-
-adminRouter
   .route('/accept/:id')
   .put(
     authController.protect,
