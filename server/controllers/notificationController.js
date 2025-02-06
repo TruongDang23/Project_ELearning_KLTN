@@ -220,20 +220,69 @@ const insertNewNotification = async(notify, listUserID) => {
   })
 }
 
-const getListUserReceiveNotify = async(reason, objectID) => {
+const getListUserReceiveNotify = async(reason, objectID, userID) => {
+  return new Promise(async(resolve, reject) => {
 
+    const connection = connectMysql.promise()
+    await connection.query("START TRANSACTION")
+    let query
+    let rows = []
+    switch (reason) {
+    case 'QnA':
+      //In this case, objectID is user, who create new QnA.
+      query = ` -- student, who enrolled this course except user create QnA
+                    SELECT courseID, userID FROM enroll
+                    WHERE courseID = ? AND userID != ? 
+  
+                -- teacher, who created this course except user create QnA
+                    UNION SELECT courseID, userID FROM course 
+                    WHERE courseID = ? AND userID != ?`
+      try {
+        rows = await connection.query(query,
+          [
+            objectID,
+            userID,
+            objectID,
+            userID
+          ])
+
+        if (rows.affectedRows == 0) {
+          await connection.query("ROLLBACK")
+          resolve([])
+        }
+        else {
+          await connection.query("COMMIT")
+          resolve(rows)
+        }
+      }
+      catch (error) {
+        reject(error)
+      }
+      break;
+    case 'published':
+      break;
+    case 'sendmonitor':
+      break;
+    case 'terminated':
+      break;
+    case 'newreview':
+      break;
+    case 'buycourse':
+      break;
+    }
+  })
 }
 
 //object has one of two values: course || user
 //reason has values: QnA || published || sendmonitor || terminated || newreview || buycourse
-const createNotification = async(object, objectID, url, reason) => {
+const createNotification = async(object, objectID, userID, url, reason) => {
   return new Promise(async (resolve, reject) => {
     try {
       const [notifyID, title, infoObject, listUserID] = await Promise.all([
         getNewNotifyID(), // Get the new notifyID
         getRandomTitle(), // Get a random title
         getInforObject(object, objectID), // This function will return { image, name }
-        getListUserReceiveNotify(reason, objectID)
+        getListUserReceiveNotify(reason, objectID, userID)
       ])
       const time = formatDateTime(new Date())
       const message = await getRandomMessage(infoObject.name, reason)

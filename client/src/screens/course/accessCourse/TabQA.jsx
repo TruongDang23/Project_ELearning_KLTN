@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { formatDistanceToNow } from 'date-fns'
 import { useParams } from 'react-router-dom'
-import { admin, instructor, student } from 'api'
+import { admin, instructor, socket, student } from 'api'
 import { userStore } from '~/context/UserStore'
 import { Snackbar } from "~/components/general"
 
@@ -51,6 +51,12 @@ function TabQA({ lectureQA, setReload, lectureId }) {
     loadListQnA()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lectureQA])
+
+  useEffect(() => {
+    socket.on('test', (data) => {
+      console.log('test notification', data)
+    })
+  }, [])
 
   const handleResponseChange = (e) => setNewResponse(e.target.value)
   const handleSubmitChange = (e) => setNewQuestion(e.target.value)

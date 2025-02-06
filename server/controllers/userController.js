@@ -4,6 +4,8 @@ import catchAsync from '../utils/catchAsync.js'
 import connectMysql from "../config/connMySql.js"
 import { attachFile } from './googleCloudController.js'
 import mongoose from 'mongoose'
+import { createNotification } from './notificationController.js'
+import { socketFunction } from '../app.js'
 
 const newQnA = catchAsync(async (req, res, next) => {
   // Implement here
@@ -30,13 +32,15 @@ const newQnA = catchAsync(async (req, res, next) => {
           session: mongoTransaction
         }
       )
-      await mongoTransaction.commitTransaction()
+      //await mongoTransaction.commitTransaction()
+      await createNotification()
+      socketFunction.test()
       res.status(201).send()
     }
   }
   catch (error) {
-    next(error)
     await mongoTransaction.abortTransaction()
+    next(error)
   }
   finally {
     mongoTransaction.endSession()
