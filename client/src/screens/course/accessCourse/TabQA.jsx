@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { formatDistanceToNow } from 'date-fns'
 import { useParams } from 'react-router-dom'
-import { admin, instructor, socket, student } from 'api'
+import { admin, instructor, student } from 'api'
 import { userStore } from '~/context/UserStore'
 import { Snackbar } from "~/components/general"
 

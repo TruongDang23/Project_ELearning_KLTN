@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { create } from "zustand"
-import { notify, socket } from "api"
+import { notify } from "api"
 
 const notifyStore = create((set) => ({
   listNotifies: [],
