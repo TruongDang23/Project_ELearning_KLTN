@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { create } from "zustand"
-import { notify } from "api"
+import { notify, socket } from "api"
 
 const notifyStore = create((set) => ({
   listNotifies: [],
@@ -40,6 +40,12 @@ const notifyStore = create((set) => ({
     } catch (error) {
       console.error('Failed to fetch items:', error)
     }
+  },
+
+  newNotify: async() => {
+    set((state) => ({
+      unreadCount: state.unreadCount + 1
+    }))
   }
 }))
 

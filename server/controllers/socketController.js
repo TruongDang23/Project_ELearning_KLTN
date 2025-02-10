@@ -24,11 +24,11 @@ const registerSocketHandlers = (io) => {
   })
 
   //create some functions use socket
-  const test = () => {
-    io.emit('sendNotify', 'test')
+  const increaseUnreadNotify = (groupID) => {
+    io.to(groupID).emit('increaseUnread')
   }
 
-  return { test }
+  return { increaseUnreadNotify }
 }
 
 export default registerSocketHandlers

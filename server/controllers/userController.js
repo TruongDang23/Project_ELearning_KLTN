@@ -10,7 +10,7 @@ import { socketFunction } from '../app.js'
 const newQnA = catchAsync(async (req, res, next) => {
   // Implement here
   const { id, lectureID } = req.params
-  const { data } = req.body
+  const { data, url } = req.body
   const lectureIDInt = parseInt(lectureID, 10)
   const mongoTransaction = await mongoose.startSession()
   mongoTransaction.startTransaction()
@@ -32,9 +32,9 @@ const newQnA = catchAsync(async (req, res, next) => {
           session: mongoTransaction
         }
       )
-      //await mongoTransaction.commitTransaction()
-      await createNotification()
-      socketFunction.test()
+      await mongoTransaction.commitTransaction()
+      await createNotification('course', id, req.userID, url, 'QnA')
+      socketFunction.increaseUnreadNotify(id)
       res.status(201).send()
     }
   }

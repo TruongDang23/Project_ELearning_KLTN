@@ -10,6 +10,7 @@ import { useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { notifyStore } from '~/context/NotifyStore'
 import useNavigation from '~/utils/navigate'
+import { socket } from 'api'
 
 function Header() {
   const navigate = useNavigate()
@@ -26,6 +27,11 @@ function Header() {
       })
     }
   }
+
+  socket.on('sendNotify', () => {
+    notifyStore.getState().newNotify()
+  })
+
   // eslint-disable-next-line no-unused-vars
   const [reload, setReload] = useState(false)
   {

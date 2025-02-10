@@ -52,12 +52,6 @@ function TabQA({ lectureQA, setReload, lectureId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lectureQA])
 
-  useEffect(() => {
-    socket.on('test', (data) => {
-      console.log('test notification', data)
-    })
-  }, [])
-
   const handleResponseChange = (e) => setNewResponse(e.target.value)
   const handleSubmitChange = (e) => setNewQuestion(e.target.value)
 
@@ -86,7 +80,7 @@ function TabQA({ lectureQA, setReload, lectureId }) {
     const updatedCourseQA = [...courseQA, newData]
     setCourseQA(updatedCourseQA)
     setNewQuestion('')
-    res = await client.QnA(courseID, lectureId, updatedCourseQA)
+    res = await client.QnA(courseID, lectureId, updatedCourseQA, url)
     if (res.status === 201) {
       setReload((prev) => ({ //Reload course data
         reload: !prev.reload
@@ -141,7 +135,7 @@ function TabQA({ lectureQA, setReload, lectureId }) {
         }
         return QA
       })
-      res = await client.QnA(courseID, lectureId, updatedQA)
+      res = await client.QnA(courseID, lectureId, updatedQA, url)
       if (res.status === 201) {
         setCourseQA(updatedQA)
         setNewResponse('')

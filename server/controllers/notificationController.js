@@ -4,25 +4,26 @@ import catchAsync from '../utils/catchAsync.js'
 import { formatDateTime } from '../utils/dateTimeHandler.js'
 import Course from '../models/courseInfo.js'
 
-const getNewNotifyID = async() => {
+const getNewNotifyID = async () => {
   return new Promise((resolve, reject) => {
     connectMysql.getConnection((err, connection) => {
       if (err) {
         return reject(err)
       }
 
-      const query = `SELECT CONCAT('N', LPAD(SUBSTRING(MAX(notifyID), 2) + 1, 3, '0')) AS newNotifyID
-                      FROM notify`
+      const query = `SELECT CONCAT('N', LPAD(SUBSTRING(MAX(notifyID), 2) + 1, 3, '0')) AS newNotifyID FROM notify`
+
       connection.query(query, (error, data) => {
-        connection.release()
+
         if (error) {
           return reject(error)
         }
-        resolve(data[0].newNotifyID)
+        resolve(data[0]?.newNotifyID)
       })
     })
   })
 }
+
 
 const getRandomTitle = () => {
   const titles = [
@@ -60,24 +61,21 @@ const getInforObject = async (object, objectID) => {
   let name
 
   try {
-    await connection.query("START TRANSACTION") // Bắt đầu transaction
-
     switch (object) {
-    case 'course': {
+    case "course": {
       // Truy vấn MySQL để lấy title
       query = `SELECT title FROM course WHERE courseID = ?`
       const [courseRows] = await connection.query(query, [objectID])
       if (courseRows.length === 0) throw new Error("Course not found")
       name = courseRows[0].title
 
-      // Truy vấn MongoDB để lấy image
-      const courseImage = await Course.find({ courseID: { $in: objectID } }).select("image_introduce")
-      image = courseImage.length > 0 ? courseImage[0].image_introduce : null
+      // Truy vấn MongoDB để lấy image (ngoài transaction)
+      const courseImage = await Course.findOne({ courseID: objectID }).select("image_introduce")
+      image = courseImage ? courseImage.image_introduce : null
       break
     }
 
-
-    case 'user': {
+    case "user": {
       // Truy vấn MySQL để lấy fullname và avatar
       query = `SELECT fullname, avatar FROM user WHERE userID = ?`
       const [userRows] = await connection.query(query, [objectID])
@@ -88,17 +86,12 @@ const getInforObject = async (object, objectID) => {
     }
     }
 
-    await connection.query("COMMIT") // Xác nhận transaction
-
     return {
       name: name,
       image: image
     }
   } catch (error) {
-    await connection.query("ROLLBACK") // Quay lại nếu có lỗi
-    throw error // Ném lỗi ra ngoài để xử lý
-  } finally {
-    connection.end() // Đóng kết nối MySQL
+    console.log(error)
   }
 }
 
@@ -196,11 +189,11 @@ const insertNewNotification = async(notify, listUserID) => {
           notify.image
         ])
 
-      for (const userID of listUserID) {
+      for (const infor of listUserID) {
         await connection.query(queryInsertNewReceive,
           [
             notify.notifyID,
-            userID,
+            infor.userID,
             notify.time,
             false
           ])
@@ -224,7 +217,6 @@ const getListUserReceiveNotify = async(reason, objectID, userID) => {
   return new Promise(async(resolve, reject) => {
 
     const connection = connectMysql.promise()
-    await connection.query("START TRANSACTION")
     let query
     let rows = []
     switch (reason) {
@@ -247,28 +239,26 @@ const getListUserReceiveNotify = async(reason, objectID, userID) => {
           ])
 
         if (rows.affectedRows == 0) {
-          await connection.query("ROLLBACK")
           resolve([])
         }
         else {
-          await connection.query("COMMIT")
-          resolve(rows)
+          resolve(rows[0])
         }
       }
       catch (error) {
         reject(error)
       }
-      break;
+      break
     case 'published':
-      break;
+      break
     case 'sendmonitor':
-      break;
+      break
     case 'terminated':
-      break;
+      break
     case 'newreview':
-      break;
+      break
     case 'buycourse':
-      break;
+      break
     }
   })
 }
@@ -284,6 +274,7 @@ const createNotification = async(object, objectID, userID, url, reason) => {
         getInforObject(object, objectID), // This function will return { image, name }
         getListUserReceiveNotify(reason, objectID, userID)
       ])
+
       const time = formatDateTime(new Date())
       const message = await getRandomMessage(infoObject.name, reason)
       const notify = {
@@ -291,7 +282,8 @@ const createNotification = async(object, objectID, userID, url, reason) => {
         title,
         message,
         url,
-        time
+        time,
+        image: infoObject.image
       }
       await insertNewNotification(notify, listUserID)
       resolve()
