@@ -4,7 +4,6 @@ import { getListCourseBaseUserID } from './courseController.js'
 const registerSocketHandlers = (io) => {
   io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`)
-
     socket.on('joinListRooms', async (userID, role) => {
       console.log('UserID', userID, role)
       const data = await getListCourseBaseUserID(userID, role)
@@ -23,7 +22,7 @@ const registerSocketHandlers = (io) => {
     })
   })
 
-  //create some functions use socket
+  //create some functions use socket. Its can be call in other files
   const increaseUnreadNotify = (groupID) => {
     io.to(groupID).emit('increaseUnread')
   }

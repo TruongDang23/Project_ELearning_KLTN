@@ -6,7 +6,7 @@ import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
 import Categories from './categories'
 import AvatarAction from './avatar'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { notifyStore } from '~/context/NotifyStore'
 import useNavigation from '~/utils/navigate'
@@ -28,10 +28,17 @@ function Header() {
     }
   }
 
-  socket.on('sendNotify', () => {
-    notifyStore.getState().newNotify()
-  })
+  useEffect(() => {
+    const handleIncreaseUnread = () => {
+      notifyStore.getState().newNotify()
+    }
 
+    socket.on('increaseUnread', handleIncreaseUnread)
+
+    return () => {
+      socket.off('increaseUnread', handleIncreaseUnread) // Remove listener on unmount
+    }
+  }, [])
   // eslint-disable-next-line no-unused-vars
   const [reload, setReload] = useState(false)
   {
