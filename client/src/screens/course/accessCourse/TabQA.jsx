@@ -28,6 +28,8 @@ function TabQA({ lectureQA, setReload, lectureId }) {
     client = instructor
   else if (userID[0] === 'S')
     client = student
+  else if (userID[0] === 'A')
+    client = admin
 
   const loadListQnA = async () => {
     let qna
@@ -78,7 +80,7 @@ function TabQA({ lectureQA, setReload, lectureId }) {
     const updatedCourseQA = [...courseQA, newData]
     setCourseQA(updatedCourseQA)
     setNewQuestion('')
-    res = await client.QnA(courseID, lectureId, updatedCourseQA)
+    res = await client.QnA(courseID, lectureId, updatedCourseQA, url)
     if (res.status === 201) {
       setReload((prev) => ({ //Reload course data
         reload: !prev.reload
@@ -133,7 +135,7 @@ function TabQA({ lectureQA, setReload, lectureId }) {
         }
         return QA
       })
-      res = await client.QnA(courseID, lectureId, updatedQA)
+      res = await client.QnA(courseID, lectureId, updatedQA, url)
       if (res.status === 201) {
         setCourseQA(updatedQA)
         setNewResponse('')

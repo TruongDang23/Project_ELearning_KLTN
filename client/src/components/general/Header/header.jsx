@@ -6,9 +6,11 @@ import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
 import Categories from './categories'
 import AvatarAction from './avatar'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { notifyStore } from '~/context/NotifyStore'
+import useNavigation from '~/utils/navigate'
+import { socket } from 'api'
 
 function Header() {
   const navigate = useNavigate()
@@ -16,11 +18,7 @@ function Header() {
   const [search, setSearch] = useSearchParams()
   const userID = localStorage.getItem('userID')
   const [title, setTitle] = useState(search.get('q') || '')
-
-  const navigation = (path) => {
-    navigate(path)
-  }
-
+  const { goTo } = useNavigation()
   const handleSearch = (event) => {
     if (event.key === 'Enter') {
       navigate({
@@ -29,6 +27,18 @@ function Header() {
       })
     }
   }
+
+  useEffect(() => {
+    const handleIncreaseUnread = () => {
+      notifyStore.getState().newNotify()
+    }
+
+    socket.on('increaseUnread', handleIncreaseUnread)
+
+    return () => {
+      socket.off('increaseUnread', handleIncreaseUnread) // Remove listener on unmount
+    }
+  }, [])
   // eslint-disable-next-line no-unused-vars
   const [reload, setReload] = useState(false)
   {
@@ -105,7 +115,7 @@ function Header() {
             </a> */}
 
             {userID[0] === 'S' && (
-              <a href="/student/my-learning" className="link">
+              <a href="#" className="link" onClick={() => goTo('/student/my-learning')}>
                 My learning
               </a>
             )}
@@ -114,7 +124,7 @@ function Header() {
                 <ShoppingCartOutlinedIcon />
               </StyledBadge>
             </a>
-            <a href="#!" onClick={() => navigation('/notification')}>
+            <a href="#" onClick={() => goTo('/notification')}>
               <StyledBadge badgeContent={unread} color="primary">
                 <NotificationsOutlinedIcon />
               </StyledBadge>

@@ -26,9 +26,9 @@ export class InstructorClient extends ApiClient {
     }
   }
 
-  async QnA(courseID, lectureID, content) {
+  async QnA(courseID, lectureID, content, url) {
     try {
-      const response = await axios.post(`${this.domain}/${courseID}/${lectureID}/QA`, { data: content })
+      const response = await axios.post(`${this.domain}/${courseID}/${lectureID}/QA`, { data: content, url: url })
       return response
     }
     catch (error) {

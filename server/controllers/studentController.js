@@ -1,5 +1,151 @@
+/* eslint-disable no-async-promise-executor */
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from '../config/connMySql.js'
+import mongoose from 'mongoose'
+import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
+import User from '../models/user.js'
+import { getListInforEnroll, getProgress } from './courseController.js'
+import { isEnrolled } from '../utils/precheckAccess.js'
+
+const getFullInfoMySQL = (connection, userID) => {
+  return new Promise(async (resolve, reject) => {
+    let query = 'SELECT userID, avatar, fullname, date_of_birth, street, province, country, language\
+                 from user where userID = ?'
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          userID
+        ])
+
+      if (rowsInfo.affectedRows !== 0) {
+        resolve(rowsInfo)
+      }
+      else {
+        reject("User does not contain data")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getFullInfoMongo = async (userID) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const mongoData = await User.findOne({ userID: userID }).select()
+      if (mongoData)
+        resolve(mongoData)
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const updateInfoMySQL = (connection, inf) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `UPDATE user 
+                SET avatar = ?,
+                    fullname = ?,
+                    date_of_birth = ?,
+                    street = ?,
+                    province = ?,
+                    country = ?,
+                    language = ?
+                WHERE userID = ?`
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          inf.avatar,
+          inf.fullname,
+          inf.date_of_birth,
+          inf.street,
+          inf.province,
+          inf.country,
+          inf.language,
+          inf.userID
+        ])
+
+      if (rowsInfo.affectedRows !== 0) {
+        resolve(rowsInfo)
+      }
+      else {
+        reject("Failed to update data in mysql")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const updateInfoMongoDB = async (session, inf) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await User.collection.updateOne(
+        { userID: inf.userID }, // Filter condition
+        {
+          $set:
+          {
+            social_networks: inf.social_network,
+            self_introduce: inf.self_introduce,
+            expertise: inf.expertise,
+            degrees: inf.degrees,
+            projects: inf.projects,
+            working_history: inf.working_history
+          }
+        }, // Update operation
+        { session: session } // Attach the session
+      )
+      if (result)
+        resolve(result)
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const buyCourseMySQL = async(connection, userID, courseID) => {
+  return new Promise(async (resolve, reject) => {
+    let query = "INSERT INTO enroll (courseID, userID, time) VALUES (?, ?, ?)"
+    const time = formatDateTime(new Date())
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          courseID,
+          userID,
+          time
+        ])
+
+      if (rowsInfo.affectedRows !== 0) {
+        resolve()
+      }
+      else {
+        reject('Failed to buy course')
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const addEnrollCourse = async(mongoSession, userID, courseID) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await User.findOneAndUpdate(
+        { userID: userID }, // Tìm user trong MongoDB theo userID
+        { $addToSet: { course_enrolled: courseID } }, // Thêm courseID vào mảng course_enrolled (tránh trùng lặp)
+        { new: true, session: mongoSession } // Tùy chọn để trả về document sau khi cập nhật
+      )
+      resolve()
+    } catch (mongoError) {
+      reject(mongoError)
+    }
+  })
+}
 
 const getAll = catchAsync(async (req, res, next) => {
   // Implement here
@@ -62,22 +208,231 @@ const getAll = catchAsync(async (req, res, next) => {
 
 const getByID = catchAsync(async (req, res, next) => {
   // Implement here
+  const userID = req.userID
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+  let enrolled = []
+  let mylearning = []
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  mongoTransaction.startTransaction()
+
+  let info_mysql, info_mongo
+
+  try {
+    // Run both functions asynchronously
+    [info_mysql, info_mongo] = await Promise.all([
+      getFullInfoMySQL(mysqlTransaction, userID), // Fetch MySQL data
+      getFullInfoMongo(userID) // Fetch MongoDB data
+    ])
+
+    //Get information of list course published
+    if (info_mongo.course_enrolled.length != 0) {
+      enrolled = await getListInforEnroll(mysqlTransaction, info_mongo.course_enrolled)
+
+      mylearning= await Promise.all(
+        enrolled.map(async (course) => {
+          const progress = await getProgress(course.courseID, req.userID)
+          return {
+            ...course,
+            progress: progress || '0.0' // Gán giá trị mặc định là 0.0 nếu không có progress
+          }
+        })
+      )
+    }
+
+    // Commit Transactions
+    await mysqlTransaction.query("COMMIT")
+    await mongoTransaction.commitTransaction()
+  } catch (error) {
+    // Rollback Transactions in case of an error
+    await mysqlTransaction.query("ROLLBACK")
+    await mongoTransaction.abortTransaction()
+    next(error) // Pass the error to the next middleware
+  } finally {
+    // End the MongoDB session
+    await mongoTransaction.endSession()
+  }
+
+
+  // Merge data
+  const mergeData = info_mysql.map(inf => {
+    return {
+      ...inf,
+      date_of_birth: formatDate(inf.date_of_birth),
+
+      //Câu query không có lấy activity_status. Tuy nhiên login thành công <=> activity_status = active
+      activity_status: 'active',
+
+      //Vì chưa có data về activities Admin trên MongoDB nên phải tạo mô phỏng
+      social_network: info_mongo.social_networks,
+      self_introduce: info_mongo.self_introduce,
+      expertise: info_mongo.expertise,
+      degrees: info_mongo.degrees,
+      projects: info_mongo.projects,
+      working_history: info_mongo.working_history,
+      course_enrolled: enrolled,
+      mylearning: mylearning
+    }
+  })
+
+  res.status(200).send(mergeData[0])
 })
 
 const update = catchAsync(async (req, res, next) => {
   // Implement here
+  const newInfo = req.body.data
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  mongoTransaction.startTransaction()
+
+  try {
+    // Run both functions asynchronously
+    await Promise.all([
+      updateInfoMySQL(mysqlTransaction, newInfo), // Fetch MySQL data
+      updateInfoMongoDB(mongoTransaction, newInfo) // Fetch MongoDB data
+    ])
+
+    // Commit Transactions
+    await mysqlTransaction.query("COMMIT")
+    await mongoTransaction.commitTransaction()
+  } catch (error) {
+    // Rollback Transactions in case of an error
+    await mysqlTransaction.query("ROLLBACK")
+    await mongoTransaction.abortTransaction()
+    next(error) // Pass the error to the next middleware
+  } finally {
+    // End the MongoDB session
+    await mongoTransaction.endSession()
+  }
+  res.status(200).send('Update Successfully')
 })
 
 const updateProgressCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const { courseID, lectureID } = req.params
+  const userID = req.userID
+  const progress = parseInt(req.body.data, 10)
+  const lectureIDInt = parseInt(lectureID, 10)
+  const time = formatDateTime(new Date())
+  const connection = connectMysql.promise()
+
+  await connection.query("START TRANSACTION")
+
+  let query = "INSERT INTO learning (userID, lectureID, time, courseID, percent) VALUES (?, ?, ?, ?, ?)"
+
+  try {
+    const [rowsInfo] = await connection.query(query,
+      [
+        userID,
+        lectureIDInt,
+        time,
+        courseID,
+        progress
+      ])
+
+    if (rowsInfo.affectedRows !== 0) {
+      res.status(200).send()
+    }
+    else {
+      next({ status: 400, message: 'Failed when updating progress of lecture' })
+    }
+  }
+  catch (error) {
+    next(error)
+  }
 })
 
 const reviewCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const { courseID, userID, message, star, time } = req.body
+  if (!courseID || !userID || !message || !star || !time) {
+    next({ status: 400, message: "Missing required fiedls" })
+  }
+
+  const formattedTime = formatDateTime(new Date(time))
+
+  connectMysql.getConnection((err, connection) => {
+    if (err) {
+      next({ status: 500, message: "Connection failed" })
+    }
+
+    // First, check if a review with the same courseID and userID already exists
+    const checkQuery =
+      "SELECT * FROM rating WHERE courseID = ? AND userID = ?"
+    connection.query(checkQuery, [courseID, userID], (error, results) => {
+      if (error) {
+        connection.release()
+        next({ status: 500, message: "Failed to check review" })
+      }
+
+      if (results.length > 0) {
+        // If a review exists, update it
+        const updateQuery =
+          "UPDATE rating SET message = ?, star = ?, time = ? WHERE courseID = ? AND userID = ?"
+        connection.query(
+          updateQuery,
+          [message, star, formattedTime, courseID, userID],
+          (updateError) => {
+            connection.release()
+            if (updateError) {
+              next({ status: 500, message: "Failed to update review" })
+            }
+            res.status(201).send("Review updated successfully")
+          }
+        )
+      } else {
+        // If no review exists, insert a new one
+        const insertQuery =
+          "INSERT INTO rating (courseID, userID, message, star, time) VALUES (?, ?, ?, ?, ?)"
+        connection.query(
+          insertQuery,
+          [courseID, userID, message, star, formattedTime],
+          (insertError) => {
+            connection.release()
+            if (insertError) {
+              next({ status: 500, message: "Failed to add review" })
+            }
+            res.status(201).send("Review added successfully")
+          }
+        )
+      }
+    })
+  })
 })
 
 const buyCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const { courseID } = req.body
+  const connection = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+
+  const enrolled = await isEnrolled(courseID, req.userID)
+  if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
+    res.send('enrolled')
+  }
+  else { // Chưa tham gia khóa học
+    try {
+      await connection.query("START TRANSACTION")
+      mongoTransaction.startTransaction()
+      await Promise.all([
+        buyCourseMySQL(connection, req.userID, courseID), // Insert course into enroll table
+        addEnrollCourse(mongoTransaction, req.userID, courseID) // Insert new course into field enrolled_course
+      ])
+      await connection.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+      res.status(201).send('created')
+    }
+    catch (error) {
+      await connection.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next({ status: 400, message: "Failed when buying course" })
+    }
+  }
 })
 
 export default {

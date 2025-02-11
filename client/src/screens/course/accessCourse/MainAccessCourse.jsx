@@ -3,15 +3,15 @@ import MainContentAccessCourse from "./MainContentAccessCourse"
 import SideBarAccessCourse from "./SideBarAccessCourse"
 import { useSearchParams } from "react-router-dom"
 import { useState, useEffect } from "react"
-import axios from "axios"
-import { useNavigate } from "react-router-dom"
+import { student } from "api"
+import { Snackbar } from "~/components/general"
 
 function MainAccessCourse({ accessCourseData, setReload }) {
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
-  const userData = JSON.parse(sessionStorage.getItem('userAuth'))
   const userID = localStorage.getItem('userID')
-  const navigate = useNavigate()
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   const [searchParams, setSearchParams] = useSearchParams({
     id: accessCourseData.chapters[0].lectures[0].id,
     type: accessCourseData.chapters[0].lectures[0].type,
@@ -25,45 +25,42 @@ function MainAccessCourse({ accessCourseData, setReload }) {
     percent: 0
   })
 
-  useEffect(() => {
-    axios.post('http://localhost:3000/c/updateNewProgress',
-      {
-        progress
-      },
-      {
-        headers: {
-          'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-          'user': userAuth
-        }
-      })
-      // eslint-disable-next-line no-unused-vars
-      .then(response => {
+  const updateProgress = async() => {
+    if ( progress.percent != 0 ) {
+      const res = await student.updateProgress(progress.courseID, progress.lectureID, progress.percent)
+      if (res.status == 200) {
         setReload((prev) => ({
           reload: !prev.reload
         }))
-      })
-      .catch(error => {
-        //Server shut down
-        if (error.message === 'Network Error')
-          navigate('/server-shutdown')
-        //Connection error
-        if (error.response.status === 500)
-          navigate('/500error')
-        //Unauthorized. Need login
-        if (error.response.status === 401)
-          navigate('/401error')
-        //Forbidden. Token != userAuth
-        if (error.response.status === 403)
-          navigate('/403error')
-      })
+      }
+      else {
+        setOpenError({
+          status: true,
+          message: `Can't update progress for course`
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
+      }
+    }
+  }
+
+  useEffect(() => {
+    updateProgress()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress.percent])
 
   return (
-    <MainAccessCourseWrapper className="white-space-small">
-      <MainContentAccessCourse accessCourseData={accessCourseData} params={searchParams} setProgress={setProgress} setReload={setReload}/>
-      <SideBarAccessCourse accessCourseData={accessCourseData} setParams={setSearchParams} setProgress={setProgress}/>
-    </MainAccessCourseWrapper>
+    <>
+      <MainAccessCourseWrapper className="white-space-small">
+        <MainContentAccessCourse accessCourseData={accessCourseData} params={searchParams} setProgress={setProgress} setReload={setReload} />
+        <SideBarAccessCourse accessCourseData={accessCourseData} setParams={setSearchParams} setProgress={setProgress} />
+      </MainAccessCourseWrapper>
+      {openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message} /> </> : <> </>}
+    </>
+
   );
 }
 

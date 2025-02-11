@@ -12,9 +12,23 @@ export class StudentClient extends ApiClient {
     this.notify = new NotifyClient
   }
 
-  async updateProgress(id, courseID, lectureID, percent) {
+  async updateAvatar(id, formData) {
     try {
-      const response = await axios.post(`${this.domain}/${id}/${courseID}/${lectureID}/updateprogress`, {
+      const response = await axios.put(`${this.domain}/avatar/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
+  async updateProgress(courseID, lectureID, percent) {
+    try {
+      const response = await axios.post(`${this.domain}/${courseID}/${lectureID}/updateprogress`, {
         headers: {
           //authentication
         },
@@ -27,9 +41,9 @@ export class StudentClient extends ApiClient {
     }
   }
 
-  async QnA(courseID, lectureID, content) {
+  async QnA(courseID, lectureID, content, url) {
     try {
-      const response = await axios.post(`${this.domain}/${courseID}/${lectureID}/QA`, { data: content })
+      const response = await axios.post(`${this.domain}/${courseID}/${lectureID}/QA`, { data: content, url: url })
       return response
     }
     catch (error) {
@@ -41,16 +55,10 @@ export class StudentClient extends ApiClient {
     return this.course.getLectureQnA(courseID, lectureID)
   }
 
-  async ratingsCourse(id, courseID, star, content) {
+  async ratingsCourse(courseID, content) {
     try {
-      const response = await axios.post(`${this.domain}/${id}/${courseID}/ratings`, {
-        headers: {
-          //authentication
-        },
-        data: {
-          star: star,
-          content: content
-        }
+      const response = await axios.post(`${this.domain}/${courseID}/ratings`, {
+        data: content
       })
       return response
     }
@@ -59,13 +67,9 @@ export class StudentClient extends ApiClient {
     }
   }
 
-  async buyCourse(id, courseID) {
+  async buyCourse(courseID) {
     try {
-      const response = await axios.post(`${this.domain}/${id}/buy/${courseID}`, {
-        headers: {
-          //authentication
-        }
-      })
+      const response = await axios.post(`${this.domain}/buy/${courseID}`)
       return response
     }
     catch (error) {

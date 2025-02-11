@@ -40,6 +40,12 @@ const notifyStore = create((set) => ({
     } catch (error) {
       console.error('Failed to fetch items:', error)
     }
+  },
+
+  newNotify: async() => {
+    set((state) => ({
+      unreadCount: state.unreadCount + 1
+    }))
   }
 }))
 

@@ -1,15 +1,16 @@
 //That controller contains same function of admin, instructor, student
-import User from '../models/user.js'
 import Course from '../models/courseInfo.js'
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from "../config/connMySql.js"
 import { attachFile } from './googleCloudController.js'
 import mongoose from 'mongoose'
+import { createNotification } from './notificationController.js'
+import { socketFunction } from '../app.js'
 
 const newQnA = catchAsync(async (req, res, next) => {
   // Implement here
   const { id, lectureID } = req.params
-  const { data } = req.body
+  const { data, url } = req.body
   const lectureIDInt = parseInt(lectureID, 10)
   const mongoTransaction = await mongoose.startSession()
   mongoTransaction.startTransaction()
@@ -32,12 +33,14 @@ const newQnA = catchAsync(async (req, res, next) => {
         }
       )
       await mongoTransaction.commitTransaction()
+      await createNotification('course', id, req.userID, url, 'QnA')
+      socketFunction.increaseUnreadNotify(id)
       res.status(201).send()
     }
   }
   catch (error) {
-    next(error)
     await mongoTransaction.abortTransaction()
+    next(error)
   }
   finally {
     mongoTransaction.endSession()
