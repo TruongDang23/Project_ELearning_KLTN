@@ -128,8 +128,6 @@ const createSendToken = async (userID, statusCode, res) => {
 
   await TokenList.create({ refresh_token: refresh })
 
-  const email = new Email()
-  await email.sendForgetPass("Quên mật khẩu", "quangtruong050123@gmail.com", "123")
   // Lưu token vào cookie
   res.cookie('access_token', token, {
     httpOnly: true,
