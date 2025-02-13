@@ -9,6 +9,7 @@ import TokenList from '../models/token.js'
 import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
 import { getUserByEmail, countUserOfRole } from '../controllers/userController.js'
+import Email from './emailController.js'
 
 const hashPassword = (password) => {
   // Create a SHA-512 hash
@@ -127,6 +128,8 @@ const createSendToken = async (userID, statusCode, res) => {
 
   await TokenList.create({ refresh_token: refresh })
 
+  const email = new Email()
+  await email.sendForgetPass("Quên mật khẩu", "quangtruong050123@gmail.com", "123")
   // Lưu token vào cookie
   res.cookie('access_token', token, {
     httpOnly: true,
