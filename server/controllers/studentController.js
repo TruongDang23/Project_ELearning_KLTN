@@ -6,6 +6,7 @@ import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import User from '../models/user.js'
 import { getListInforEnroll, getProgress } from './courseController.js'
 import { isEnrolled } from '../utils/precheckAccess.js'
+import { cancelPayment, createPayment } from './paymentController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -435,11 +436,26 @@ const buyCourse = catchAsync(async (req, res, next) => {
   }
 })
 
+const payment = catchAsync(async (req, res, next) => {
+  // Implement here
+  const { courseID } = req.body
+  try {
+    //let ress = await cancelPayment()
+    let link = await createPayment()
+    res.send(link)
+  }
+  catch (error) {
+    console.log(error)
+    //next({ status: 400, message: "Failed when create payment information" })
+  }
+})
+
 export default {
   getAll,
   getByID,
   update,
   updateProgressCourse,
   reviewCourse,
-  buyCourse
+  buyCourse,
+  payment
 }

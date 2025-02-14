@@ -66,6 +66,14 @@ studentRouter
   )
 
 studentRouter
+  .route('/pay/:courseID')
+  .post(
+    authController.protect,
+    authController.restrictTo('student'),
+    studentController.payment
+  )
+
+studentRouter
   .route('/:id/:lectureID/QA')
   .post(
     authController.protect,
