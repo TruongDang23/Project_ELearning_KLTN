@@ -6,7 +6,8 @@ import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import User from '../models/user.js'
 import { getListInforEnroll, getProgress } from './courseController.js'
 import { isEnrolled } from '../utils/precheckAccess.js'
-import { cancelPayment, createPayment } from './paymentController.js'
+import { createPayment } from './paymentController.js'
+import { getFullInfoMySQL as getFullInfoMySQLCourse } from './courseController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -438,15 +439,37 @@ const buyCourse = catchAsync(async (req, res, next) => {
 
 const payment = catchAsync(async (req, res, next) => {
   // Implement here
-  const { courseID } = req.body
-  try {
-    //let ress = await cancelPayment()
-    let link = await createPayment()
-    res.send(link)
+  const { courseID } = req.params
+  const { cancel_url, return_url } = req.body
+  const enrolled = false //await isEnrolled(courseID, req.userID)
+  if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
+    res.send('enrolled')
   }
-  catch (error) {
-    console.log(error)
-    //next({ status: 400, message: "Failed when create payment information" })
+  else { // Chưa tham gia khóa học
+    const orderID = Math.floor(Math.random() * 9007199254740991) //Get random orderCode, orderCode is unique
+    const mysqlTransaction = connectMysql.promise()
+    const courseInfo = await getFullInfoMySQLCourse(mysqlTransaction, courseID)
+    try {
+      const requestPayment = {
+        orderCode: orderID,
+        amount: Number(courseInfo[0].price),
+        description: `Thanh toan khoa hoc ${courseID}`,
+        items: [
+          {
+            name: courseInfo[0].title,
+            quantity: 1,
+            price: Number(courseInfo[0].price)
+          }
+        ],
+        cancelUrl: cancel_url,
+        returnUrl: return_url
+      }
+      let link = await createPayment(requestPayment)
+      res.status(200).send(link)
+    }
+    catch (error) {
+      next({ status: 400, message: "Failed when create payment information" })
+    }
   }
 })
 
