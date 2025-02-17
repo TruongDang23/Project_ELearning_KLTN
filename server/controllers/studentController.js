@@ -441,6 +441,7 @@ const payment = catchAsync(async (req, res, next) => {
   // Implement here
   const { courseID } = req.params
   const { cancel_url, return_url } = req.body
+  const userID = req.userID
   const enrolled = false //await isEnrolled(courseID, req.userID)
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
     res.send('enrolled')
@@ -453,7 +454,7 @@ const payment = catchAsync(async (req, res, next) => {
       const requestPayment = {
         orderCode: orderID,
         amount: Number(courseInfo[0].price),
-        description: `Thanh toan khoa hoc ${courseID}`,
+        description: `${userID} thanh toan ${courseID}`,
         items: [
           {
             name: courseInfo[0].title,
@@ -473,6 +474,38 @@ const payment = catchAsync(async (req, res, next) => {
   }
 })
 
+const payoshook = catchAsync(async (req, res, next) => {
+  const response = req.body
+  const connection = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+  const str = response.data.description
+  const parts = str.split(" ")
+
+  const userID = parts.find(part => part.startsWith("S"))
+  const courseID = parts.find(part => part.startsWith("C"))
+
+  if (response.success == true) {
+    try {
+      await connection.query("START TRANSACTION")
+      mongoTransaction.startTransaction()
+      await Promise.all([
+        buyCourseMySQL(connection, userID, courseID), // Insert course into enroll table
+        addEnrollCourse(mongoTransaction, userID, courseID) // Insert new course into field enrolled_course
+        //addLogPayment(response)
+      ])
+      await connection.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+      res.status(201).send('created')
+    }
+    catch (error) {
+      await connection.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next({ status: 400, message: "Failed when buying course" })
+    }
+  }
+  res.send()
+})
+
 export default {
   getAll,
   getByID,
@@ -480,5 +513,6 @@ export default {
   updateProgressCourse,
   reviewCourse,
   buyCourse,
-  payment
+  payment,
+  payoshook
 }
