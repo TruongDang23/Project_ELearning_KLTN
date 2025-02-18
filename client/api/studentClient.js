@@ -77,6 +77,20 @@ export class StudentClient extends ApiClient {
     }
   }
 
+  async payment(courseID, cancel_url, return_url) {
+    try {
+      const response = await axios.post(`${this.domain}/pay/${courseID}`,
+        {
+          cancel_url,
+          return_url
+        })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async getCourseSummary(id) {
     return await this.course.loadSumaryInformation(id)
   }

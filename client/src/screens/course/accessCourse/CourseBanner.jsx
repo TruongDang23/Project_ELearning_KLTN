@@ -3,7 +3,6 @@ import { CircularProgressbar } from 'react-circular-progressbar'
 import 'react-circular-progressbar/dist/styles.css'
 
 function CourseBanner({ accessCourseData }) {
-  console.log(accessCourseData)
   return (
     <CourseBannerWrapper>
       <div className="course-banner">

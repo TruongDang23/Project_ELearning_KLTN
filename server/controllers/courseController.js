@@ -1042,4 +1042,4 @@ export default {
   getQnA
 }
 
-export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress }
+export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL }
