@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 import CryptoJS from "crypto-js";
 import { notify } from "api";
 
-const SECRET_KEY = "elspace.hcmute.edu@gmail.com"
+const SECRET_KEY = import.meta.env.VITE_ENCRYPT_DATA
 
 // Hàm mã hóa dữ liệu
 const encryptData = (data) => {
