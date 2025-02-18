@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import CryptoJS from "crypto-js";
 
-const SECRET_KEY = "elspace.hcmute.edu@gmail.com"
+const SECRET_KEY = import.meta.env.VITE_ENCRYPT_DATA
 
 // Hàm mã hóa
 const encryptData = (data) => {
@@ -15,7 +15,7 @@ const decryptData = (ciphertext) => {
     const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY)
     return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
   } catch (error) {
-    console.error("Decryption error:", error);
+    console.error("Decryption error:", error)
     return null;
   }
 };

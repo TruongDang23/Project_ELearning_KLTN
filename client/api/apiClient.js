@@ -4,7 +4,7 @@ import { socket } from './socketClient'
 axios.defaults.withCredentials = true
 
 export class ApiClient {
-  domain = 'http://localhost:3000/api'
+  domain = import.meta.env.VITE_API_URL
 
   constructor(role) {
     this.domain = `${this.domain}/${role}`
@@ -77,7 +77,7 @@ axios.interceptors.response.use(
     if (error.response?.status === 401 || error.response?.status === 403) {
       try {
         // Gọi endpoint để refresh token
-        const res = await axios.post('http://localhost:3000/api/refreshtoken')
+        const res = await axios.post(`${import.meta.env.VITE_API_URL}/refreshtoken`)
         // Thêm access_token mới vào header của request ban đầu
         if (res) return axios(originalRequest)
       } catch (refreshError) {
