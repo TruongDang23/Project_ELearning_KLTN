@@ -19,7 +19,7 @@ function DesignCourse() {
     status: false,
     message: ""
   })
-  const userData = JSON.parse(sessionStorage.getItem('userAuth'))
+  const userID = localStorage.getItem('userID')
   const navigate = useNavigate()
   const [isLoad, setIsLoad] = useState(false)
 
@@ -54,11 +54,11 @@ function DesignCourse() {
     setIsLoad(true)
 
     formData.append(
-      `image_introduce-${userData.userID}`,
+      `image_introduce-${userID}`,
       structure.image_introduce
     )
     formData.append(
-      `video_introduce-${userData.userID}`,
+      `video_introduce-${userID}`,
       structure.video_introduce
     )
 
@@ -66,12 +66,16 @@ function DesignCourse() {
       chapter.lectures.map((lecture) => {
         lecture.id = lectureId++
         formData.append(
-          `${lecture.source.name}-${userData.userID}`,
+          `${lecture.source.name}-${userID}`,
           lecture.source
         )
       })
     })
 
+    // console.log('structure', structure)
+    // console.log('form', formData)
+    // console.log('userID', userID)
+    // console.log(formData.get(`image_introduce-${userID}`))
     const res = await instructor.createCourse(structure, formData)
     if (res.status === 201) {
       setOpenSuccess(true)
@@ -80,6 +84,7 @@ function DesignCourse() {
       }, 2000)
     }
     else {
+      console.log(res)
       setOpenError({
         status: true,
         message: res.response.data.error
