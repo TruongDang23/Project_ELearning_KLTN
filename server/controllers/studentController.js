@@ -491,10 +491,11 @@ const payoshook = catchAsync(async (req, res, next) => {
   const connection = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
   const str = response.data.description
-  const parts = str.split(" ")
+  const regexUserID = /\bS\d{3}\b/
+  const regexCourseID = /\bC\d{3}\b/
 
-  const userID = parts.find(part => part.startsWith("S"))
-  const courseID = parts.find(part => part.startsWith("C"))
+  const userID = str.match(regexUserID)?.[0] || null;
+  const courseID = str.match(regexCourseID)?.[0] || null;
 
   if (response.success == true) {
     try {
