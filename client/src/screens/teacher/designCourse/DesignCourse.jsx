@@ -72,10 +72,6 @@ function DesignCourse() {
       })
     })
 
-    // console.log('structure', structure)
-    // console.log('form', formData)
-    // console.log('userID', userID)
-    // console.log(formData.get(`image_introduce-${userID}`))
     const res = await instructor.createCourse(structure, formData)
     if (res.status === 201) {
       setOpenSuccess(true)
@@ -84,7 +80,6 @@ function DesignCourse() {
       }, 2000)
     }
     else {
-      console.log(res)
       setOpenError({
         status: true,
         message: res.response.data.error
