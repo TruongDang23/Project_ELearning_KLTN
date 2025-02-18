@@ -12,6 +12,8 @@ import { student } from 'api'
 function SideBar({ inforCourseData }) {
   const [openPub, setopenPub] = useState(false)
   const [statusBuy, setStatus] = useState('')
+  const cancel_url = window.location.href
+  const return_url = `${window.location.origin}/student/my-learning#`
   const toggleBuy = (status) => {
     setStatus(status)
     setopenPub(!openPub)
@@ -19,12 +21,26 @@ function SideBar({ inforCourseData }) {
 
   const { courseID } = useParams()
   const handleBuyCourse = async() => {
-    const res = await student.buyCourse(courseID)
-    if (res.data === 'enrolled') {
-      toggleBuy('enrolled')
+    if (inforCourseData.price == 0) {
+      //If course is free => call API buyCourse to insert directly into database table
+      const res = await student.buyCourse(courseID)
+      if (res.data === 'enrolled') {
+        toggleBuy('enrolled')
+      }
+      else if (res.data === 'created') {
+        toggleBuy('created')
+      }
     }
-    else if (res.data === 'created') {
-      toggleBuy('created')
+    else {
+      //If course is not free => Open link payment
+      const res = await student.payment(courseID, cancel_url, return_url)
+      if (res.data === 'enrolled') {
+        toggleBuy('enrolled')
+      }
+      else {
+        console.log(res)
+        window.open(res.data.checkoutUrl, "_blank", "noopener,noreferrer")
+      }
     }
   }
 
@@ -64,7 +80,7 @@ function SideBar({ inforCourseData }) {
         </div>
         <div className="sidebar-buttons">
           <button className="sidebar-button button-buy" onClick={handleBuyCourse}>
-          Enroll now
+          Buy now
           </button>
           <Link to={`/course/details/${inforCourseData.courseID}`}>
             <button className="sidebar-button button-goto">Go to course</button>

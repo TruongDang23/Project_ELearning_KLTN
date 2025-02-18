@@ -6,6 +6,8 @@ import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import User from '../models/user.js'
 import { getListInforEnroll, getProgress } from './courseController.js'
 import { isEnrolled } from '../utils/precheckAccess.js'
+import { createPayment } from './paymentController.js'
+import { getFullInfoMySQL as getFullInfoMySQLCourse } from './courseController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -435,11 +437,82 @@ const buyCourse = catchAsync(async (req, res, next) => {
   }
 })
 
+const payment = catchAsync(async (req, res, next) => {
+  // Implement here
+  const { courseID } = req.params
+  const { cancel_url, return_url } = req.body
+  const userID = req.userID
+  const enrolled = false //await isEnrolled(courseID, req.userID)
+  if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
+    res.send('enrolled')
+  }
+  else { // Chưa tham gia khóa học
+    const orderID = Math.floor(Math.random() * 9007199254740991) //Get random orderCode, orderCode is unique
+    const mysqlTransaction = connectMysql.promise()
+    const courseInfo = await getFullInfoMySQLCourse(mysqlTransaction, courseID)
+    try {
+      const requestPayment = {
+        orderCode: orderID,
+        amount: Number(courseInfo[0].price),
+        description: `${userID} thanh toan ${courseID}`,
+        items: [
+          {
+            name: courseInfo[0].title,
+            quantity: 1,
+            price: Number(courseInfo[0].price)
+          }
+        ],
+        cancelUrl: cancel_url,
+        returnUrl: return_url
+      }
+      let link = await createPayment(requestPayment)
+      res.status(200).send(link)
+    }
+    catch (error) {
+      next({ status: 400, message: "Failed when create payment information" })
+    }
+  }
+})
+
+const payoshook = catchAsync(async (req, res, next) => {
+  const response = req.body
+  const connection = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+  const str = response.data.description
+  const parts = str.split(" ")
+
+  const userID = parts.find(part => part.startsWith("S"))
+  const courseID = parts.find(part => part.startsWith("C"))
+
+  if (response.success == true) {
+    try {
+      await connection.query("START TRANSACTION")
+      mongoTransaction.startTransaction()
+      await Promise.all([
+        buyCourseMySQL(connection, userID, courseID), // Insert course into enroll table
+        addEnrollCourse(mongoTransaction, userID, courseID) // Insert new course into field enrolled_course
+        //addLogPayment(response)
+      ])
+      await connection.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+      res.status(201).send('created')
+    }
+    catch (error) {
+      await connection.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next({ status: 400, message: "Failed when buying course" })
+    }
+  }
+  res.send()
+})
+
 export default {
   getAll,
   getByID,
   update,
   updateProgressCourse,
   reviewCourse,
-  buyCourse
+  buyCourse,
+  payment,
+  payoshook
 }
