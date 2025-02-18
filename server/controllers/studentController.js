@@ -4,6 +4,7 @@ import connectMysql from '../config/connMySql.js'
 import mongoose from 'mongoose'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import User from '../models/user.js'
+import PaymentList from '../models/logPay.js'
 import { getListInforEnroll, getProgress } from './courseController.js'
 import { isEnrolled } from '../utils/precheckAccess.js'
 import { createPayment } from './paymentController.js'
@@ -149,6 +150,17 @@ const addEnrollCourse = async(mongoSession, userID, courseID) => {
   })
 }
 
+const addLogPayment = async(dataLog) => {
+  return new Promise(async(resolve, reject) => {
+    try {
+      await PaymentList.create({ log: dataLog })
+      resolve()
+    }
+    catch(error) {
+      reject(error)
+    }
+  })
+}
 const getAll = catchAsync(async (req, res, next) => {
   // Implement here
   const mysqlTransaction = connectMysql.promise()
@@ -442,7 +454,7 @@ const payment = catchAsync(async (req, res, next) => {
   const { courseID } = req.params
   const { cancel_url, return_url } = req.body
   const userID = req.userID
-  const enrolled = false //await isEnrolled(courseID, req.userID)
+  const enrolled = await isEnrolled(courseID, req.userID)
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
     res.send('enrolled')
   }
@@ -490,8 +502,8 @@ const payoshook = catchAsync(async (req, res, next) => {
       mongoTransaction.startTransaction()
       await Promise.all([
         buyCourseMySQL(connection, userID, courseID), // Insert course into enroll table
-        addEnrollCourse(mongoTransaction, userID, courseID) // Insert new course into field enrolled_course
-        //addLogPayment(response)
+        addEnrollCourse(mongoTransaction, userID, courseID), // Insert new course into field enrolled_course
+        addLogPayment(response) // Log payment information
       ])
       await connection.query("COMMIT")
       await mongoTransaction.commitTransaction()
