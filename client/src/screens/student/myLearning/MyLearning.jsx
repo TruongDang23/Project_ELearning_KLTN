@@ -6,14 +6,33 @@ import Heading from './Heading'
 import MainMyLearning from './MainMyLearning'
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 import Logo from '../../../assets/hdh.png'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Loading from '~/screens/system/Loading'
 import { userStore } from '~/context/UserStore'
+import { student } from 'api'
 
 function MyLearning() {
-  const myLearning = userStore((state) => state.mylearning);
-  const [userMyLearning, setUserMyLearning] = useState(myLearning)
-  const [isLoad, setIsLoad] = useState(false)
+  const { updateInfor } = userStore()
+  const [userMyLearning, setUserMyLearning] = useState()
+  const [isLoad, setIsLoad] = useState(true)
+  const userID = localStorage.getItem('userID')
+
+  const getInformation = async (userID) => {
+    let userInfo = await student.getInformation(userID)
+
+    if (userInfo) {
+      updateInfor(userInfo.data)
+      setUserMyLearning(userInfo.data.mylearning)
+      setIsLoad(false)
+    }
+  }
+
+  useEffect(() => {
+    if (userID) {
+      getInformation(userID)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
