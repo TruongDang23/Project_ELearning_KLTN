@@ -63,7 +63,7 @@ const checkAccessCourse = (req, res, next) => {
     } else if ((await isEnrolledCourse(courseID, userID)) == true) {
       next()
     } else {
-      next({ status: 401, message: `You don't have permission to access this course!` })
+      next({ status: 401, message: `You don't have permission to access this course ${courseID}!` })
     }
   })
 }

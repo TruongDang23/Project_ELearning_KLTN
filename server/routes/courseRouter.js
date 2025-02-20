@@ -53,4 +53,10 @@ courseRouter
     courseController.getQnA
   )
 
+courseRouter
+  .route('/test/read')
+  .get(
+    courseController.test
+  )
+
 export default courseRouter

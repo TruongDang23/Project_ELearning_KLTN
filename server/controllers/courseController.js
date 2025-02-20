@@ -7,6 +7,8 @@ import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
 import { getUserByID } from './userController.js'
 import { putFileToStorage } from './googleCloudController.js'
+import xlsx from 'xlsx'
+import { convertToAssignmentObject, convertToQuizObject } from './xlsxController.js'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -1031,7 +1033,6 @@ const createCourse = catchAsync(async (req, res, next) => {
     structure.video_introduce = urlVideo // Update source = url to GCS (used in mongoDB)
     structure.image_introduce = urlImage
   } catch (error) {
-    console.log('Error when uploading introduce course: ', error)
     next({ status: 500, message: error })
     return
   }
@@ -1043,19 +1044,49 @@ const createCourse = catchAsync(async (req, res, next) => {
         obj.lectures.map(async (lecture) => {
           const index = (chapterIndex + 1).toString().padStart(2, '0');
           const extendFile = lecture.filename.slice(-3);
+          let quizObject
+          let assignObject
+          let workbook
 
-          try {
-            const url = await putFileToStorage(
-              bucketName,
-              `${courseID}/CT${index}`, // C045/CT01
-              `../server/uploads/${lecture.filename}-${userID}.${extendFile}`, // server/uploads/introduce-I000.jpg
-              `${lecture.name}.${extendFile}` // introduce.jpg
-            );
-            lecture.source = url // Update source = url to GCS (used in mongoDB)
-          } catch (error) {
-            console.log('Error when uploading course structure: ', error)
-            next({ status: 500, message: error })
-            return
+          switch (lecture.type) {
+          case "quiz":
+            try {
+              workbook = xlsx.readFile(`../server/uploads/${lecture.filename}-${userID}.${extendFile}`)
+              quizObject = convertToQuizObject(workbook)
+              lecture.name = quizObject.name
+              lecture.passpoint = quizObject.passpoint
+              lecture.during_time = quizObject.during_time
+              lecture.title = quizObject.title
+              lecture.questions = quizObject.questions
+            } catch (error) {
+              next(error)
+            }
+            break;
+
+          case "assignment":
+            try {
+              workbook = xlsx.readFile(`../server/uploads/${lecture.filename}-${userID}.${extendFile}`)
+              assignObject = convertToAssignmentObject(workbook)
+              lecture.name = assignObject.name
+              lecture.topics = assignObject.topics
+            } catch (error) {
+              next(error)
+            }
+            break;
+
+          default: //case type = file OR type = video
+            try {
+              const url = await putFileToStorage(
+                bucketName,
+                `${courseID}/CT${index}`, // C045/CT01
+                `../server/uploads/${lecture.filename}-${userID}.${extendFile}`, // server/uploads/introduce-I000.jpg
+                `${lecture.name}.${extendFile}` // introduce.jpg
+              );
+              lecture.source = url // Update source = url to GCS (used in mongoDB)
+            } catch (error) {
+              next({ status: 500, message: error })
+              return
+            }
           }
         })
       )
@@ -1199,6 +1230,12 @@ const getQnA = catchAsync(async (req, res, next) => {
   }
 })
 
+const test = catchAsync(async (req, res, next) => {
+  const workbook = xlsx.readFile('../server/uploads/quizz.xlsx')
+  let response = convertToAssignmentObject(workbook)
+  res.send(response)
+})
+
 export default {
   getAllCourses,
   getCourseById,
@@ -1207,7 +1244,8 @@ export default {
   createCourse,
   updateCourse,
   uploadFileGCS,
-  getQnA
+  getQnA,
+  test
 }
 
 export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL }

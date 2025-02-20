@@ -96,7 +96,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      //alert('Please fill all the inputs before saving.')
       return
     } else if (price.value && !price.unit) {
       setOpenError({
@@ -108,7 +107,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert('Please select a currency before saving.')
       return
     } else if (!price.value || !price.unit) {
       setOpenInfo({
@@ -120,7 +118,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      //alert('Your course will be free')
     } else {
       setOpenSuccess({
         status: true,
@@ -131,7 +128,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert('General section saved')
     }
     setStructure((prev) => {
       return {
@@ -176,7 +172,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      //alert('Please select a category before saving.')
       return
     } else {
       setOpenSuccess({
@@ -188,7 +183,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert('Categories section saved')
       markSectionAsCompleted('categories')
       setStructure((prev) => {
         return {
@@ -255,7 +249,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert('Please fill all the inputs before saving.')
       return
     }
     else if (!selectedLevel) {
@@ -268,7 +261,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert('Please select a category before saving.')
       return
     }
     else {
@@ -281,7 +273,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert('Intended learners section saved')
       markSectionAsCompleted('intendedLearners')
       setStructure((prev) => {
         return {
@@ -429,9 +420,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert(
-      //   `Please fill all the inputs before saving:\n${errorMessages.join('\n')}`
-      // )
       return
     } else {
       setOpenSuccess({
@@ -443,7 +431,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert('Course structure section saved')
       setStructure((prev) => {
         return {
           ...prev,
@@ -478,7 +465,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert('Please upload both course image and promotional video.')
       return
     } else {
       setOpenSuccess({
@@ -490,7 +476,6 @@ function MainDesignCourse({ setStructure }) {
           status: false
         })
       }, 3000)
-      // alert('Introduce course section saved')
       markSectionAsCompleted('introduceCourse')
       setStructure((prev) => {
         return {
