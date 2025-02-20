@@ -6,6 +6,7 @@ import { formatDateTime, formatDate } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
 import { getUserByID } from './userController.js'
+import { putFileToStorage } from './googleCloudController.js'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -217,6 +218,26 @@ const getTotalVideo = (courseID) => {
       }
     }
     resolve(totalVideo)
+  })
+}
+
+const getNewCourseID = async() => {
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        return reject(err)
+      }
+
+      const query = `SELECT CONCAT('C', LPAD(SUBSTRING(MAX(courseID), 2) + 1, 3, '0')) AS newCourseID
+                      FROM course`
+      connection.query(query, (error, data) => {
+        connection.release()
+        if (error) {
+          return reject(error)
+        }
+        resolve(data[0].newCourseID)
+      })
+    })
   })
 }
 
@@ -981,7 +1002,154 @@ const uploadFileGCS = catchAsync(async (req, res, next) => {
 // Tạo mới khóa học
 const createCourse = catchAsync(async (req, res, next) => {
   // Implement here
+  const structure = req.body.data
+  const userID = req.userID
+  const courseID = await getNewCourseID()
+  const bucketName = "e-learning-bucket"
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+  const time = formatDateTime(new Date())
 
+  //Upload file video_introduce & image_introduce
+  try {
+    const extendVideo = structure.video_file.slice(-3)
+    const extendImage = structure.image_file.slice(-3)
+
+    const urlVideo = await putFileToStorage(
+      bucketName,
+      `${courseID}`, // C045
+      `../server/uploads/video_introduce-${userID}.${extendVideo}`, // server/uploads/introduce-I000.jpg
+      `video_introduce.${extendVideo}` // introduce.jpg
+    )
+    const urlImage = await putFileToStorage(
+      bucketName,
+      `${courseID}`, // C045
+      `../server/uploads/image_introduce-${userID}.${extendImage}`, // server/uploads/introduce-I000.jpg
+      `image_introduce.${extendImage}` // introduce.jpg
+    )
+
+    structure.video_introduce = urlVideo // Update source = url to GCS (used in mongoDB)
+    structure.image_introduce = urlImage
+  } catch (error) {
+    console.log('Error when uploading introduce course: ', error)
+    next({ status: 500, message: error })
+    return
+  }
+
+  await Promise.all(
+    // Upload all media files of course content
+    structure.chapters.map(async (obj, chapterIndex) => {
+      await Promise.all(
+        obj.lectures.map(async (lecture) => {
+          const index = (chapterIndex + 1).toString().padStart(2, '0');
+          const extendFile = lecture.filename.slice(-3);
+
+          try {
+            const url = await putFileToStorage(
+              bucketName,
+              `${courseID}/CT${index}`, // C045/CT01
+              `../server/uploads/${lecture.filename}-${userID}.${extendFile}`, // server/uploads/introduce-I000.jpg
+              `${lecture.name}.${extendFile}` // introduce.jpg
+            );
+            lecture.source = url // Update source = url to GCS (used in mongoDB)
+          } catch (error) {
+            console.log('Error when uploading course structure: ', error)
+            next({ status: 500, message: error })
+            return
+          }
+        })
+      )
+    })
+  )
+
+  try {
+    await mysqlTransaction.query("START TRANSACTION")
+    mongoTransaction.startTransaction()
+
+    //Insert course structure into mongoDB
+    await Course.collection.insertOne(
+      {
+        courseID: courseID,
+        image_introduce: structure.image_introduce,
+        video_introduce: structure.video_introduce,
+        keywords: structure.keywords,
+        targets: structure.targets,
+        requirements: structure.requirements,
+        chapters: structure.chapters
+      },
+      {
+        session: mongoTransaction
+      }
+    )
+
+    //Insert course information into table course
+    let queryInsertNewCourse = `INSERT INTO course (
+                courseID,
+                type_of_course,
+                title,
+                method,
+                language,
+                price,
+                currency,
+                program,
+                category,
+                course_for,
+                status,
+                num_lecture,
+                userID)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  `
+
+    //Insert course information into table created_course
+    let queryInsertCreateCourse = `INSERT INTO created_course (
+                courseID,
+                time)
+              VALUES (?, ?)`
+
+    const [rowscourse] = await mysqlTransaction.query(queryInsertNewCourse,
+      [
+        courseID,
+        structure.type_of_course,
+        structure.title,
+        structure.method,
+        structure.language,
+        structure.price,
+        structure.currency,
+        structure.program,
+        structure.category,
+        structure.course_for,
+        'created',
+        structure.num_lecture,
+        userID
+      ])
+
+    const [rowscreated_course] = await mysqlTransaction.query(queryInsertCreateCourse,
+      [
+        courseID,
+        time
+      ])
+
+    if (rowscourse.affectedRows == 0 || rowscreated_course.affectedRows == 0 )
+    {
+      await mysqlTransaction.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next({ status: 204, message: "No course has created" })
+    }
+    else
+    {
+      await mysqlTransaction.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+      res.status(201).send()
+    }
+  }
+  catch (error) {
+    await mysqlTransaction.query("ROLLBACK")
+    await mongoTransaction.abortTransaction()
+    next(error)
+  }
+  finally {
+    mongoTransaction.endSession()
+  }
 })
 
 // cập nhật thông tin khóa học

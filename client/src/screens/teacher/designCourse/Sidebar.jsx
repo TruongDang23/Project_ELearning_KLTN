@@ -2,17 +2,17 @@ import styled from 'styled-components'
 import { Link } from 'react-scroll'
 import { useContext } from 'react'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-
 import { DesignCourseContext } from './DesignCourseContext'
+import { useState, useEffect } from 'react'
 
 function Sidebar({ handleSave }) {
   const { completedSections } = useContext(DesignCourseContext)
-  // const handleSave = () => {
-  //   setFlag(flag => !flag)
-  // }
-  // const handleCancel = () => {
-  //   setFlag(flag => flag)
-  // }
+  const [isCompleted, setIsCompleted] = useState(false)
+
+  useEffect(() => {
+    setIsCompleted(Object.values(completedSections).every(value => value === true))
+  }, [completedSections])
+
   return (
     <SidebarWrapper>
       <div className="sidebar-container">
@@ -76,7 +76,7 @@ function Sidebar({ handleSave }) {
         </div>
       </div>
       <div className='buttons'>
-        <button id="btn-save" onClick={handleSave}>
+        <button id="btn-save" onClick={handleSave} disabled={!isCompleted}>
                 Save Design
         </button>
         <button id="btn-cancel">
@@ -135,38 +135,39 @@ const SidebarWrapper = styled.section`
   .buttons {
     margin: 0 auto;
   }
-
   #btn-save {
-    background-color: #1971c2;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 1.6rem;
-    font-weight: 700;
-    min-width: 160px;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 13px;
-    gap: 10px;
-    border: none;
-    transition: 0.3s all ease;
-    box-shadow: 0 0 0 2px #1971c2;
-    #btn-main span {
-      svg {
-        font-size: 2rem;
-      }
-    }
+  background-color: #1971c2;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  min-width: 160px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 13px;
+  gap: 10px;
+  border: none;
+  transition: 0.3s all ease;
+  box-shadow: 0 0 0 2px #1971c2;
+}
 
-    &:hover {
-      background-color: #fff;
-      color: #187bce;
-      box-shadow: 0 0 0 2px #1971c2;
-    }
-  }
+#btn-save:hover {
+  background-color: #fff;
+  color: #187bce;
+  box-shadow: 0 0 0 2px #1971c2;
+}
 
+/* Disabled State */
+#btn-save:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  box-shadow: none;
+}
   #btn-cancel {
     background-color: #fff;
     color: #ff3e3e;
