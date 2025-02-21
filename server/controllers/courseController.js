@@ -9,6 +9,7 @@ import { getUserByID } from './userController.js'
 import { putFileToStorage } from './googleCloudController.js'
 import xlsx from 'xlsx'
 import { convertToAssignmentObject, convertToQuizObject } from './xlsxController.js'
+import fs from 'fs'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -1042,34 +1043,55 @@ const createCourse = catchAsync(async (req, res, next) => {
     structure.chapters.map(async (obj, chapterIndex) => {
       await Promise.all(
         obj.lectures.map(async (lecture) => {
-          const index = (chapterIndex + 1).toString().padStart(2, '0');
-          const extendFile = lecture.filename.slice(-3);
+          const index = (chapterIndex + 1).toString().padStart(2, '0')
+          const extendFile = lecture.filename.split('.').pop()
           let quizObject
           let assignObject
           let workbook
+          let filePath
 
           switch (lecture.type) {
           case "quiz":
             try {
-              workbook = xlsx.readFile(`../server/uploads/${lecture.filename}-${userID}.${extendFile}`)
+              filePath = `../server/uploads/${lecture.filename}-${userID}.${extendFile}`
+              workbook = xlsx.readFile(filePath)
               quizObject = convertToQuizObject(workbook)
-              lecture.name = quizObject.name
               lecture.passpoint = quizObject.passpoint
               lecture.during_time = quizObject.during_time
               lecture.title = quizObject.title
               lecture.questions = quizObject.questions
+              lecture.type = quizObject.type
+
+              // Delete the file using fs.unlink()
+              try {
+                fs.unlinkSync(filePath)
+              } catch (err) {
+                next(err)
+                return
+              }
             } catch (error) {
               next(error)
+              return
             }
             break;
 
           case "assignment":
             try {
-              workbook = xlsx.readFile(`../server/uploads/${lecture.filename}-${userID}.${extendFile}`)
+              filePath = `../server/uploads/${lecture.filename}-${userID}.${extendFile}`
+              workbook = xlsx.readFile(filePath)
               assignObject = convertToAssignmentObject(workbook)
               lecture.topics = assignObject.topics
+
+              // Delete the file using fs.unlink()
+              try {
+                fs.unlinkSync(filePath)
+              } catch (err) {
+                next(err)
+                return
+              }
             } catch (error) {
               next(error)
+              return
             }
             break;
 

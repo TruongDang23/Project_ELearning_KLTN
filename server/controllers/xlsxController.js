@@ -6,10 +6,9 @@ const convertToQuizObject = (workbook) => {
   const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 })
 
   let jsonData = {
-    name: rawData[0][1],
-    title: rawData[1][1],
-    during_time: rawData[2][1],
-    passpoint: rawData[3][1],
+    title: rawData[0][1],
+    during_time: rawData[1][1],
+    passpoint: rawData[2][1],
     type: "quizz",
     questions: []
   }
