@@ -1067,7 +1067,6 @@ const createCourse = catchAsync(async (req, res, next) => {
             try {
               workbook = xlsx.readFile(`../server/uploads/${lecture.filename}-${userID}.${extendFile}`)
               assignObject = convertToAssignmentObject(workbook)
-              lecture.name = assignObject.name
               lecture.topics = assignObject.topics
             } catch (error) {
               next(error)
@@ -1230,12 +1229,6 @@ const getQnA = catchAsync(async (req, res, next) => {
   }
 })
 
-const test = catchAsync(async (req, res, next) => {
-  const workbook = xlsx.readFile('../server/uploads/quizz.xlsx')
-  let response = convertToAssignmentObject(workbook)
-  res.send(response)
-})
-
 export default {
   getAllCourses,
   getCourseById,
@@ -1244,8 +1237,7 @@ export default {
   createCourse,
   updateCourse,
   uploadFileGCS,
-  getQnA,
-  test
+  getQnA
 }
 
 export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL }
