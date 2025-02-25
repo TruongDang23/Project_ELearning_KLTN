@@ -23,10 +23,34 @@ function VideoPlayer({ video, setProgress }) {
   const [videoEnded, setVideoEnded] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(false);
   const [isPause, setPause] = useState(true)
+  const [showConfirmation, setShowconfirmation] = useState(false)
+  const [minute, setMinutes] = useState(0)
 
   useEffect(() => {
     document.documentElement.style.setProperty("--value", `${played * 100}%`);
   }, [played]);
+
+  useEffect(() => {
+    if (minute > 0) {
+      setPlaying(!playing)
+      setPause(!isPause)
+      setShowconfirmation(!showConfirmation)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [minute])
+
+  const handleConfirmation = () => {
+    setPlaying(!playing)
+    setPause(!isPause)
+    setShowconfirmation(!showConfirmation)
+    if (!isPause)
+    {
+      setProgress((prevProgress) => ({
+        ...prevProgress,
+        percent: (playerRef.current.getCurrentTime() * 100 / duration).toFixed(1)
+      }))
+    }
+  }
 
   const handlePlayPause = () => {
     if (videoEnded) {
@@ -70,7 +94,9 @@ function VideoPlayer({ video, setProgress }) {
   };
 
   const handleProgress = (state) => {
-    setPlayed(state.played);
+    setPlayed(state.played)
+    const seconds = ( state.playedSeconds / 10 ) | 0 //Chia lấy phần nguyên. Cứ hết 60s thì hiển thị confirmation messagemessage
+    setMinutes(seconds)
   };
 
   const handleEnded = () => {
@@ -191,6 +217,13 @@ function VideoPlayer({ video, setProgress }) {
         <div className="video-ended-message">
           <p>Video ended. </p>
           <button onClick={() => setVideoEnded(false)}>Replay</button>
+        </div>
+      )}
+
+      {showConfirmation && (
+        <div className="video-ended-message">
+          <p>Bạn có muốn tiếp tục xem video không?</p>
+          <button onClick={() => handleConfirmation()}>Xem tiếp</button>
         </div>
       )}
     </VideoPlayerWrapper>
