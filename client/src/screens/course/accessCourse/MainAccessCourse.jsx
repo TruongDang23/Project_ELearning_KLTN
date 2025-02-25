@@ -27,22 +27,25 @@ function MainAccessCourse({ accessCourseData, setReload }) {
 
   const updateProgress = async() => {
     if ( progress.percent != 0 ) {
-      const res = await student.updateProgress(progress.courseID, progress.lectureID, progress.percent)
-      if (res.status == 200) {
-        setReload((prev) => ({
-          reload: !prev.reload
-        }))
-      }
-      else {
-        setOpenError({
-          status: true,
-          message: `Can't update progress for course`
-        })
-        setTimeout(() => {
+      if ( userID[0] === 'S' )
+      {
+        const res = await student.updateProgress(progress.courseID, progress.lectureID, progress.percent)
+        if (res.status == 200) {
+          setReload((prev) => ({
+            reload: !prev.reload
+          }))
+        }
+        else {
           setOpenError({
-            status: false
+            status: true,
+            message: `Can't update progress for course`
           })
-        }, 3000)
+          setTimeout(() => {
+            setOpenError({
+              status: false
+            })
+          }, 3000)
+        }
       }
     }
   }
