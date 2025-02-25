@@ -2,15 +2,13 @@ import styled from 'styled-components'
 import { Element } from 'react-scroll'
 import { TextField } from '@mui/material'
 import { useState, useContext } from 'react'
-
 import { DesignCourseContext } from './DesignCourseContext'
 import { categories } from '~/constants/listCategories'
 import { languages } from '~/constants/listLanguage'
 import { currencies } from '~/constants/listCurrency'
 import { levels } from '~/constants/listLevels'
-
 import UploadFile from './UploadFile'
-
+import { Snackbar } from "~/components/general"
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import Radio from '@mui/material/Radio'
@@ -63,6 +61,21 @@ function MainDesignCourse({ setStructure }) {
   // About Program
   const [program, setProgram] = useState('')
 
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
+
+  const [openInfo, setOpenInfo] = useState({
+    status: false,
+    message: ""
+  })
+
+  const [openSuccess, setOpenSuccess] = useState({
+    status: false,
+    message: ""
+  })
+
   const handleGeneralSave = () => {
     const hasEmptyKeyword = generalKeywords.some(
       (keyword) => keyword.value === ''
@@ -74,15 +87,47 @@ function MainDesignCourse({ setStructure }) {
       !languageChoose ||
       !program
     ) {
-      alert('Please fill all the inputs before saving.')
+      setOpenError({
+        status: true,
+        message: "Please fill all the inputs before saving!"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
       return
     } else if (price.value && !price.unit) {
-      alert('Please select a currency before saving.')
+      setOpenError({
+        status: true,
+        message: "Please select a currency before saving!"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
       return
     } else if (!price.value || !price.unit) {
-      alert('Your course will be free')
+      setOpenInfo({
+        status: true,
+        message: "Your course will be free"
+      })
+      setTimeout(() => {
+        setOpenInfo({
+          status: false
+        })
+      }, 3000)
     } else {
-      alert('General section saved')
+      setOpenSuccess({
+        status: true,
+        message: "General section saved"
+      })
+      setTimeout(() => {
+        setOpenSuccess({
+          status: false
+        })
+      }, 3000)
     }
     setStructure((prev) => {
       return {
@@ -118,10 +163,26 @@ function MainDesignCourse({ setStructure }) {
 
   const handleSaveCategoriesClick = () => {
     if (!selectedCategory) {
-      alert('Please select a category before saving.')
+      setOpenError({
+        status: true,
+        message: "Please select a category before saving!"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
       return
     } else {
-      alert('Categories section saved')
+      setOpenSuccess({
+        status: true,
+        message: "Categories section saved"
+      })
+      setTimeout(() => {
+        setOpenSuccess({
+          status: false
+        })
+      }, 3000)
       markSectionAsCompleted('categories')
       setStructure((prev) => {
         return {
@@ -179,15 +240,39 @@ function MainDesignCourse({ setStructure }) {
       (input) => input.value === ''
     )
     if (hasEmptyIntendedInput || hasEmptyRequirementInput) {
-      alert('Please fill all the inputs before saving.')
+      setOpenError({
+        status: true,
+        message: "Please fill all the inputs before saving!"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
       return
     }
     else if (!selectedLevel) {
-      alert('Please select a category before saving.')
+      setOpenError({
+        status: true,
+        message: "Please select a category before saving!"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
       return
     }
     else {
-      alert('Intended learners section saved')
+      setOpenSuccess({
+        status: true,
+        message: "Intended learners section saved"
+      })
+      setTimeout(() => {
+        setOpenSuccess({
+          status: false
+        })
+      }, 3000)
       markSectionAsCompleted('intendedLearners')
       setStructure((prev) => {
         return {
@@ -326,12 +411,26 @@ function MainDesignCourse({ setStructure }) {
     })
 
     if (errorMessages.length > 0) {
-      alert(
-        `Please fill all the inputs before saving:\n${errorMessages.join('\n')}`
-      )
+      setOpenError({
+        status: true,
+        message: `Please fill all the inputs before saving:\n${errorMessages.join('\n')}`
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
       return
     } else {
-      alert('Course structure section saved')
+      setOpenSuccess({
+        status: true,
+        message: "Course structure section saved"
+      })
+      setTimeout(() => {
+        setOpenSuccess({
+          status: false
+        })
+      }, 3000)
       setStructure((prev) => {
         return {
           ...prev,
@@ -357,10 +456,26 @@ function MainDesignCourse({ setStructure }) {
 
   const handleSave = () => {
     if (!courseImage || !promotionalVideo) {
-      alert('Please upload both course image and promotional video.')
+      setOpenError({
+        status: true,
+        message: `Please upload both course image and promotional video.`
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
       return
     } else {
-      alert('Introduce course section saved')
+      setOpenSuccess({
+        status: true,
+        message: `Introduce course section saved`
+      })
+      setTimeout(() => {
+        setOpenSuccess({
+          status: false
+        })
+      }, 3000)
       markSectionAsCompleted('introduceCourse')
       setStructure((prev) => {
         return {
@@ -375,64 +490,284 @@ function MainDesignCourse({ setStructure }) {
   }
 
   return (
-    <MainDesignCourseWrapper>
-      <h1>Design Your Course</h1>
+    <>
+      <MainDesignCourseWrapper>
+        <h1>Design Your Course</h1>
 
-      <Element name="general">
-        <div className="design-general">
-          <h2>General</h2>
-          <hr />
-          <div className="design-general-title">
-            <h3>Title of Course</h3>
-            <TextField
-              placeholder="e.g. Java Programming for Beginners"
-              helperText={`${generalTitle.length}/${maxGeneralTitleLength}`}
-              variant="outlined"
-              fullWidth
-              value={generalTitle}
-              onChange={handleGeneralTitleChange}
-              InputProps={{
-                endAdornment: (
-                  <span>{maxGeneralTitleLength - generalTitle.length}</span>
-                ),
-                style: { fontSize: '1.6rem', color: '#555' },
-                sx: {
-                  height: '40px',
-                  borderRadius: '5px',
-                  backgroundColor: 'rgba(243, 243, 250, 0.8)',
-                  color: '#187bce',
-                  fontSize: '1.6rem',
-                  outline: 'none',
-                  transition: '0.3s all ease',
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
+        <Element name="general">
+          <div className="design-general">
+            <h2>General</h2>
+            <hr />
+            <div className="design-general-title">
+              <h3>Title of Course</h3>
+              <TextField
+                placeholder="e.g. Java Programming for Beginners"
+                helperText={`${generalTitle.length}/${maxGeneralTitleLength}`}
+                variant="outlined"
+                fullWidth
+                value={generalTitle}
+                onChange={handleGeneralTitleChange}
+                InputProps={{
+                  endAdornment: (
+                    <span>{maxGeneralTitleLength - generalTitle.length}</span>
+                  ),
+                  style: { fontSize: '1.6rem', color: '#555' },
+                  sx: {
+                    height: '40px',
+                    borderRadius: '5px',
+                    backgroundColor: 'rgba(243, 243, 250, 0.8)',
+                    color: '#187bce',
+                    fontSize: '1.6rem',
+                    outline: 'none',
                     transition: '0.3s all ease',
-                    border: 'none', // Loại bỏ border khi hover
-                    boxShadow: '0 0 0 2px #187bce'
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      transition: '0.3s all ease',
+                      border: 'none', // Loại bỏ border khi hover
+                      boxShadow: '0 0 0 2px #187bce'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      transition: '0.3s all',
+                      border: 'none', // Loại bỏ border khi focus
+                      boxShadow: '0 0 0 2px #187bce'
+                    }
                   },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    transition: '0.3s all',
-                    border: 'none', // Loại bỏ border khi focus
-                    boxShadow: '0 0 0 2px #187bce'
+                  notchedOutline: {
+                    border: 'none' // Loại bỏ border mặc định
                   }
-                },
-                notchedOutline: {
-                  border: 'none' // Loại bỏ border mặc định
-                }
-              }}
-            />
+                }}
+              />
+            </div>
+            <div className="design-general-keyword">
+              <h3>Keywords</h3>
+              <div className="design-general-keyword-inputs">
+                {generalKeywords.map((keyword, index) => (
+                  <div key={index} className="design-general-keyword-input">
+                    <TextField
+                      key={index}
+                      placeholder={`e.g. Java`}
+                      value={keyword.value}
+                      variant="outlined"
+                      onChange={(e) => handleGeneralKeywordsChange(index, e)}
+                      InputProps={{
+                        style: { fontSize: '1.6rem', color: '#555' },
+                        sx: {
+                          height: '40px',
+                          borderRadius: '5px',
+                          backgroundColor: 'rgba(243, 243, 250, 0.8)',
+                          color: '#187bce',
+                          fontSize: '1.6rem',
+                          outline: 'none',
+                          transition: '0.3s all ease',
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            transition: '0.3s all ease',
+                            border: 'none', // Loại bỏ border khi hover
+                            boxShadow: '0 0 0 2px #187bce'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            transition: '0.3s all',
+                            border: 'none', // Loại bỏ border khi focus
+                            boxShadow: '0 0 0 2px #187bce'
+                          }
+                        },
+                        notchedOutline: {
+                          border: 'none' // Loại bỏ border mặc định
+                        }
+                      }}
+                      fullWidth
+                    />
+                    <a
+                      id="cancel"
+                      onClick={() => handleGeneralRemoveKeyword(index)}
+                    >
+                      <span>
+                        <CancelIcon style={{ viewBox: '0 0 24 24' }} />
+                      </span>
+                    </a>
+                  </div>
+                ))}
+                <div className="design-general-keyword-addmore">
+                  <button id="btn-secoundary" onClick={handleGeneralAddMore}>
+                  Add More{' '}
+                    <span>
+                      <AddCircleIcon style={{ viewBox: '0 0 24 24' }} />
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="design-genral-method">
+              <h3>Method</h3>
+              <div className="design-genral-method-radio">
+                <FormControl component="fieldset">
+                  <RadioGroup
+                    row
+                    aria-label="method"
+                    name="method"
+                    defaultValue="online"
+                    value={method}
+                    onChange={(e) => setMethod(e.target.value)}
+                  >
+                    <FormControlLabel
+                      value="Self-directed study"
+                      control={<Radio />}
+                      label={<p>Self-directed study</p>}
+                    />
+                    <FormControlLabel
+                      value="Supervised with AI camera"
+                      control={<Radio />}
+                      label={<p>Supervised with AI camera</p>}
+                    />
+                  </RadioGroup>
+                </FormControl>
+              </div>
+            </div>
+
+            <div className="design-genral-language">
+              <h3>Language</h3>
+              <div className="design-genral-language-select">
+                <select
+                  defaultValue=""
+                  value={languageChoose}
+                  onChange={(event) => {
+                    setLanguage(event.target.value)
+                  }}
+                  required
+                >
+                  <option value="" disabled hidden>
+                  Select a language
+                  </option>
+                  {languages.map((language, index) => (
+                    <option key={index} value={language}>
+                      {language}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="design-genral-price">
+              <h3>Price</h3>
+              <div className="design-genral-price-input">
+                <input
+                  type="number"
+                  placeholder="e.g. 100"
+                  min="0"
+                  max="10000"
+                  value={price.value}
+                  onChange={(event) =>
+                    setPrice({ ...price, value: event.target.value })
+                  }
+                />
+                <select
+                  defaultValue=""
+                  value={price.unit}
+                  onChange={(event) => {
+                    setPrice({ value: price.value, unit: event.target.value })
+                  }}
+                  required
+                >
+                  <option value="" disabled hidden>
+                  Select a currency
+                  </option>
+                  {currencies.map((currency, index) => (
+                    <option key={index} value={currency.label}>
+                      {currency.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p>
+                <span>*</span>If you want your course free, leave blank
+              </p>
+            </div>
+
+            <div className="design-genral-program">
+              <h3>Program</h3>
+              <div className="design-genral-program-radio">
+                <FormControl component="fieldset">
+                  <RadioGroup
+                    row
+                    aria-label="method"
+                    name="method"
+                    defaultValue="online"
+                    value={program}
+                    onChange={(e) => setProgram(e.target.value)}
+                  >
+                    <FormControlLabel
+                      value="Degree"
+                      control={<Radio />}
+                      label={<p>Degree</p>}
+                    />
+                    <FormControlLabel
+                      value="Certificate"
+                      control={<Radio />}
+                      label={<p>Certificate</p>}
+                    />
+                    <FormControlLabel
+                      value="Knowledge"
+                      control={<Radio />}
+                      label={<p>Knowledge</p>}
+                    />
+                  </RadioGroup>
+                </FormControl>
+              </div>
+            </div>
+
+            <div className="design-genral-button">
+              <button id="btn-primary" onClick={handleGeneralSave}>
+              Save General
+              </button>
+            </div>
           </div>
-          <div className="design-general-keyword">
-            <h3>Keywords</h3>
-            <div className="design-general-keyword-inputs">
-              {generalKeywords.map((keyword, index) => (
-                <div key={index} className="design-general-keyword-input">
+        </Element>
+
+        <Element name="categories">
+          <div className="design-categories">
+            <h2>Categories</h2>
+            <hr />
+            <h3>What categories best fit the knowledge you will share?</h3>
+            <div className="design-categories-selects">
+              <select
+                defaultValue=""
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                required
+              >
+                <option value="" disabled hidden>
+                Select a category
+                </option>
+                {categories.map((category, index) => (
+                  <option key={index} value={category.label}>
+                    {category.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="design-categories-button">
+              <button id="btn-primary" onClick={handleSaveCategoriesClick}>
+              Save Categories
+              </button>
+            </div>
+          </div>
+        </Element>
+
+        <Element name="intended-learners">
+          <div className="design-intended">
+            <h2>Intended learners</h2>
+            <hr />
+            <h3>What will students learn in your course?</h3>
+            <div className="design-intended-inputs">
+              {intendedInputs.map((input, index) => (
+                <div key={index} className="design-intended-input">
                   <TextField
                     key={index}
-                    placeholder={`e.g. Java`}
-                    value={keyword.value}
+                    placeholder={`e.g. Learning Java`}
+                    value={input.value}
                     variant="outlined"
-                    onChange={(e) => handleGeneralKeywordsChange(index, e)}
+                    onChange={(e) => handleIntendedInputChange(index, e)}
                     InputProps={{
+                      endAdornment: <span>200</span>,
                       style: { fontSize: '1.6rem', color: '#555' },
                       sx: {
                         height: '40px',
@@ -459,363 +794,47 @@ function MainDesignCourse({ setStructure }) {
                     }}
                     fullWidth
                   />
-                  <a
-                    id="cancel"
-                    onClick={() => handleGeneralRemoveKeyword(index)}
-                  >
+                  <a id="cancel" onClick={() => handleIntendedRemoveInput(index)}>
                     <span>
-                      <CancelIcon style={{ viewBox: '0 0 24 24' }} />
+                      <CancelIcon />
                     </span>
                   </a>
                 </div>
               ))}
-              <div className="design-general-keyword-addmore">
-                <button id="btn-secoundary" onClick={handleGeneralAddMore}>
-                  Add More{' '}
+              <div className="design-intended-input-addmore">
+                <button id="btn-secoundary" onClick={handleIntendedAddMore}>
+                Add More{' '}
                   <span>
-                    <AddCircleIcon style={{ viewBox: '0 0 24 24' }} />
+                    <AddCircleIcon />
                   </span>
                 </button>
               </div>
             </div>
-          </div>
-          <div className="design-genral-method">
-            <h3>Method</h3>
-            <div className="design-genral-method-radio">
-              <FormControl component="fieldset">
-                <RadioGroup
-                  row
-                  aria-label="method"
-                  name="method"
-                  defaultValue="online"
-                  value={method}
-                  onChange={(e) => setMethod(e.target.value)}
-                >
-                  <FormControlLabel
-                    value="Self-directed study"
-                    control={<Radio />}
-                    label={<p>Self-directed study</p>}
-                  />
-                  <FormControlLabel
-                    value="Supervised with AI camera"
-                    control={<Radio />}
-                    label={<p>Supervised with AI camera</p>}
-                  />
-                </RadioGroup>
-              </FormControl>
-            </div>
-          </div>
-
-          <div className="design-genral-language">
-            <h3>Language</h3>
-            <div className="design-genral-language-select">
-              <select
-                defaultValue=""
-                value={languageChoose}
-                onChange={(event) => {
-                  setLanguage(event.target.value)
-                }}
-                required
-              >
-                <option value="" disabled hidden>
-                  Select a language
-                </option>
-                {languages.map((language, index) => (
-                  <option key={index} value={language}>
-                    {language}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="design-genral-price">
-            <h3>Price</h3>
-            <div className="design-genral-price-input">
-              <input
-                type="number"
-                placeholder="e.g. 100"
-                min="0"
-                max="10000"
-                value={price.value}
-                onChange={(event) =>
-                  setPrice({ ...price, value: event.target.value })
-                }
-              />
-              <select
-                defaultValue=""
-                value={price.unit}
-                onChange={(event) => {
-                  setPrice({ value: price.value, unit: event.target.value })
-                }}
-                required
-              >
-                <option value="" disabled hidden>
-                  Select a currency
-                </option>
-                {currencies.map((currency, index) => (
-                  <option key={index} value={currency.label}>
-                    {currency.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <p>
-              <span>*</span>If you want your course free, leave blank
-            </p>
-          </div>
-
-          <div className="design-genral-program">
-            <h3>Program</h3>
-            <div className="design-genral-program-radio">
-              <FormControl component="fieldset">
-                <RadioGroup
-                  row
-                  aria-label="method"
-                  name="method"
-                  defaultValue="online"
-                  value={program}
-                  onChange={(e) => setProgram(e.target.value)}
-                >
-                  <FormControlLabel
-                    value="Degree"
-                    control={<Radio />}
-                    label={<p>Degree</p>}
-                  />
-                  <FormControlLabel
-                    value="Certificate"
-                    control={<Radio />}
-                    label={<p>Certificate</p>}
-                  />
-                  <FormControlLabel
-                    value="Knowledge"
-                    control={<Radio />}
-                    label={<p>Knowledge</p>}
-                  />
-                </RadioGroup>
-              </FormControl>
-            </div>
-          </div>
-
-          <div className="design-genral-button">
-            <button id="btn-primary" onClick={handleGeneralSave}>
-              Save General
-            </button>
-          </div>
-        </div>
-      </Element>
-
-      <Element name="categories">
-        <div className="design-categories">
-          <h2>Categories</h2>
-          <hr />
-          <h3>What categories best fit the knowledge you will share?</h3>
-          <div className="design-categories-selects">
-            <select
-              defaultValue=""
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              required
-            >
-              <option value="" disabled hidden>
-                Select a category
-              </option>
-              {categories.map((category, index) => (
-                <option key={index} value={category.label}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="design-categories-button">
-            <button id="btn-primary" onClick={handleSaveCategoriesClick}>
-              Save Categories
-            </button>
-          </div>
-        </div>
-      </Element>
-
-      <Element name="intended-learners">
-        <div className="design-intended">
-          <h2>Intended learners</h2>
-          <hr />
-          <h3>What will students learn in your course?</h3>
-          <div className="design-intended-inputs">
-            {intendedInputs.map((input, index) => (
-              <div key={index} className="design-intended-input">
-                <TextField
-                  key={index}
-                  placeholder={`e.g. Learning Java`}
-                  value={input.value}
-                  variant="outlined"
-                  onChange={(e) => handleIntendedInputChange(index, e)}
-                  InputProps={{
-                    endAdornment: <span>200</span>,
-                    style: { fontSize: '1.6rem', color: '#555' },
-                    sx: {
-                      height: '40px',
-                      borderRadius: '5px',
-                      backgroundColor: 'rgba(243, 243, 250, 0.8)',
-                      color: '#187bce',
-                      fontSize: '1.6rem',
-                      outline: 'none',
-                      transition: '0.3s all ease',
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        transition: '0.3s all ease',
-                        border: 'none', // Loại bỏ border khi hover
-                        boxShadow: '0 0 0 2px #187bce'
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        transition: '0.3s all',
-                        border: 'none', // Loại bỏ border khi focus
-                        boxShadow: '0 0 0 2px #187bce'
-                      }
-                    },
-                    notchedOutline: {
-                      border: 'none' // Loại bỏ border mặc định
-                    }
-                  }}
-                  fullWidth
-                />
-                <a id="cancel" onClick={() => handleIntendedRemoveInput(index)}>
-                  <span>
-                    <CancelIcon />
-                  </span>
-                </a>
-              </div>
-            ))}
-            <div className="design-intended-input-addmore">
-              <button id="btn-secoundary" onClick={handleIntendedAddMore}>
-                Add More{' '}
-                <span>
-                  <AddCircleIcon />
-                </span>
-              </button>
-            </div>
-          </div>
-          <h3>
+            <h3>
             What are the requirements of prerequisites for taking your course?
-          </h3>
-          <div className="design-intended-inputs">
-            {requirementInputs.map((input, index) => (
-              <div key={index} className="design-intended-input">
-                <TextField
-                  key={index}
-                  placeholder={`e.g. Basic Java`}
-                  value={input.value}
-                  variant="outlined"
-                  onChange={(e) => handleRequirementInputChange(index, e)}
-                  InputProps={{
-                    endAdornment: <span>200</span>,
-                    style: { fontSize: '1.6rem', color: '#555' },
-                    sx: {
-                      height: '40px',
-                      borderRadius: '5px',
-                      backgroundColor: 'rgba(243, 243, 250, 0.8)',
-                      color: '#187bce',
-                      fontSize: '1.6rem',
-                      outline: 'none',
-                      transition: '0.3s all',
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        transition: '0.3s all',
-                        border: 'none', // Loại bỏ border khi hover
-                        boxShadow: '0 0 0 2px #187bce'
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        transition: '0.3s all',
-                        border: 'none', // Loại bỏ border khi focus
-                        boxShadow: '0 0 0 2px #187bce'
-                      }
-                    },
-                    notchedOutline: {
-                      border: 'none' // Lo
-                    }
-                  }}
-                  fullWidth
-                />
-                <a
-                  id="cancel"
-                  onClick={() => handleRequirementRemoveInput(index)}
-                >
-                  <span>
-                    <CancelIcon />
-                  </span>
-                </a>
-              </div>
-            ))}
-            <div className="design-intended-input-addmore">
-              <button id="btn-secoundary" onClick={handleRequirementAddMore}>
-                Add More{' '}
-                <span>
-                  <AddCircleIcon />
-                </span>
-              </button>
-            </div>
-          </div>
-
-
-          <h3>Who is this course for?</h3>
-          <div className="design-intended-selects">
-            <select
-              defaultValue=""
-              value={selectedLevel}
-              onChange={handleLevelChange}
-              required
-            >
-              <option value="" disabled hidden>
-                Select a levels
-              </option>
-              {levels.map((level, index) => (
-                <option key={index} value={level.label}>
-                  {level.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="design-intended-button">
-            <button id="btn-primary" onClick={handleSaveIntendedLearnersClick}>
-              Save Intended Learners
-            </button>
-          </div>
-        </div>
-      </Element>
-
-      <Element name="course-structure">
-        <div className="design-structure">
-          <h2>Course Structure</h2>
-          <hr />
-          {chapters.map((chapter, chapterIndex) => (
-            <Card
-              variant="outlined"
-              key={chapterIndex}
-              style={{ marginBottom: 20 }}
-            >
-              <CardContent>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                >
+            </h3>
+            <div className="design-intended-inputs">
+              {requirementInputs.map((input, index) => (
+                <div key={index} className="design-intended-input">
                   <TextField
-                    value={chapter.chapter_name}
+                    key={index}
+                    placeholder={`e.g. Basic Java`}
+                    value={input.value}
                     variant="outlined"
-                    size="small"
+                    onChange={(e) => handleRequirementInputChange(index, e)}
                     InputProps={{
-                      style: { fontSize: '1.3rem', color: '#555' },
+                      endAdornment: <span>200</span>,
+                      style: { fontSize: '1.6rem', color: '#555' },
                       sx: {
                         height: '40px',
                         borderRadius: '5px',
                         backgroundColor: 'rgba(243, 243, 250, 0.8)',
-                        fontSize: '1.6rem',
                         color: '#187bce',
+                        fontSize: '1.6rem',
                         outline: 'none',
-                        transition: '0.3s all ease',
+                        transition: '0.3s all',
                         '&:hover .MuiOutlinedInput-notchedOutline': {
-                          transition: '0.3s all ease',
+                          transition: '0.3s all',
                           border: 'none', // Loại bỏ border khi hover
                           boxShadow: '0 0 0 2px #187bce'
                         },
@@ -826,275 +845,376 @@ function MainDesignCourse({ setStructure }) {
                         }
                       },
                       notchedOutline: {
-                        border: 'none' // Loại bỏ border mặc định
+                        border: 'none' // Lo
                       }
                     }}
-                    sx={{
-                      width: '100%'
-                    }}
-                    onChange={(e) =>
-                      handleChapterTitleChange(chapterIndex, e.target.value)
-                    }
-                    disabled={!isEditing} // Chỉ chỉnh sửa khi ở chế độ edit
+                    fullWidth
                   />
-                  {isEditing && (
-                    <IconButton
-                      onClick={() => handleDeleteChapter(chapterIndex)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  )}
-                </div>
-                {chapter.lectures.map((lecture, lectureIndex) => (
-                  <div
-                    key={lectureIndex}
-                    style={{ marginTop: 20, paddingLeft: 20 }}
+                  <a
+                    id="cancel"
+                    onClick={() => handleRequirementRemoveInput(index)}
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 40
-                      }}
-                    >
-                      <TextField
-                        value={lecture.name}
-                        variant="outlined"
-                        onChange={(e) =>
-                          handleInputChange(
-                            chapterIndex,
-                            lectureIndex,
-                            'name',
-                            e.target.value
-                          )
-                        }
-                        style={{ flex: 1 }}
-                        InputProps={{
-                          style: { fontSize: '1.3rem', color: '#555' },
-                          sx: {
-                            height: '40px',
-                            borderRadius: '5px',
-                            backgroundColor: 'rgba(243, 243, 250, 0.8)',
-                            fontSize: '1.6rem',
-                            color: '#187bce',
-                            outline: 'none',
-                            transition: '0.3s all ease',
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              transition: '0.3s all ease',
-                              border: 'none', // Loại bỏ border khi hover
-                              boxShadow: '0 0 0 2px #187bce'
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              transition: '0.3s all',
-                              border: 'none', // Loại bỏ border khi focus
-                              boxShadow: '0 0 0 2px #187bce'
-                            }
-                          },
-                          notchedOutline: {
-                            border: 'none' // Loại bỏ border mặc định
-                          }
-                        }}
-                        disabled={!isEditing} // Chỉ chỉnh sửa khi ở chế độ edit
-                      />
-                      <Select
-                        value={lecture.type}
-                        size="small"
-                        onChange={(e) =>
-                          handleInputChange(
-                            chapterIndex,
-                            lectureIndex,
-                            'type',
-                            e.target.value
-                          )
-                        }
-                        sx={{
+                    <span>
+                      <CancelIcon />
+                    </span>
+                  </a>
+                </div>
+              ))}
+              <div className="design-intended-input-addmore">
+                <button id="btn-secoundary" onClick={handleRequirementAddMore}>
+                Add More{' '}
+                  <span>
+                    <AddCircleIcon />
+                  </span>
+                </button>
+              </div>
+            </div>
+
+
+            <h3>Who is this course for?</h3>
+            <div className="design-intended-selects">
+              <select
+                defaultValue=""
+                value={selectedLevel}
+                onChange={handleLevelChange}
+                required
+              >
+                <option value="" disabled hidden>
+                Select a levels
+                </option>
+                {levels.map((level, index) => (
+                  <option key={index} value={level.label}>
+                    {level.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="design-intended-button">
+              <button id="btn-primary" onClick={handleSaveIntendedLearnersClick}>
+              Save Intended Learners
+              </button>
+            </div>
+          </div>
+        </Element>
+
+        <Element name="course-structure">
+          <div className="design-structure">
+            <h2>Course Structure</h2>
+            <hr />
+            {chapters.map((chapter, chapterIndex) => (
+              <Card
+                variant="outlined"
+                key={chapterIndex}
+                style={{ marginBottom: 20 }}
+              >
+                <CardContent>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <TextField
+                      value={chapter.chapter_name}
+                      variant="outlined"
+                      size="small"
+                      InputProps={{
+                        style: { fontSize: '1.3rem', color: '#555' },
+                        sx: {
                           height: '40px',
                           borderRadius: '5px',
                           backgroundColor: 'rgba(243, 243, 250, 0.8)',
-                          fontSize: '1.3rem',
+                          fontSize: '1.6rem',
+                          color: '#187bce',
                           outline: 'none',
-                          color: '#555',
-                          '.MuiSelect-icon': {
-                            color: '#555'
+                          transition: '0.3s all ease',
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            transition: '0.3s all ease',
+                            border: 'none', // Loại bỏ border khi hover
+                            boxShadow: '0 0 0 2px #187bce'
                           },
-                          '& .MuiSelect-select': {
-                            fontSize: '1.3rem'
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            transition: '0.3s all',
+                            border: 'none', // Loại bỏ border khi focus
+                            boxShadow: '0 0 0 2px #187bce'
                           }
-                        }}
-                        MenuProps={{
-                          disableScrollLock: true
-                        }}
-                        disabled={!isEditing} // Chỉ chỉnh sửa khi ở chế độ edit
+                        },
+                        notchedOutline: {
+                          border: 'none' // Loại bỏ border mặc định
+                        }
+                      }}
+                      sx={{
+                        width: '100%'
+                      }}
+                      onChange={(e) =>
+                        handleChapterTitleChange(chapterIndex, e.target.value)
+                      }
+                      disabled={!isEditing} // Chỉ chỉnh sửa khi ở chế độ edit
+                    />
+                    {isEditing && (
+                      <IconButton
+                        onClick={() => handleDeleteChapter(chapterIndex)}
                       >
-                        <MenuItem value="file">File</MenuItem>
-                        <MenuItem value="video">Video</MenuItem>
-                        <MenuItem value="quiz">Quiz</MenuItem>
-                        <MenuItem value="assignment">Assignment</MenuItem>
-                      </Select>
-                      {isEditing && (
-                        <IconButton
-                          onClick={() =>
-                            handleDeleteLecture(chapterIndex, lectureIndex)
+                        <DeleteIcon />
+                      </IconButton>
+                    )}
+                  </div>
+                  {chapter.lectures.map((lecture, lectureIndex) => (
+                    <div
+                      key={lectureIndex}
+                      style={{ marginTop: 20, paddingLeft: 20 }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 40
+                        }}
+                      >
+                        <TextField
+                          value={lecture.name}
+                          variant="outlined"
+                          onChange={(e) =>
+                            handleInputChange(
+                              chapterIndex,
+                              lectureIndex,
+                              'name',
+                              e.target.value
+                            )
                           }
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      )}
-                    </div>
-                    <div style={{ marginTop: 20, paddingLeft: 20 }}>
-                      <TextField
-                        label="Description"
-                        variant="outlined"
-                        size="small"
-                        value={lecture.description}
-                        fullWidth
-                        InputProps={{
-                          style: { fontSize: '1.3rem', color: '#555' },
-                          sx: {
+                          style={{ flex: 1 }}
+                          InputProps={{
+                            style: { fontSize: '1.3rem', color: '#555' },
+                            sx: {
+                              height: '40px',
+                              borderRadius: '5px',
+                              backgroundColor: 'rgba(243, 243, 250, 0.8)',
+                              fontSize: '1.6rem',
+                              color: '#187bce',
+                              outline: 'none',
+                              transition: '0.3s all ease',
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                transition: '0.3s all ease',
+                                border: 'none', // Loại bỏ border khi hover
+                                boxShadow: '0 0 0 2px #187bce'
+                              },
+                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                transition: '0.3s all',
+                                border: 'none', // Loại bỏ border khi focus
+                                boxShadow: '0 0 0 2px #187bce'
+                              }
+                            },
+                            notchedOutline: {
+                              border: 'none' // Loại bỏ border mặc định
+                            }
+                          }}
+                          disabled={!isEditing} // Chỉ chỉnh sửa khi ở chế độ edit
+                        />
+                        <Select
+                          value={lecture.type}
+                          size="small"
+                          onChange={(e) =>
+                            handleInputChange(
+                              chapterIndex,
+                              lectureIndex,
+                              'type',
+                              e.target.value
+                            )
+                          }
+                          sx={{
                             height: '40px',
                             borderRadius: '5px',
                             backgroundColor: 'rgba(243, 243, 250, 0.8)',
-                            fontSize: '1.6rem',
-                            color: '#187bce',
-                            outline: 'none',
-                            transition: '0.3s all ease',
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              transition: '0.3s all ease',
-                              border: 'none', // Loại bỏ border khi hover
-                              boxShadow: '0 0 0 2px #187bce'
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              transition: '0.3s all',
-                              border: 'none', // Loại bỏ border khi focus
-                              boxShadow: '0 0 0 2px #187bce'
-                            }
-                          },
-                          notchedOutline: {
-                            border: 'none' // Loại bỏ border mặc định
-                          }
-                        }}
-                        onChange={(e) =>
-                          handleInputChange(
-                            chapterIndex,
-                            lectureIndex,
-                            'description',
-                            e.target.value
-                          )
-                        }
-                        disabled={!isEditing} // Chỉ chỉnh sửa khi ở chế độ edit
-                      />
-                    </div>
-                    <div
-                      style={{
-                        marginTop: 10,
-                        paddingLeft: 20,
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <label style={{ marginRight: 10, fontSize: '1.3rem' }}>
-                        Resource:
-                      </label>
-                      <input
-                        type="file"
-                        accept={getFileAccept(lecture.type)} // Ràng buộc định dạng file dựa trên type
-                        onChange={(e) =>
-                          handleFileChange(chapterIndex, lectureIndex, e)
-                        }
-                        disabled={!isEditing}
-                        style={{ display: 'none' }}
-                        id={`resource-input-${chapterIndex}-${lectureIndex}`}
-                      />
-                      <label
-                        htmlFor={`resource-input-${chapterIndex}-${lectureIndex}`}
-                      >
-                        <Button
-                          variant="outlined"
-                          component="span"
-                          disabled={!isEditing}
-                          sx={{
                             fontSize: '1.3rem',
-                            textTransform: 'none',
-                            fontWeight: 700,
-                            fontFamily: 'inter',
-                            backgroundColor: 'rgba(243, 243, 250, 0.8)',
-                            borderRadius: '5px',
-                            '&:hover': {
-                              backgroundColor: 'rgba(243, 243, 250, 0.8)',
-                              boxShadow: '0 0 0 1px #187bce'
+                            outline: 'none',
+                            color: '#555',
+                            '.MuiSelect-icon': {
+                              color: '#555'
+                            },
+                            '& .MuiSelect-select': {
+                              fontSize: '1.3rem'
                             }
                           }}
+                          MenuProps={{
+                            disableScrollLock: true
+                          }}
+                          disabled={!isEditing} // Chỉ chỉnh sửa khi ở chế độ edit
                         >
-                          {lecture.source.name ? lecture.source.name : 'Choose File'}
-                        </Button>
-                      </label>
+                          <MenuItem value="file">File</MenuItem>
+                          <MenuItem value="video">Video</MenuItem>
+                          <MenuItem value="quiz">Quiz</MenuItem>
+                          <MenuItem value="assignment">Assignment</MenuItem>
+                        </Select>
+                        {isEditing && (
+                          <IconButton
+                            onClick={() =>
+                              handleDeleteLecture(chapterIndex, lectureIndex)
+                            }
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        )}
+                      </div>
+                      <div style={{ marginTop: 20, paddingLeft: 20 }}>
+                        <TextField
+                          label="Description"
+                          variant="outlined"
+                          size="small"
+                          value={lecture.description}
+                          fullWidth
+                          InputProps={{
+                            style: { fontSize: '1.3rem', color: '#555' },
+                            sx: {
+                              height: '40px',
+                              borderRadius: '5px',
+                              backgroundColor: 'rgba(243, 243, 250, 0.8)',
+                              fontSize: '1.6rem',
+                              color: '#187bce',
+                              outline: 'none',
+                              transition: '0.3s all ease',
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                transition: '0.3s all ease',
+                                border: 'none', // Loại bỏ border khi hover
+                                boxShadow: '0 0 0 2px #187bce'
+                              },
+                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                transition: '0.3s all',
+                                border: 'none', // Loại bỏ border khi focus
+                                boxShadow: '0 0 0 2px #187bce'
+                              }
+                            },
+                            notchedOutline: {
+                              border: 'none' // Loại bỏ border mặc định
+                            }
+                          }}
+                          onChange={(e) =>
+                            handleInputChange(
+                              chapterIndex,
+                              lectureIndex,
+                              'description',
+                              e.target.value
+                            )
+                          }
+                          disabled={!isEditing} // Chỉ chỉnh sửa khi ở chế độ edit
+                        />
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 10,
+                          paddingLeft: 20,
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <label style={{ marginRight: 10, fontSize: '1.3rem' }}>
+                        Resource:
+                        </label>
+                        <input
+                          type="file"
+                          accept={getFileAccept(lecture.type)} // Ràng buộc định dạng file dựa trên type
+                          onChange={(e) =>
+                            handleFileChange(chapterIndex, lectureIndex, e)
+                          }
+                          disabled={!isEditing}
+                          style={{ display: 'none' }}
+                          id={`resource-input-${chapterIndex}-${lectureIndex}`}
+                        />
+                        <label
+                          htmlFor={`resource-input-${chapterIndex}-${lectureIndex}`}
+                        >
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            disabled={!isEditing}
+                            sx={{
+                              fontSize: '1.3rem',
+                              textTransform: 'none',
+                              fontWeight: 700,
+                              fontFamily: 'inter',
+                              backgroundColor: 'rgba(243, 243, 250, 0.8)',
+                              borderRadius: '5px',
+                              '&:hover': {
+                                backgroundColor: 'rgba(243, 243, 250, 0.8)',
+                                boxShadow: '0 0 0 1px #187bce'
+                              }
+                            }}
+                          >
+                            {lecture.source.name ? lecture.source.name : 'Choose File'}
+                          </Button>
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {isEditing && (
-                  <button
-                    id="btn-secoundary"
-                    style={{ marginTop: 20, fontSize: '1.3rem' }}
-                    onClick={() => handleAddLecture(chapterIndex)}
-                  >
+                  ))}
+                  {isEditing && (
+                    <button
+                      id="btn-secoundary"
+                      style={{ marginTop: 20, fontSize: '1.3rem' }}
+                      onClick={() => handleAddLecture(chapterIndex)}
+                    >
                     + Add Lecture
-                  </button>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-          {isEditing && (
-            <button
-              id="btn-secoundary"
-              style={{ marginTop: 20, fontSize: '1.3rem' }}
-              onClick={handleAddChapter}
-            >
+                    </button>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+            {isEditing && (
+              <button
+                id="btn-secoundary"
+                style={{ marginTop: 20, fontSize: '1.3rem' }}
+                onClick={handleAddChapter}
+              >
               + Add Chapter
-            </button>
-          )}
-          <div className="design-structure-button">
-            <button id="btn-third" onClick={() => setIsEditing(!isEditing)}>
-              {isEditing ? 'View' : 'Edit'}
-            </button>
-            <button id="btn-primary" onClick={handleSaveCourseStructureClick}>
+              </button>
+            )}
+            <div className="design-structure-button">
+              <button id="btn-third" onClick={() => setIsEditing(!isEditing)}>
+                {isEditing ? 'View' : 'Edit'}
+              </button>
+              <button id="btn-primary" onClick={handleSaveCourseStructureClick}>
               Save Course Structure
-            </button>
-            {/* <button id="btn-primary" onClick={() => console.log(chapters)}>
+              </button>
+              {/* <button id="btn-primary" onClick={() => console.log(chapters)}>
               Course Structure
             </button> */}
+            </div>
           </div>
-        </div>
-      </Element>
+        </Element>
 
-      <Element name="introduce-course">
-        <div className="design-introduce">
-          <h2>Introduce Course</h2>
-          <hr />
-          <div className="design-introduce-image">
-            <h3>Course Image</h3>
-            <UploadFile
-              uniqueId="introduceImage"
-              type="image"
-              onFileChange={handleImageChange}
-            />
-          </div>
-          <div className="design-introduce-video">
-            <h3>Promotional Video</h3>
-            <UploadFile
-              uniqueId="introduce-video"
-              type="video"
-              onFileChange={handleVideoChange}
-            />
-          </div>
-          <div className="design-introduce-button">
-            <button id="btn-primary" onClick={handleSave}>
+        <Element name="introduce-course">
+          <div className="design-introduce">
+            <h2>Introduce Course</h2>
+            <hr />
+            <div className="design-introduce-image">
+              <h3>Course Image</h3>
+              <UploadFile
+                uniqueId="introduceImage"
+                type="image"
+                onFileChange={handleImageChange}
+              />
+            </div>
+            <div className="design-introduce-video">
+              <h3>Promotional Video</h3>
+              <UploadFile
+                uniqueId="introduce-video"
+                type="video"
+                onFileChange={handleVideoChange}
+              />
+            </div>
+            <div className="design-introduce-button">
+              <button id="btn-primary" onClick={handleSave}>
               Save Introduce Course
-            </button>
+              </button>
+            </div>
           </div>
-        </div>
-      </Element>
-    </MainDesignCourseWrapper>
+        </Element>
+      </MainDesignCourseWrapper>
+      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
+      { openInfo.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="info" message={openInfo.message}/> </> : <> </> }
+      { openSuccess.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message={openSuccess.message}/> </> : <> </> }
+    </>
   )
 }
 

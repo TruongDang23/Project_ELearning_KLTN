@@ -38,7 +38,6 @@ function SideBar({ inforCourseData }) {
         toggleBuy('enrolled')
       }
       else {
-        console.log(res)
         window.open(res.data.checkoutUrl, "_blank", "noopener,noreferrer")
       }
     }

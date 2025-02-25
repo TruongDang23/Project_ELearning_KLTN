@@ -156,7 +156,7 @@ const addLogPayment = async(dataLog) => {
       await PaymentList.create({ log: dataLog })
       resolve()
     }
-    catch(error) {
+    catch (error) {
       reject(error)
     }
   })
