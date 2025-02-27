@@ -95,6 +95,18 @@ export class AdminClient extends ApiClient {
       return error
     }
   }
+
+  async loadMasterdata(object) {
+    //object: languages, categories, levels
+    try {
+      const response = await axios.get(`${this.domain}/master/${object}`)
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async getCourseSummary(id) {
     return await this.course.loadSumaryInformation(id)
   }
