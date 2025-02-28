@@ -1,6 +1,5 @@
 import { GeneralFooter, GeneralHeader } from '~/components/general'
 import ListNotifications from './ListNotifications'
-import { NotificationProvider } from '../../../context/NotificationContext'
 import Logo from '../../../assets/hdh.png'
 import Sticky from 'react-sticky-el'
 import { Helmet } from 'react-helmet'
@@ -17,9 +16,7 @@ function Notication() {
         <GeneralHeader />
       </Sticky>
       <WelcomeWrapper>
-        <NotificationProvider>
-          <ListNotifications />
-        </NotificationProvider>
+        <ListNotifications />
       </WelcomeWrapper>
       <GeneralFooter />
     </>

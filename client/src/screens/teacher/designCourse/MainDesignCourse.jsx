@@ -3,10 +3,10 @@ import { Element } from 'react-scroll'
 import { TextField } from '@mui/material'
 import { useState, useContext } from 'react'
 import { DesignCourseContext } from './DesignCourseContext'
-import { categories } from '~/constants/listCategories'
-import { languages } from '~/constants/listLanguage'
 import { currencies } from '~/constants/listCurrency'
-import { levels } from '~/constants/listLevels'
+import useLevels from '~/constants/listLevels'
+import useCategories from '~/constants/listCategories'
+import useLanguages from '~/constants/listLanguage'
 import UploadFile from './UploadFile'
 import { Snackbar } from "~/components/general"
 import AddCircleIcon from '@mui/icons-material/AddCircle'
@@ -26,6 +26,9 @@ import {
 } from '@mui/material'
 
 function MainDesignCourse({ setStructure }) {
+  const levels = useLevels()
+  const categories = useCategories()
+  const languages = useLanguages()
   //* Context API from DesignCourseContext
   const { markSectionAsCompleted } = useContext(DesignCourseContext)
   //* General section
@@ -737,8 +740,8 @@ function MainDesignCourse({ setStructure }) {
                 Select a category
                 </option>
                 {categories.map((category, index) => (
-                  <option key={index} value={category.label}>
-                    {category.label}
+                  <option key={index} value={category}>
+                    {category}
                   </option>
                 ))}
               </select>
@@ -883,8 +886,8 @@ function MainDesignCourse({ setStructure }) {
                 Select a levels
                 </option>
                 {levels.map((level, index) => (
-                  <option key={index} value={level.label}>
-                    {level.label}
+                  <option key={index} value={level}>
+                    {level}
                   </option>
                 ))}
               </select>

@@ -3,13 +3,14 @@ import styled from 'styled-components'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import { useState, useRef } from 'react'
-import { languages } from '~/constants/listLanguage'
+import useLanguages from '~/constants/listLanguage'
 import { student } from 'api'
 import { Snackbar } from "~/components/general"
 import { userStore } from '~/context/UserStore'
 import EditIcon from '@mui/icons-material/Edit'
 
 function UserProfile({ profile, setProfile }) {
+  const languages = useLanguages()
   const formData = useRef(new FormData())
   const [isReadOnly, setIsReadOnly] = useState(true)
   const userID = localStorage.getItem('userID')

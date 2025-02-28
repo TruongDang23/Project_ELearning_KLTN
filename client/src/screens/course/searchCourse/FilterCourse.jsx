@@ -8,11 +8,12 @@ import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
 import StarRating from '~/components/general/Other/StarRating'
-import { languages } from '~/constants/listLanguage'
+import useLanguages from '~/constants/listLanguage'
 import { useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 
 function FilterCourse({ title }) {
+  const languages = useLanguages()
   const [searchFilters, setSearchFilters] = useSearchParams()
   const [ratings, setRatings] = useState(searchFilters.get('ratings') || '')
   const [language, setLanguage] = useState(searchFilters.get('language') || '')
