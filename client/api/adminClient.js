@@ -4,6 +4,7 @@ import { CourseClient } from './courseClient'
 import { ModelClient } from './modelClient'
 import { InstructorClient } from './instructorClient'
 import { StudentClient } from './studentClient'
+import { MasterDataClient } from './masterDataClient'
 
 export class AdminClient extends ApiClient {
   constructor() {
@@ -12,6 +13,7 @@ export class AdminClient extends ApiClient {
     this.model = new ModelClient()
     this.instructor = new InstructorClient()
     this.student = new StudentClient()
+    this.master = new MasterDataClient()
   }
 
   async updateAvatar(id, formData) {
@@ -95,6 +97,26 @@ export class AdminClient extends ApiClient {
       return error
     }
   }
+
+  async loadMasterdata() {
+    //object: languages, categories, levels
+    try {
+      const response = await this.master.getListInformation()
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
+  async addMasterData(object, name) {
+    return await this.master.create(object, name)
+  }
+
+  async deleteMasterData(object, name) {
+    return await this.master.delete(object, name)
+  }
+
   async getCourseSummary(id) {
     return await this.course.loadSumaryInformation(id)
   }

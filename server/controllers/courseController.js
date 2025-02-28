@@ -23,6 +23,7 @@ const getListCourseBaseUserID = (userID, role) => {
     else if (role === 'student') {
       query = `SELECT courseID FROM enroll WHERE userID = ?`
     }
+    else return
 
     try {
       const [rowsInfo] = await mysqlTransaction.query(query, [userID])

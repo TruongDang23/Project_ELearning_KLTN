@@ -6,11 +6,13 @@ const registerSocketHandlers = (io) => {
     console.log(`User connected: ${socket.id}`)
     socket.on('joinListRooms', async (userID, role) => {
       console.log('UserID', userID, role)
-      const data = await getListCourseBaseUserID(userID, role)
-      data.forEach(course => {
-        console.log('join room: ', course.courseID)
-        socket.join(course.courseID)
-      })
+      if (userID[0] !== 'A') {
+        const data = await getListCourseBaseUserID(userID, role)
+        data.forEach(course => {
+          console.log('join room: ', course.courseID)
+          socket.join(course.courseID)
+        })
+      }
     })
 
     socket.on('joinIndividual', (userID) => {

@@ -19,6 +19,7 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Link from '@mui/material/Link'
+import BallotIcon from '@mui/icons-material/Ballot'
 
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
@@ -32,6 +33,7 @@ import CourseDashboard from './CourseDashboard'
 import LogoAdmin from '../../../assets/LogoAdmin.png'
 import GeneralDashboard from './GeneralDashboard'
 import StatisticsDashboard from './StatisticsDashboard'
+import MasterDataDashboard from './MasterData'
 
 const drawerWidth = 240
 
@@ -200,6 +202,10 @@ function DashboardAdmin() {
                 icon: <AutoAwesomeMosaicIcon sx={{ fontSize: 35 }} />
               },
               {
+                text: 'Master Data',
+                icon: <BallotIcon sx={{ fontSize: 35 }} />
+              },
+              {
                 text: 'Information',
                 icon: <ManageAccountsIcon sx={{ fontSize: 35 }} />
               },
@@ -265,6 +271,7 @@ function DashboardAdmin() {
         <Box component="main" sx={{ flexGrow: 1 }}>
           <DrawerHeader />
           {content === 'General' && <GeneralDashboard />}
+          {content === 'Master Data' && <MasterDataDashboard />}
           {content === 'Information' && <InforDashboard />}
           {content === 'Account' && <AccountDashboard />}
           {content === 'Courses' && <CourseDashboard />}

@@ -197,6 +197,7 @@ function Login() {
                     type="radio"
                     value="Student"
                     name="role"
+                    defaultChecked
                     onChange={typeRole}
                   />
                   <span className="custom-radio"></span>
