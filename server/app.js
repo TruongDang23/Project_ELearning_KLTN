@@ -14,6 +14,7 @@ import notificationRouter from './routes/notificationRouter.js'
 import modelRouter from './routes/modelRouter.js'
 import courseRouter from './routes/courseRouter.js'
 import errorHandler from './utils/errorHandler.js'
+import masterDataRouter from './routes/masterDataRouter.js'
 
 const app = express()
 
@@ -60,6 +61,7 @@ app.use('/api/admin', adminRouter)
 app.use('/api/instructor', instructorRouter)
 app.use('/api/student', studentRouter)
 app.use('/api/course', courseRouter)
+app.use('/api/masterdata', masterDataRouter)
 app.use('/api/notification', notificationRouter)
 app.use('/api/model', modelRouter)
 

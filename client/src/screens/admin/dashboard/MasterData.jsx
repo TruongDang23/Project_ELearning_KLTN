@@ -1,16 +1,20 @@
-import { useState } from "react"
-
-const initialData = {
-  languages: ["English", "Spanish", "French"],
-  levels: ["Beginner", "Intermediate", "Advanced"],
-  categories: ["Web Development", "Data Science", "AI"]
-}
+import { useEffect, useState } from "react"
+import { admin } from "api"
 
 export default function MasterDataDashboard() {
-  const [data, setData] = useState(initialData)
+  const [data, setData] = useState([])
   const [openDialog, setOpenDialog] = useState(false)
   const [currentType, setCurrentType] = useState("")
   const [inputValue, setInputValue] = useState("")
+
+  const loadData = async() => {
+    const masterData = await admin.loadMasterdata()
+    setData(masterData.data)
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [])
 
   const handleAdd = (type) => {
     setData((prev) => ({
@@ -68,19 +72,58 @@ export default function MasterDataDashboard() {
       ))}
 
       {openDialog && (
-        <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "white", padding: "16px", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", fontSize: "1.6rem" }}>
-          <h3 style={{ color: "#187BCE" }}>Add New {currentType.slice(0, -1)}</h3>
-          <input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder={`Enter new ${currentType.slice(0, -1)}`}
-            style={{ width: "100%", padding: "8px", marginTop: "8px", border: "1px solid #ccc", borderRadius: "4px", fontSize: "1.6rem" }}
-          />
-          <div style={{ marginTop: "8px", textAlign: "right" }}>
-            <button style={{ marginRight: "8px", padding: "6px 12px", background: "#ccc", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "1.6rem" }} onClick={() => setOpenDialog(false)}>Cancel</button>
-            <button style={{ padding: "6px 12px", background: "#187BCE", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "1.6rem" }} onClick={() => handleAdd(currentType)}>Add</button>
+        <>
+          {/* Overlay */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: "rgba(0, 0, 0, 0.5)",
+              zIndex: 999
+            }}
+          ></div>
+
+          {/* Popup */}
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              background: "white",
+              padding: "16px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              fontSize: "1.6rem",
+              zIndex: 1000
+            }}
+          >
+            <h3 style={{ color: "#187BCE" }}>Add New {currentType.slice(0, -1)}</h3>
+            <input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder={`Enter new ${currentType.slice(0, -1)}`}
+              style={{ width: "100%", padding: "8px", marginTop: "8px", border: "1px solid #ccc", borderRadius: "4px", fontSize: "1.6rem" }}
+            />
+            <div style={{ marginTop: "8px", textAlign: "right" }}>
+              <button
+                style={{ marginRight: "8px", padding: "6px 12px", background: "#ccc", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "1.6rem" }}
+                onClick={() => setOpenDialog(false)}
+              >
+          Cancel
+              </button>
+              <button
+                style={{ padding: "6px 12px", background: "#187BCE", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "1.6rem" }}
+                onClick={() => handleAdd(currentType)}
+              >
+          Add
+              </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )

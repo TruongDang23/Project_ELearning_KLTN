@@ -4,6 +4,7 @@ import { CourseClient } from './courseClient'
 import { ModelClient } from './modelClient'
 import { InstructorClient } from './instructorClient'
 import { StudentClient } from './studentClient'
+import { MasterDataClient } from './masterDataClient'
 
 export class AdminClient extends ApiClient {
   constructor() {
@@ -12,6 +13,7 @@ export class AdminClient extends ApiClient {
     this.model = new ModelClient()
     this.instructor = new InstructorClient()
     this.student = new StudentClient()
+    this.master = new MasterDataClient()
   }
 
   async updateAvatar(id, formData) {
@@ -96,10 +98,10 @@ export class AdminClient extends ApiClient {
     }
   }
 
-  async loadMasterdata(object) {
+  async loadMasterdata() {
     //object: languages, categories, levels
     try {
-      const response = await axios.get(`${this.domain}/master/${object}`)
+      const response = await this.master.getListInformation()
       return response
     }
     catch (error) {
