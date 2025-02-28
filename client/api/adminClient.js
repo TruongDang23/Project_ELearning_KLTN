@@ -109,6 +109,14 @@ export class AdminClient extends ApiClient {
     }
   }
 
+  async addMasterData(object, name) {
+    return await this.master.create(object, name)
+  }
+
+  async deleteMasterData(object, name) {
+    return await this.master.delete(object, name)
+  }
+
   async getCourseSummary(id) {
     return await this.course.loadSumaryInformation(id)
   }

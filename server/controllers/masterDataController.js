@@ -6,9 +6,9 @@ const loadMasterData = catchAsync(async (req, res, next) => {
   let languages = [], levels = [], categories = []
 
   const connection = connectMysql.promise()
-  let queryLanguage = `SELECT name FROM languages`
-  let queryLevel = `SELECT name FROM levels`
-  let queryCategories = `SELECT name FROM categories`
+  let queryLanguage = `SELECT name FROM languages ORDER BY id`
+  let queryLevel = `SELECT name FROM levels ORDER BY id`
+  let queryCategories = `SELECT name FROM categories ORDER BY id`
 
   try {
     const [rowsLanguages] = await connection.query(queryLanguage)
@@ -31,8 +31,7 @@ const loadMasterData = catchAsync(async (req, res, next) => {
 })
 
 const addMasterData = catchAsync(async (req, res, next) => {
-  const [object, name] = req.body.data
-
+  const { object, name } = req.body.data
   const connection = connectMysql.promise()
   let query = `INSERT INTO ?? (name) VALUES (?)`
 
@@ -51,7 +50,7 @@ const addMasterData = catchAsync(async (req, res, next) => {
 })
 
 const deleteMasterData = catchAsync(async (req, res, next) => {
-  const [object, name] = req.body.data
+  const { object, name } = req.body
 
   const connection = connectMysql.promise()
   let query = `DELETE FROM ?? WHERE name = ?`

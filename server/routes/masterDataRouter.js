@@ -10,6 +10,7 @@ masterDataRouter
 
 masterDataRouter
   .route('/')
+  .all(authController.protect)
   .all(authController.restrictTo('admin'))
   .delete(masterDataController.deleteMasterData)
   .post(masterDataController.addMasterData)
