@@ -4,12 +4,13 @@ import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import EditIcon from '@mui/icons-material/Edit'
 import { useState, useRef } from 'react'
-import { languages } from '~/constants/listLanguage'
+import useLanguages from '~/constants/listLanguage'
 import { userStore } from '~/context/UserStore'
 import { instructor } from 'api'
 import { Snackbar } from "~/components/general"
 
 function UserProfile({ profile, setProfile }) {
+  const languages = useLanguages()
   const formData = useRef(new FormData())
   const userID = localStorage.getItem("userID")
   const [openSuccess, setOpenSuccess] = useState(false)
