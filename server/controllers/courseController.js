@@ -1197,7 +1197,9 @@ const createCourse = catchAsync(async (req, res, next) => {
       await mysqlTransaction.query("COMMIT")
       await mongoTransaction.commitTransaction()
       res.status(201).send()
-      await emailController.sendCreateCourse(courseID, structure.title, list_email)
+
+      if (list_email.length != 0 )
+        await emailController.sendCreateCourse(courseID, structure.title, list_email)
     }
   }
   catch (error) {
