@@ -132,10 +132,31 @@ const getUserByID = async (userid) => {
   })
 }
 
+const getListEmailAdmin = async () => {
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        reject(err)
+      } else {
+        //Get information from mysql
+        let query = `SELECT DISTINCT mail FROM user WHERE role = 'Admin' AND mail IS NOT NULL`
+        connection.query(query, async (error, inf) => {
+          connection.release() //Giải phóng connection khi truy vấn xong
+          if (error) {
+            reject(error)
+          }
+          resolve(inf)
+        })
+      }
+    })
+  })
+}
+
 export default { newQnA, updateAvatar }
 
 export {
   getUserByEmail,
   getUserByID,
-  countUserOfRole
+  countUserOfRole,
+  getListEmailAdmin
 }

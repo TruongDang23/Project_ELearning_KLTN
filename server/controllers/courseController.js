@@ -5,11 +5,12 @@ import mongoose from 'mongoose'
 import { formatDateTime, formatDate } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
-import { getUserByID } from './userController.js'
+import { getListEmailAdmin, getUserByID } from './userController.js'
 import { putFileToStorage } from './googleCloudController.js'
 import xlsx from 'xlsx'
 import { convertToAssignmentObject, convertToQuizObject } from './xlsxController.js'
 import fs from 'fs'
+import Email from './emailController.js'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -1013,6 +1014,9 @@ const createCourse = catchAsync(async (req, res, next) => {
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
   const time = formatDateTime(new Date())
+  const emailController = new Email()
+  let list_email = await getListEmailAdmin()
+  list_email = list_email.map(row => row.mail)
 
   //Upload file video_introduce & image_introduce
   try {
@@ -1193,6 +1197,7 @@ const createCourse = catchAsync(async (req, res, next) => {
       await mysqlTransaction.query("COMMIT")
       await mongoTransaction.commitTransaction()
       res.status(201).send()
+      await emailController.sendCreateCourse(courseID, structure.title, list_email)
     }
   }
   catch (error) {
