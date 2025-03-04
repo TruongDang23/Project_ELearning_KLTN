@@ -117,6 +117,29 @@ const getListInforEnroll = (connection, listID) => {
   })
 }
 
+
+const getInstructorOfCourse = (courseID) => {
+  return new Promise(async (resolve, reject) => {
+    const connection = connectMysql.promise()
+    let query = "SELECT courseID, fullname AS instructor WHERE courseID = ?"
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          courseID
+        ])
+      if (rowsInfo.affectedRows !== 0) {
+        resolve(rowsInfo[0].instructor)
+      }
+      else {
+        reject("This course does not contain data")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
 const getFullInfoMySQL = (connection, courseID) => {
   return new Promise(async (resolve, reject) => {
     let query =
@@ -1196,10 +1219,11 @@ const createCourse = catchAsync(async (req, res, next) => {
     {
       await mysqlTransaction.query("COMMIT")
       await mongoTransaction.commitTransaction()
-      res.status(201).send()
 
       if (list_email.length != 0 )
         await emailController.sendCreateCourse(courseID, structure.title, list_email)
+
+      res.status(201).send()
     }
   }
   catch (error) {
@@ -1270,4 +1294,4 @@ export default {
   getQnA
 }
 
-export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL }
+export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL, getInstructorOfCourse }
