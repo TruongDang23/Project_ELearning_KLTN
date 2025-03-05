@@ -19,7 +19,8 @@ class Email {
   }
 
   async sendCreateCourse(cousreID, courseName, list_receivers) {
-    const html = this.#generateHtmlCreateNewCourse(cousreID, courseName)
+    const url = `${process.env.DOMAIN}/admin/manageCourse`
+    const html = this.#generateHtmlCreateNewCourse(cousreID, courseName, url)
     const mailOptions = {
       from: `EL Space <${process.env.EMAIL_USERNAME}>`,
       to: list_receivers,
@@ -32,7 +33,8 @@ class Email {
   }
 
   async sendForgetPass(subject, receiver, newPassword) {
-    const html = this.#generateHtmlForgotPass(subject, newPassword, "http://localhost:5173/login")
+    const url = `${process.env.DOMAIN}/login`
+    const html = this.#generateHtmlForgotPass(subject, newPassword, url)
     const mailOptions = {
       from: `EL Space <${process.env.EMAIL_USERNAME}>`,
       to: receiver,
@@ -44,12 +46,12 @@ class Email {
     await this.newTransport().sendMail(mailOptions)
   }
 
-  async sendBuyCourseSuccess(courseID, receiver, url) {
+  async sendBuyCourseSuccess(courseID, receiver) {
     //receiver is an object: {
     //                          fullname: 'abc',
     //                          mail: 'abc@gmail.com'
     //                       }
-
+    const url = `${process.env.DOMAIN}/student/my-learning#`
     const html = this.#generateHtmlBuyCourseSuccess(receiver.fullname, courseID, url)
     const mailOptions = {
       from: `EL Space <${process.env.EMAIL_USERNAME}>`,
@@ -67,8 +69,8 @@ class Email {
     //                          fullname: 'abc',
     //                          mail: 'abc@gmail.com'
     //                       }
-
-    const html = this.#generateHtmlCourseIsBuy(receiver.fullname, courseID)
+    const url = `${process.env.DOMAIN}/instructor/manageCourse`
+    const html = this.#generateHtmlCourseIsBuy(receiver.fullname, courseID, url)
     const mailOptions = {
       from: `EL Space <${process.env.EMAIL_USERNAME}>`,
       to: receiver.mail,
@@ -103,7 +105,7 @@ class Email {
     `
   }
 
-  #generateHtmlCreateNewCourse(cousreID, courseName) {
+  #generateHtmlCreateNewCourse(cousreID, courseName, url) {
     return `
       <div style="background: linear-gradient(to right, #212121, #3a3a3a); padding: 20px;">
         <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);">
@@ -113,7 +115,7 @@ class Email {
             <p style="font-size: 16px;">Dear <strong>Admin</strong>,</p>
             <p style="font-size: 16px;">The course <strong>${courseName} (${cousreID})</strong> has been created and is pending approval.</p>
             <p style="font-size: 16px;">Please review and approve the course at your earliest convenience.</p>
-            <a style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color:#187BCE; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px;">
+            <a href="${url}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color:#187BCE; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px;">
               Approve Course
             </a>
             <p style="margin-top: 30px; font-size: 14px; color: #999;">Thank you,<br> E-Learning System</p>

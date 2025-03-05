@@ -16,8 +16,8 @@ import { Snackbar } from "~/components/general"
 
 function Login() {
   const [username, setUsername] = useState("")
-  const [pass, setPass] = useState("");
-  const [role, setRole] = useState("");
+  const [pass, setPass] = useState("")
+  const [role, setRole] = useState("Student") //default value radio button is Student
   const [message, setMessage] = useState("")
   const [openSuccess, setOpenSuccess] = useState(false)
   const [openError, setOpenError] = useState({

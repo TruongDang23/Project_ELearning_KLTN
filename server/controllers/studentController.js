@@ -445,7 +445,8 @@ const buyCourse = catchAsync(async (req, res, next) => {
       ])
       await connection.query("COMMIT")
       await mongoTransaction.commitTransaction()
-      await emailController.sendBuyCourseSuccess(courseID, inf_student, 'https://google.com')
+      await emailController.sendBuyCourseSuccess(courseID, inf_student)
+      await emailController.sendCourseIsBuy(courseID, inf_instruc)
       res.status(201).send('created')
     }
     catch (error) {
