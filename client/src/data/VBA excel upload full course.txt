@@ -1,0 +1,44 @@
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+    If Not Intersect(Target, Me.Range("B9")) Is Nothing Then
+        Categories.Show
+    End If
+End Sub
+
+
+
+Private Sub list_categories_Click()
+    Sheets("General Information").Range("B9").Value = list_categories.Text
+End Sub
+
+Private Sub UserForm_Activate()
+    Dim conn As Object
+    Dim rs As Object
+    Dim query As String
+    Dim listBox As Object
+    
+    ' Reference the ListBox inside the UserForm
+    Set listBox = Me.list_categories  ' Change "ListBox1" to your actual ListBox name
+    
+    ' Create MySQL Connection
+    Set conn = CreateObject("ADODB.Connection")
+    conn.Open "DRIVER={MySQL ODBC 9.2 Unicode Driver}; SERVER=localhost; DATABASE=projectelearning; USER=root; PASSWORD=truong050123; OPTION=3;"
+
+    ' Query the database
+    query = "SELECT name FROM categories"  ' Adjust table and column names as needed
+    Set rs = conn.Execute(query)
+
+    ' Clear ListBox before adding new items
+    listBox.Clear
+
+    ' Loop through MySQL records and add them to the ListBox
+    Do While Not rs.EOF
+        listBox.AddItem rs.Fields("name").Value  ' Add the category name to the ListBox
+        rs.MoveNext
+    Loop
+
+    ' Close connections
+    rs.Close
+    conn.Close
+    Set rs = Nothing
+    Set conn = Nothing
+End Sub
