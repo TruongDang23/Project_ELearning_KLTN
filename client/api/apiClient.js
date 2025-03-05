@@ -84,6 +84,11 @@ axios.interceptors.response.use(
         return Promise.reject(refreshError)
       }
     }
+
+    else if (error.response?.status === 500) {
+      window.location.href = "/login"
+      return Promise.reject(error)
+    }
     return Promise.reject(error)
   }
 )
