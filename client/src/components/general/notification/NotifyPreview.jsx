@@ -4,7 +4,7 @@ import Avatar from '@mui/material/Avatar'
 import { formatDistanceToNow } from 'date-fns'
 
 function NotifyPreview({ notify, onClick }) {
-  const { notifyID, title, message, routing, isRead, image_course, time } =
+  const { notifyID, title, message, routing, isRead, image, time } =
     notify
 
   const timeAgo = formatDistanceToNow(new Date(time), {
@@ -15,7 +15,7 @@ function NotifyPreview({ notify, onClick }) {
     <NotifyPreviewWrapper onClick={onClick}>
       <div className={`notification-item ${!isRead ? 'not-read' : ''}`}>
         <div className="notification-item__avatar">
-          <img alt={title} src={image_course} />
+          <img alt={title} src={image} />
         </div>
         <div className="notification-item__content">
           <h3 className="notification-item__title">{title}</h3>

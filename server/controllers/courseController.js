@@ -121,7 +121,10 @@ const getListInforEnroll = (connection, listID) => {
 const getInstructorOfCourse = (courseID) => {
   return new Promise(async (resolve, reject) => {
     const connection = connectMysql.promise()
-    let query = "SELECT courseID, fullname AS instructor WHERE courseID = ?"
+    let query = `SELECT c.courseID,
+                        c.userID as instructor
+                  FROM course as c
+                  WHERE c.courseID = ?`
     try {
       const [rowsInfo] = await connection.query(query,
         [

@@ -423,7 +423,7 @@ const reviewCourse = catchAsync(async (req, res, next) => {
 
 const buyCourse = catchAsync(async (req, res, next) => {
   // Implement here
-  const { courseID } = req.body
+  const { courseID } = req.params
   const connection = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
 
