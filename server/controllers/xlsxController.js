@@ -99,5 +99,36 @@ const convertToAssignmentObject = (workbook) => {
   return jsonData
 }
 
+const convertGeneralInformation = (sheet, course_structure) => {
+  const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 })
+  for (let i = 1; i < rawData.length; i++) {
+    let [key, value] = rawData[i]
 
-export { convertToQuizObject, convertToAssignmentObject }
+    if (typeof value === 'string' && value.includes('\r\n'))
+      value = value.split('\r\n')
+    course_structure[key] = value
+  }
+  return course_structure
+}
+
+const convertChapter = (sheet, course_structure, position) => {
+  const rawData = xlsx.utils.sheet_to_json(sheet)
+
+  return course_structure
+}
+
+const convertToCourseObject = (workbook) => {
+  const num_sheets = workbook.SheetNames.length
+  let course_structure = {}
+
+  for (let i = 1; i < num_sheets; i++) {
+    const sheetName = workbook.SheetNames[i]
+    const sheet = workbook.Sheets[sheetName]
+    if (i == 1)
+      course_structure = convertGeneralInformation(sheet, course_structure)
+    else
+      course_structure = convertChapter(sheet, course_structure, i)
+  }
+}
+
+export { convertToQuizObject, convertToAssignmentObject, convertToCourseObject }

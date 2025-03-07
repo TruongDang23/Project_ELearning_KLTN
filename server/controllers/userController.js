@@ -8,7 +8,7 @@ import { createNotification } from './notificationController.js'
 import { socketFunction } from '../app.js'
 
 
-import { convertToAssignmentObject, convertToQuizObject } from './xlsxController.js'
+import { convertToAssignmentObject, convertToCourseObject, convertToQuizObject } from './xlsxController.js'
 import xlsx from 'xlsx'
 
 const newQnA = catchAsync(async (req, res, next) => {
@@ -157,10 +157,10 @@ const getListEmailAdmin = async () => {
 }
 
 const test = catchAsync(async (req, res, next) => {
-  const filePath = `../server/uploads/assignment.xlsx`
+  const filePath = `../server/uploads/Require upload full course.xlsm`
   const workbook = xlsx.readFile(filePath)
-  const quizObject = convertToAssignmentObject(workbook)
-  res.status(200).send(quizObject)
+  const object = convertToCourseObject(workbook)
+  res.status(200).send(object)
 })
 
 export default { newQnA, updateAvatar, test }
