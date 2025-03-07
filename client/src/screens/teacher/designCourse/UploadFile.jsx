@@ -1,12 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import { Snackbar } from "~/components/general"
 
 function UploadFile({ uniqueId, type, onFileChange }) {
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [thumbnail, setThumbnail] = useState(null)
   const videoRef = useRef(null)
+
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
 
   useEffect(() => {
     if (onFileChange) {
@@ -33,7 +39,15 @@ function UploadFile({ uniqueId, type, onFileChange }) {
           generateThumbnail(fileUrl)
         }
       } else {
-        alert(`Please upload a ${type} file.`)
+        setOpenError({
+          status: true,
+          message: `Please upload a ${type} file.`
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
         setSelectedFile(null)
         setPreviewUrl(null)
         setThumbnail(null)
@@ -65,10 +79,17 @@ function UploadFile({ uniqueId, type, onFileChange }) {
   const handleSubmit = (event) => {
     event.preventDefault()
     if (selectedFile) {
-      console.log('File to upload:', selectedFile)
       // Thực hiện hành động upload tại đây
     } else {
-      alert('Please select a file to upload.')
+      setOpenError({
+        status: true,
+        message: 'Please select a file to upload.'
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
     }
   }
 
@@ -86,76 +107,79 @@ function UploadFile({ uniqueId, type, onFileChange }) {
   }
 
   return (
-    <UploadFileWrapper>
-      <form onSubmit={handleSubmit} className="upload-form">
-        <InputWrapper>
-          <input
-            type="file"
-            id={`file-upload-${uniqueId}`}
-            onChange={handleFileChange}
-          />
-          <label htmlFor={`file-upload-${uniqueId}`}>
-            {selectedFile ? (
-              truncateFileName(selectedFile.name, 20) // Giới hạn 20 ký tự
-            ) : (
-              <>
-                {'Choose File'}
-                <span>
-                  <CloudUploadIcon />
-                </span>
-              </>
-            )}
-          </label>
-        </InputWrapper>
-        <button id="btn-secondary" type="submit">
+    <>
+      <UploadFileWrapper>
+        <form onSubmit={handleSubmit} className="upload-form">
+          <InputWrapper>
+            <input
+              type="file"
+              id={`file-upload-${uniqueId}`}
+              onChange={handleFileChange}
+            />
+            <label htmlFor={`file-upload-${uniqueId}`}>
+              {selectedFile ? (
+                truncateFileName(selectedFile.name, 20) // Giới hạn 20 ký tự
+              ) : (
+                <>
+                  {'Choose File'}
+                  <span>
+                    <CloudUploadIcon />
+                  </span>
+                </>
+              )}
+            </label>
+          </InputWrapper>
+          <button id="btn-secondary" type="submit">
           Upload
-        </button>
-      </form>
+          </button>
+        </form>
 
-      <div className="upload-detail">
-        {selectedFile && (
-          <div className="upload-file">
-            <h4>File Details:</h4>
-            <p>File Name: {selectedFile.name}</p>
-            <p>File Type: {selectedFile.type}</p>
-            <p>File Size: {(selectedFile.size / 1024).toFixed(2)} KB</p>
-            <button onClick={handleRemoveFile}>Remove File</button>
-          </div>
-        )}
+        <div className="upload-detail">
+          {selectedFile && (
+            <div className="upload-file">
+              <h4>File Details:</h4>
+              <p>File Name: {selectedFile.name}</p>
+              <p>File Type: {selectedFile.type}</p>
+              <p>File Size: {(selectedFile.size / 1024).toFixed(2)} KB</p>
+              <button onClick={handleRemoveFile}>Remove File</button>
+            </div>
+          )}
 
-        {previewUrl && (
-          <div className="upload-preview">
-            <h4>Preview:</h4>
-            {type === 'image' ? (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                style={{ width: '200px', height: 'auto' }}
-              />
-            ) : type === 'video' ? (
-              <>
-                <video
-                  ref={videoRef}
+          {previewUrl && (
+            <div className="upload-preview">
+              <h4>Preview:</h4>
+              {type === 'image' ? (
+                <img
                   src={previewUrl}
-                  controls
+                  alt="Preview"
                   style={{ width: '200px', height: 'auto' }}
                 />
-                {thumbnail && (
-                  <div className="video-thumbnail">
-                    <h4>Thumbnail:</h4>
-                    <img
-                      src={thumbnail}
-                      alt="Thumbnail"
-                      style={{ width: '200px', height: 'auto' }}
-                    />
-                  </div>
-                )}
-              </>
-            ) : null}
-          </div>
-        )}
-      </div>
-    </UploadFileWrapper>
+              ) : type === 'video' ? (
+                <>
+                  <video
+                    ref={videoRef}
+                    src={previewUrl}
+                    controls
+                    style={{ width: '200px', height: 'auto' }}
+                  />
+                  {thumbnail && (
+                    <div className="video-thumbnail">
+                      <h4>Thumbnail:</h4>
+                      <img
+                        src={thumbnail}
+                        alt="Thumbnail"
+                        style={{ width: '200px', height: 'auto' }}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : null}
+            </div>
+          )}
+        </div>
+      </UploadFileWrapper>
+      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
+    </>
   )
 }
 const InputWrapper = styled.div`

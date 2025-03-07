@@ -42,15 +42,14 @@ const convertToAssignmentObject = (workbook) => {
 
   for (let i = 1; i < rawData.length; i++)
   {
-    if (rawData[i][0] === title && rawData[i][1] === question)
-    {
-      //
-    }
-    else if (i == 1) {
+    // Start file => set up title, question
+    if (i == 1) {
       title = rawData[i][0]
       question = rawData[i][1]
     }
-    else {
+    // New topic => push old topic into array => refresh title, quest, null sample, null testcase
+    else if (rawData[i][0] && rawData[i][1]) {
+      // Push old topic into array
       const topic = {
         title: title,
         question: question,
@@ -59,12 +58,14 @@ const convertToAssignmentObject = (workbook) => {
       }
       topics.push(topic)
 
+      // Refrest data
       title = rawData[i][0]
       question = rawData[i][1]
       sample = []
       testcases = []
     }
 
+    // After check => push sample and testcase into array
     const sampleObj = {
       case: rawData[i][2],
       key: rawData[i][3]
@@ -73,10 +74,24 @@ const convertToAssignmentObject = (workbook) => {
       case: rawData[i][4],
       key: rawData[i][5]
     }
-    sample.push(sampleObj)
-    testcases.push(testcaseObj)
-  }
 
+    // Check if has data => push
+    if (sampleObj.case != null && sampleObj.key != null)
+      sample.push(sampleObj)
+    if (testcaseObj.case != null && testcaseObj.key != null)
+      testcases.push(testcaseObj)
+
+    // End of file => push last topic into array
+    if (i == rawData.length - 1) {
+      const topic = {
+        title: title,
+        question: question,
+        sample: sample,
+        testcases: testcases
+      }
+      topics.push(topic)
+    }
+  }
   let jsonData = {
     topics: topics
   }

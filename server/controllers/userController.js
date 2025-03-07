@@ -7,6 +7,10 @@ import mongoose from 'mongoose'
 import { createNotification } from './notificationController.js'
 import { socketFunction } from '../app.js'
 
+
+import { convertToAssignmentObject, convertToQuizObject } from './xlsxController.js'
+import xlsx from 'xlsx'
+
 const newQnA = catchAsync(async (req, res, next) => {
   // Implement here
   const { id, lectureID } = req.params
@@ -132,10 +136,38 @@ const getUserByID = async (userid) => {
   })
 }
 
-export default { newQnA, updateAvatar }
+const getListEmailAdmin = async () => {
+  return new Promise((resolve, reject) => {
+    connectMysql.getConnection((err, connection) => {
+      if (err) {
+        reject(err)
+      } else {
+        //Get information from mysql
+        let query = `SELECT DISTINCT mail FROM user WHERE role = 'Admin' AND mail IS NOT NULL`
+        connection.query(query, async (error, inf) => {
+          connection.release() //Giải phóng connection khi truy vấn xong
+          if (error) {
+            reject(error)
+          }
+          resolve(inf)
+        })
+      }
+    })
+  })
+}
+
+const test = catchAsync(async (req, res, next) => {
+  const filePath = `../server/uploads/assignment.xlsx`
+  const workbook = xlsx.readFile(filePath)
+  const quizObject = convertToAssignmentObject(workbook)
+  res.status(200).send(quizObject)
+})
+
+export default { newQnA, updateAvatar, test }
 
 export {
   getUserByEmail,
   getUserByID,
-  countUserOfRole
+  countUserOfRole,
+  getListEmailAdmin
 }

@@ -306,7 +306,7 @@ const getByID = catchAsync(async (req, res, next) => {
              message,
              routing,
              isRead,
-             image_course,
+             image,
              time 
         from receive_notify as rece
         inner join notify as noti on noti.notifyID = rece.notifyID

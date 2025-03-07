@@ -72,9 +72,9 @@ axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
+    console.log('eror', error)
     // Kiểm tra lỗi 401 (Unauthorized)
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    if (error.response?.status === 401 || ( error.response?.status === 403 && error.response?.data.error == 'No token provided!') ) {
       try {
         // Gọi endpoint để refresh token
         const res = await axios.post(`${import.meta.env.VITE_API_URL}/refreshtoken`)
@@ -83,6 +83,11 @@ axios.interceptors.response.use(
       } catch (refreshError) {
         return Promise.reject(refreshError)
       }
+    }
+
+    else if (error.response?.status === 500 || ( error.response?.status === 403 && error.response?.data.error == 'You do not have permission to perform this action')) {
+      window.location.href = "/login"
+      return Promise.reject(error)
     }
     return Promise.reject(error)
   }

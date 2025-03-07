@@ -7,12 +7,14 @@ import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom"
+import useCategories from '~/constants/listCategories'
 
 function Categories() {
 
   const navigate = useNavigate()
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
+  const categories = useCategories()
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
@@ -64,7 +66,7 @@ function Categories() {
           onClick={handleToggle}
           sx={{ fontSize: "16px", fontWeight: "bold", color: '#333', textTransform: 'capitalize' }}
         >
-            Categories
+        Categories
         </Button>
         <Popper
           open={open}
@@ -78,11 +80,10 @@ function Categories() {
             <Grow
               {...TransitionProps}
               style={{
-                transformOrigin:
-                  placement === 'bottom-start' ? 'left top' : 'left bottom'
+                transformOrigin: placement === 'bottom-start' ? 'left top' : 'left bottom'
               }}
             >
-              <Paper>
+              <Paper sx={{ maxHeight: 300, overflowY: 'auto' }}>
                 <ClickAwayListener onClickAway={handleClose}>
                   <MenuList
                     autoFocusItem={open}
@@ -90,23 +91,15 @@ function Categories() {
                     aria-labelledby="composition-button"
                     onKeyDown={handleListKeyDown}
                   >
-                    <MenuItem
-                      sx={{ fontSize: "16px", color: '#333' }}
-                      onClick={(e) => handleSearch(e)}>
-                        Database
-                    </MenuItem>
-
-                    <MenuItem
-                      sx={{ fontSize: "16px", color: '#333' }}
-                      onClick={(e) => handleSearch(e)}>
-                        Machine Learning
-                    </MenuItem>
-
-                    <MenuItem
-                      sx={{ fontSize: "16px", color: '#333' }}
-                      onClick={(e) => {handleSearch(e)}}>
-                        Web development
-                    </MenuItem>
+                    {categories.map((category, index) => (
+                      <MenuItem
+                        key={index}
+                        sx={{ fontSize: "16px", color: '#333' }}
+                        onClick={(e) => handleSearch(e)}
+                      >
+                        {category}
+                      </MenuItem>
+                    ))}
                   </MenuList>
                 </ClickAwayListener>
               </Paper>

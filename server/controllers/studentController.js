@@ -5,10 +5,12 @@ import mongoose from 'mongoose'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import User from '../models/user.js'
 import PaymentList from '../models/logPay.js'
-import { getListInforEnroll, getProgress } from './courseController.js'
+import { getInstructorOfCourse, getListInforEnroll, getProgress } from './courseController.js'
 import { isEnrolled } from '../utils/precheckAccess.js'
 import { createPayment } from './paymentController.js'
 import { getFullInfoMySQL as getFullInfoMySQLCourse } from './courseController.js'
+import { getUserByID } from './userController.js'
+import Email from './emailController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -421,10 +423,14 @@ const reviewCourse = catchAsync(async (req, res, next) => {
 
 const buyCourse = catchAsync(async (req, res, next) => {
   // Implement here
-  const { courseID } = req.body
+  const { courseID } = req.params
   const connection = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
 
+  const instructorID = await getInstructorOfCourse(courseID)
+  const inf_student = await getUserByID(req.userID)
+  const inf_instruc = await getUserByID(instructorID)
+  const emailController = new Email()
   const enrolled = await isEnrolled(courseID, req.userID)
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
     res.send('enrolled')
@@ -439,6 +445,8 @@ const buyCourse = catchAsync(async (req, res, next) => {
       ])
       await connection.query("COMMIT")
       await mongoTransaction.commitTransaction()
+      await emailController.sendBuyCourseSuccess(courseID, inf_student)
+      await emailController.sendCourseIsBuy(courseID, inf_instruc)
       res.status(201).send('created')
     }
     catch (error) {

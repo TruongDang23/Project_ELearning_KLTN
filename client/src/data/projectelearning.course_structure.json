@@ -1362,14 +1362,370 @@
           "name": "Introduce",
           "description": "Video giới thiệu tổng quan môn học",
           "type": "video",
-          "source": "https://storage.googleapis.com/e-learning-bucket/C000/CT01/video1.mp4"
+          "source": "https://storage.googleapis.com/e-learning-bucket/C000/CT01/video1.mp4",
+          "QnA": [
+            {
+              "questionerID": "S000",
+              "question": "Q&A",
+              "date": {
+                "$date": "2024-12-17T13:32:31.000Z"
+              },
+              "responses": [
+                {
+                  "responseID": "S000",
+                  "response": "Xin chào",
+                  "date": {
+                    "$date": "2024-12-25T14:26:41.000Z"
+                  },
+                  "_id": {
+                    "$oid": "676c1622af748ed5a4725cd0"
+                  }
+                },
+                {
+                  "responseID": "I000",
+                  "response": "Hello",
+                  "date": {
+                    "$date": "2024-12-25T14:21:57.000Z"
+                  },
+                  "_id": {
+                    "$oid": "676c1505845576a31b7c9dd5"
+                  }
+                },
+                {
+                  "responseID": "I000",
+                  "response": "This is Q&A",
+                  "date": {
+                    "$date": "2024-12-17T13:45:42.000Z"
+                  },
+                  "_id": {
+                    "$oid": "6761808674ae81a11d226b55"
+                  }
+                }
+              ],
+              "_id": {
+                "$oid": "67617d6fca2b3b00d217671b"
+              }
+            },
+            {
+              "questionerID": "S000",
+              "question": "Test Q&A",
+              "date": {
+                "$date": "2024-12-17T10:31:00.000Z"
+              },
+              "responses": [
+                {
+                  "responseID": "S000",
+                  "response": "This is Q&A",
+                  "date": {
+                    "$date": "2024-12-17T13:42:54.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67617fdf1da2374fc9541296"
+                  }
+                },
+                {
+                  "responseID": "I000",
+                  "response": "QA",
+                  "date": {
+                    "$date": "2024-12-17T13:35:40.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67617e2c6189676ea04e0d71"
+                  }
+                }
+              ],
+              "_id": {
+                "$oid": "676152e4f5735a40424c522d"
+              }
+            },
+            {
+              "questionerID": "A000",
+              "question": "test notify",
+              "date": {
+                "$date": "2024-10-20T13:37:05.000Z"
+              },
+              "responses": [
+                {
+                  "responseID": "A000",
+                  "response": "alo",
+                  "date": {
+                    "$date": "2025-01-21T08:43:37.000Z"
+                  },
+                  "_id": {
+                    "$oid": "678f5e3923c59d586dc7a643"
+                  }
+                },
+                {
+                  "responseID": "I000",
+                  "response": "test",
+                  "date": {
+                    "$date": "2025-01-21T03:34:57.000Z"
+                  },
+                  "_id": {
+                    "$oid": "678f15e80d87a659c063e12e"
+                  }
+                }
+              ],
+              "_id": {
+                "$oid": "67150781ea1b69fa2abd7550"
+              }
+            },
+            {
+              "questionerID": "A000",
+              "question": "trung",
+              "date": {
+                "$date": "2024-10-20T03:43:44.000Z"
+              },
+              "responses": [
+                {
+                  "responseID": "A000",
+                  "response": "dang",
+                  "date": {
+                    "$date": "2024-10-20T03:46:31.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67147d2dca349a56e362e2da"
+                  }
+                }
+              ],
+              "_id": {
+                "$oid": "67147c707c7024705ff52d66"
+              }
+            },
+            {
+              "questionerID": "A000",
+              "question": "dang",
+              "date": {
+                "$date": "2024-10-19T14:28:03.000Z"
+              },
+              "responses": [
+                {
+                  "responseID": "A000",
+                  "response": "dang quang",
+                  "date": {
+                    "$date": "2024-10-20T03:36:13.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67147aad9e6e9c7d7bf55067"
+                  }
+                },
+                {
+                  "responseID": "A000",
+                  "response": "quang truong",
+                  "date": {
+                    "$date": "2024-10-19T15:39:29.000Z"
+                  },
+                  "_id": {
+                    "$oid": "6713d2b1dd96a7f640132fa6"
+                  }
+                }
+              ],
+              "_id": {
+                "$oid": "6713c1f3092ff3015372f558"
+              }
+            }
+          ]
         },
         {
           "id": 2,
           "name": "Slide introduce",
           "description": "Slide giới thiệu tổng quan môn học",
           "type": "file",
-          "source": "https://storage.googleapis.com/e-learning-bucket/C000/CT01/01-intro.pdf"
+          "source": "https://storage.googleapis.com/e-learning-bucket/C000/CT01/01-intro.pdf",
+          "QnA": [
+            {
+              "questionerID": "A000",
+              "question": "Chào cả lớp",
+              "date": {
+                "$date": "2024-10-18T14:33:14.000Z"
+              },
+              "responses": [
+                {
+                  "responseID": "S000",
+                  "response": "r",
+                  "date": {
+                    "$date": "2025-02-11T08:10:42.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67ab06029585826946a2cc02"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "e",
+                  "date": {
+                    "$date": "2025-02-11T08:03:40.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67ab06029585826946a2cc03"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "p",
+                  "date": {
+                    "$date": "2025-02-11T07:59:34.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67ab0366d2f39dce70dfc39d"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "k",
+                  "date": {
+                    "$date": "2025-02-11T07:58:59.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67ab0366d2f39dce70dfc39e"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "l",
+                  "date": {
+                    "$date": "2025-02-11T07:57:19.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67ab02e01ed96af7b15e9eef"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "s",
+                  "date": {
+                    "$date": "2025-02-11T07:52:56.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67ab02e01ed96af7b15e9ef0"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "s",
+                  "date": {
+                    "$date": "2025-02-11T07:51:36.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67ab02e01ed96af7b15e9ef1"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "s",
+                  "date": {
+                    "$date": "2025-02-11T07:19:32.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aafa04a855deff2bd06760"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "d",
+                  "date": {
+                    "$date": "2025-02-11T07:13:35.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aaf89f328e308c36b80705"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "e",
+                  "date": {
+                    "$date": "2025-02-11T07:11:49.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aaf89f328e308c36b80706"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "e",
+                  "date": {
+                    "$date": "2025-02-11T06:35:01.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aaef95a01d70b66d23bd89"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "d",
+                  "date": {
+                    "$date": "2025-02-11T06:30:49.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aaee998f060d297c713adc"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "d",
+                  "date": {
+                    "$date": "2025-02-11T06:29:19.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aaee998f060d297c713add"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "c",
+                  "date": {
+                    "$date": "2025-02-11T04:53:22.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aad7c2712b9d2d82c1763a"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "b",
+                  "date": {
+                    "$date": "2025-02-11T04:44:10.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aad59a3188a4055b78c195"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "a",
+                  "date": {
+                    "$date": "2025-02-11T04:41:45.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aad59a3188a4055b78c196"
+                  }
+                },
+                {
+                  "responseID": "S000",
+                  "response": "xin chào",
+                  "date": {
+                    "$date": "2025-02-11T04:40:01.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aad59a3188a4055b78c197"
+                  }
+                },
+                {
+                  "responseID": "A000",
+                  "response": "Bài giảng này khá hay",
+                  "date": {
+                    "$date": "2024-10-20T08:50:07.000Z"
+                  },
+                  "_id": {
+                    "$oid": "6714c43fa28a84142939e340"
+                  }
+                }
+              ],
+              "_id": {
+                "$oid": "671271aad5e86a0832cd67d5"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1381,7 +1737,31 @@
           "name": "Video about database",
           "description": "Video giới thiệu tổng quan database",
           "type": "video",
-          "source": "https://storage.googleapis.com/e-learning-bucket/C000/CT02/video2.mp4"
+          "source": "https://storage.googleapis.com/e-learning-bucket/C000/CT02/video2.mp4",
+          "QnA": [
+            {
+              "questionerID": "A000",
+              "question": "video hay",
+              "date": {
+                "$date": "2024-10-20T08:52:15.000Z"
+              },
+              "responses": [
+                {
+                  "responseID": "A000",
+                  "response": "xin chào các bạn nhé",
+                  "date": {
+                    "$date": "2024-10-20T08:52:55.000Z"
+                  },
+                  "_id": {
+                    "$oid": "6714c4e75221c5f64d319c94"
+                  }
+                }
+              ],
+              "_id": {
+                "$oid": "6714c4bf5221c5f64d319c17"
+              }
+            }
+          ]
         },
         {
           "id": 4,
@@ -1419,7 +1799,20 @@
           "name": "Video about Model",
           "description": "Video giới thiệu tổng quan Model",
           "type": "video",
-          "source": "https://storage.googleapis.com/e-learning-bucket/C000/CT04/video4.mp4"
+          "source": "https://storage.googleapis.com/e-learning-bucket/C000/CT04/video4.mp4",
+          "QnA": [
+            {
+              "questionerID": "A000",
+              "question": "xin chào",
+              "date": {
+                "$date": "2024-10-20T04:11:36.000Z"
+              },
+              "responses": [],
+              "_id": {
+                "$oid": "671482f8bcefc18eba1ef8ca"
+              }
+            }
+          ]
         },
         {
           "id": 8,
@@ -2382,19 +2775,34 @@
             {
               "questionerID": "S000",
               "question": "Em chưa hiểu rõ lắm về khái niệm dữ liệu. Anh giải thích lại giúp em với",
-              "date": "2017-07-18 14:05:32",
+              "date": {
+                "$date": "2017-07-18T07:05:32.000Z"
+              },
               "responses": [
-                {
-                  "responseID": "S021",
-                  "response": "Ở phút 1:30 thầy có giảng kỹ á bạn, bạn tua lại nghe thử",
-                  "date": "2017-07-18 14:35:32"
-                },
                 {
                   "responseID": "I001",
                   "response": "Chào bạn, rất vui vì được trả lời câu hỏi của bạn. Giải thích về khái niệm dữ liệu mình có nói rõ từ 1:00 đến 2:15, bạn có thể nghe kỹ lại nhé. Có gì thêm  thắc mắc thì cứ hỏi mình nhé",
-                  "date": "2017-07-18 17:35:32"
+                  "date": {
+                    "$date": "2017-07-18T10:35:32.000Z"
+                  },
+                  "_id": {
+                    "$oid": "674e43541b34c52741038bb9"
+                  }
+                },
+                {
+                  "responseID": "S021",
+                  "response": "Ở phút 1:30 thầy có giảng kỹ á bạn, bạn tua lại nghe thử",
+                  "date": {
+                    "$date": "2017-07-18T07:35:32.000Z"
+                  },
+                  "_id": {
+                    "$oid": "674e43541b34c52741038bb8"
+                  }
                 }
-              ]
+              ],
+              "_id": {
+                "$oid": "674e43541b34c52741038bb7"
+              }
             }
           ]
         }
@@ -2583,7 +2991,7 @@
           "id": 11,
           "name": "Semi quizz",
           "type": "quizz",
-          "passpoint": 5,
+          "passpoint": 2,
           "during_time": 30,
           "title": "Semi quizz để ôn tập kiến thức",
           "questions": [
@@ -4853,20 +5261,67 @@
           "QnA": [
             {
               "questionerID": "S000",
-              "question": "Em chưa hiểu rõ lắm về khái niệm dữ liệu. Anh giải thích lại giúp em với",
-              "date": "2017-07-18 14:05:32",
+              "question": "test socket",
+              "date": {
+                "$date": "2025-02-05T04:58:49.000Z"
+              },
               "responses": [
                 {
-                  "responseID": "S021",
-                  "response": "Ở phút 1:30 thầy có giảng kỹ á bạn, bạn tua lại nghe thử",
-                  "date": "2017-07-18 14:35:32"
+                  "responseID": "S000",
+                  "response": "b",
+                  "date": {
+                    "$date": "2025-02-11T04:37:38.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67aad4133188a4055b78b5ba"
+                  }
                 },
+                {
+                  "responseID": "S000",
+                  "response": "a",
+                  "date": {
+                    "$date": "2025-02-05T05:01:18.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67a2f0a5bd70dfb53a6d17c7"
+                  }
+                }
+              ],
+              "_id": {
+                "$oid": "67a2f018a376b0f5458a9098"
+              }
+            },
+            {
+              "questionerID": "S000",
+              "question": "Em chưa hiểu rõ lắm về khái niệm dữ liệu. Anh giải thích lại giúp em với",
+              "date": {
+                "$date": "2017-07-18T07:05:32.000Z"
+              },
+              "responses": [
                 {
                   "responseID": "I001",
                   "response": "Chào bạn, rất vui vì được trả lời câu hỏi của bạn. Giải thích về khái niệm dữ liệu mình có nói rõ từ 1:00 đến 2:15, bạn có thể nghe kỹ lại nhé. Có gì thêm  thắc mắc thì cứ hỏi mình nhé",
-                  "date": "2017-07-18 17:35:32"
+                  "date": {
+                    "$date": "2017-07-18T10:35:32.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67a2effba376b0f5458a9094"
+                  }
+                },
+                {
+                  "responseID": "S021",
+                  "response": "Ở phút 1:30 thầy có giảng kỹ á bạn, bạn tua lại nghe thử",
+                  "date": {
+                    "$date": "2017-07-18T07:35:32.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67a2effba376b0f5458a9093"
+                  }
                 }
-              ]
+              ],
+              "_id": {
+                "$oid": "67a2effba376b0f5458a9092"
+              }
             }
           ]
         }
@@ -5128,7 +5583,51 @@
           "name": "Introduce",
           "description": "Video giới thiệu tổng quan môn học",
           "type": "video",
-          "source": "https://storage.googleapis.com/e-learning-bucket/C001/CT01/video1.mp4"
+          "source": "https://storage.googleapis.com/e-learning-bucket/C001/CT01/video1.mp4",
+          "QnA": [
+            {
+              "questionerID": "A000",
+              "question": "Xin chào",
+              "date": {
+                "$date": "2024-10-19T13:25:49.000Z"
+              },
+              "responses": [
+                {
+                  "responseID": "S000",
+                  "response": "có ai không",
+                  "date": {
+                    "$date": "2024-12-16T17:00:24.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67605ca8bbb8e2a093ff266d"
+                  }
+                },
+                {
+                  "responseID": "A000",
+                  "response": "xin chaof",
+                  "date": {
+                    "$date": "2024-10-20T04:06:05.000Z"
+                  },
+                  "_id": {
+                    "$oid": "671481ad2eb480690a3f8b47"
+                  }
+                },
+                {
+                  "responseID": "A000",
+                  "response": "có ai không",
+                  "date": {
+                    "$date": "2024-10-20T04:04:09.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67148139f668b91780d0f2c1"
+                  }
+                }
+              ],
+              "_id": {
+                "$oid": "6713b3849fdf2d43b1b9c856"
+              }
+            }
+          ]
         },
         {
           "id": 2,
@@ -8539,21 +9038,26 @@
           "source": "https://storage.googleapis.com/e-learning-bucket/C017/CT01/Ba%CC%80i%201%20D%C6%B0%CC%83%20li%C3%AA%CC%A3u%20la%CC%80%20gi%CC%80%20_%20Nh%C6%B0%CC%83ng%20kha%CC%81i%20ni%C3%AA%CC%A3m%20pha%CC%89i%20bi%C3%AA%CC%81t%20v%C3%AA%CC%80%20database.mp4",
           "QnA": [
             {
-              "questionerID": "S000",
-              "question": "Em chưa hiểu rõ lắm về khái niệm dữ liệu. Anh giải thích lại giúp em với",
-              "date": "2017-07-18 14:05:32",
+              "questionerID": "A000",
+              "question": "Xin chaof",
+              "date": {
+                "$date": "2024-10-18T14:31:12.000Z"
+              },
               "responses": [
                 {
-                  "responseID": "S021",
-                  "response": "Ở phút 1:30 thầy có giảng kỹ á bạn, bạn tua lại nghe thử",
-                  "date": "2017-07-18 14:35:32"
-                },
-                {
-                  "responseID": "I001",
-                  "response": "Chào bạn, rất vui vì được trả lời câu hỏi của bạn. Giải thích về khái niệm dữ liệu mình có nói rõ từ 1:00 đến 2:15, bạn có thể nghe kỹ lại nhé. Có gì thêm  thắc mắc thì cứ hỏi mình nhé",
-                  "date": "2017-07-18 17:35:32"
+                  "responseID": "A000",
+                  "response": "Tôi là thành viên mới của khóa học này",
+                  "date": {
+                    "$date": "2024-10-18T14:31:35.000Z"
+                  },
+                  "_id": {
+                    "$oid": "67127147d5e86a0832cd65ba"
+                  }
                 }
-              ]
+              ],
+              "_id": {
+                "$oid": "67127130d5e86a0832cd6513"
+              }
             }
           ]
         }
@@ -8599,7 +9103,19 @@
           "description": "Video giới thiệu về một số khái niệm liên quan đến database",
           "type": "video",
           "source": "https://storage.googleapis.com/e-learning-bucket/C017/CT03/Ba%CC%80i%203%20Database%20la%CC%80%20gi%CC%80%20_%20Nh%C6%B0%CC%83ng%20kha%CC%81i%20ni%C3%AA%CC%A3m%20pha%CC%89i%20bi%C3%AA%CC%81t%20v%C3%AA%CC%80%20database.mp4",
-          "QnA": []
+          "QnA": [
+            {
+              "questionerID": "A000",
+              "question": "Chào thầy",
+              "date": {
+                "$date": "2024-10-18T14:26:45.000Z"
+              },
+              "responses": [],
+              "_id": {
+                "$oid": "67127025e914d5d009d8bc53"
+              }
+            }
+          ]
         }
       ]
     },
@@ -8612,14 +9128,7 @@
           "description": "Table là khái niệm quan trọng nhất của database. Nơi lưu trữ dữ liệu của ứng dụng. Các bạn cần hiểu rõ khái niệm này nhé",
           "type": "video",
           "source": "https://storage.googleapis.com/e-learning-bucket/C017/CT04/Ba%CC%80i%204%20Table%20trong%20Database%20la%CC%80%20gi%CC%80%20_%20Nh%C6%B0%CC%83ng%20kha%CC%81i%20ni%C3%AA%CC%A3m%20pha%CC%89i%20bi%C3%AA%CC%81t%20v%C3%AA%CC%80%20database.mp4",
-          "QnA": [
-            {
-              "questionerID": "S011",
-              "question": "Em tạo table mà bị lỗi 'No selected database' thầy ơi :(( ",
-              "date": "2023-07-18 14:05:32",
-              "responses": []
-            }
-          ]
+          "QnA": []
         }
       ]
     },
@@ -26201,96 +26710,6 @@
               ]
             }
           ]
-        }
-      ]
-    }
-  ]
-},
-{
-  "_id": {
-    "$oid": "66f022eb053bae3824e20e8a"
-  },
-  "courseID": "C045",
-  "image_introduce": "https://storage.googleapis.com/e-learning-bucket/C045/image_introduce.jpg",
-  "video_introduce": "https://storage.googleapis.com/e-learning-bucket/C045/video_introduce.mp4",
-  "keywords": [
-    "d"
-  ],
-  "targets": [
-    "d",
-    "d",
-    "f"
-  ],
-  "requirements": [
-    "f"
-  ],
-  "chapters": [
-    {
-      "chapter_name": "1. Test",
-      "lectures": [
-        {
-          "name": "Lecture 1: Introductiondddd",
-          "type": "file",
-          "description": "desc1",
-          "source": "https://storage.googleapis.com/e-learning-bucket/C045/CT01/Lecture 1: Introductiondddd.pdf",
-          "filename": "Getting_Started_with_Enterprise_grade_AI_Badge20220424-46-1h5suws.pdf"
-        }
-      ]
-    },
-    {
-      "chapter_name": "2. Học làm quen",
-      "lectures": [
-        {
-          "name": "Lecture 1: Introduction",
-          "type": "video",
-          "description": "fff",
-          "source": "https://storage.googleapis.com/e-learning-bucket/C045/CT02/Lecture 1: Introduction.mp4",
-          "filename": "inforCourseIntro.mp4"
-        }
-      ]
-    }
-  ]
-},
-{
-  "_id": {
-    "$oid": "66f0276a3731ea6aef15900e"
-  },
-  "courseID": "C046",
-  "image_introduce": "https://storage.googleapis.com/e-learning-bucket/C046/image_introduce.jpg",
-  "video_introduce": "https://storage.googleapis.com/e-learning-bucket/C046/video_introduce.mp4",
-  "keywords": [
-    "d"
-  ],
-  "targets": [
-    "ddd"
-  ],
-  "requirements": [
-    "f",
-    "d",
-    "e"
-  ],
-  "chapters": [
-    {
-      "chapter_name": "1. Tìm hiểu công cụ",
-      "lectures": [
-        {
-          "name": "Lecture 1: Introductionff",
-          "type": "video",
-          "description": "desc1",
-          "source": "https://storage.googleapis.com/e-learning-bucket/C046/CT01/Lecture 1: Introductionff.mp4",
-          "filename": "inforCourseIntro.mp4"
-        }
-      ]
-    },
-    {
-      "chapter_name": "2. Học làm quen",
-      "lectures": [
-        {
-          "name": "Lecture 1: Introduction",
-          "type": "file",
-          "description": "desc2",
-          "source": "https://storage.googleapis.com/e-learning-bucket/C046/CT02/Lecture 1: Introduction.pdf",
-          "filename": "Getting_Started_with_Enterprise_grade_AI_Badge20220424-46-1h5suws.pdf"
         }
       ]
     }
