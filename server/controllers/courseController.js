@@ -8,7 +8,7 @@ import storage from '../config/connGCS.js'
 import { getListEmailAdmin, getUserByID } from './userController.js'
 import { putFileToStorage } from './googleCloudController.js'
 import xlsx from 'xlsx'
-import { convertToAssignmentObject, convertToQuizObject } from './xlsxController.js'
+import { convertToAssignmentObject, convertToCourseObject, convertToQuizObject } from './xlsxController.js'
 import fs from 'fs'
 import Email from './emailController.js'
 
@@ -1239,6 +1239,15 @@ const createCourse = catchAsync(async (req, res, next) => {
   }
 })
 
+// Tạo mới khóa học
+const uploadCourse = catchAsync(async (req, res, next) => {
+  const filePath = `../server/uploads/Require upload full course.xlsm`
+  const workbook = xlsx.readFile(filePath)
+  const courseID = await getNewCourseID()
+  const object = await convertToCourseObject(workbook)
+  res.status(200).send(object)
+})
+
 // cập nhật thông tin khóa học
 const updateCourse = catchAsync(async (req, res, next) => {
   // Implement here
@@ -1294,7 +1303,8 @@ export default {
   createCourse,
   updateCourse,
   uploadFileGCS,
-  getQnA
+  getQnA,
+  uploadCourse
 }
 
 export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL, getInstructorOfCourse }

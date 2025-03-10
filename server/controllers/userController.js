@@ -7,10 +7,6 @@ import mongoose from 'mongoose'
 import { createNotification } from './notificationController.js'
 import { socketFunction } from '../app.js'
 
-
-import { convertToAssignmentObject, convertToCourseObject, convertToQuizObject } from './xlsxController.js'
-import xlsx from 'xlsx'
-
 const newQnA = catchAsync(async (req, res, next) => {
   // Implement here
   const { id, lectureID } = req.params
@@ -156,14 +152,7 @@ const getListEmailAdmin = async () => {
   })
 }
 
-const test = catchAsync(async (req, res, next) => {
-  const filePath = `../server/uploads/Require upload full course.xlsm`
-  const workbook = xlsx.readFile(filePath)
-  const object = convertToCourseObject(workbook)
-  res.status(200).send(object)
-})
-
-export default { newQnA, updateAvatar, test }
+export default { newQnA, updateAvatar }
 
 export {
   getUserByEmail,

@@ -2,6 +2,8 @@ import xlsx from 'xlsx'
 import fs from 'fs'
 import axios from 'axios'
 
+let max_lecture = 0
+
 async function downloadFile(url, outputPath) {
   const response = await axios({
     url,
@@ -131,93 +133,62 @@ const convertGeneralInformation = (sheet, course_structure) => {
 
 const convertChapter = async (sheet) => {
   const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 })
-  let chapterObj = {}
-  let lectures = []
-  let lectureObj = {}
-  // Get chapter name
-  chapterObj.chapter_name = rawData[0][1]
+  let chapterObj = { chapter_name: rawData[0][1], lectures: [] }
 
-  // Get lecture information
-  for (let i = 2; i < rawData.length; i = i + 4) {
-    lectureObj.id = rawData[i][0]
-    lectureObj.name = rawData[i][2]
-    lectureObj.description = rawData[i+1][2]
-    lectureObj.type = rawData[i+2][2]
-    lectureObj.source = rawData[i+3][2]
-    lectureObj.QnA = []
+  const lectures = await Promise.all(
+    Array.from({ length: Math.floor((rawData.length - 2) / 4) }, (_, i) =>
+      processLecture(rawData, 2 + i * 4)
+    )
+  )
 
-    if (lectureObj.type === 'quizz') {
-      //Download file into local disk => read file => get quizz Object => delete file
-
-      //Start downloading
-      const uniqueID = Date.now()
-      const fileUrl = lectureObj.source
-      const outputPath = `../server/uploads/${uniqueID}.xlsx`
-      await downloadFile(fileUrl, outputPath)
-        .then(() => console.log('Download completed'))
-        .catch((err) => {
-          console.error('Download failed', err)
-          return
-        })
-
-      //Start to get data from file
-      try {
-        const filePath = outputPath
-        const workbook = xlsx.readFile(filePath)
-        const quizzObject = convertToQuizObject(workbook)
-        lectureObj.passpoint = quizzObject.passpoint
-        lectureObj.during_time = quizzObject.during_time
-        lectureObj.title = quizzObject.title
-        lectureObj.questions = quizzObject.questions
-        lectureObj.type = quizzObject.type
-
-        // Delete the file using fs.unlink()
-        try {
-          fs.unlinkSync(filePath)
-        } catch (err) {
-          return
-        }
-      } catch (error) {
-        return
-      }
-    }
-    else if (lectureObj.type === 'assignment') {
-      //Download file into local disk => read file => get assignment Object => delete file
-      //Start downloading
-      const uniqueID = Date.now()
-      const fileUrl = lectureObj.source
-      const outputPath = `../server/uploads/${uniqueID}`
-      await downloadFile(fileUrl, outputPath)
-        .then(() => console.log('Download completed'))
-        .catch((err) => {
-          console.error('Download failed', err)
-          return
-        })
-
-      try {
-        const filePath = outputPath
-        const workbook = xlsx.readFile(filePath)
-        const assignmentObject = convertToAssignmentObject(workbook)
-        lectureObj.topics = assignmentObject.topics
-
-        // Delete the file using fs.unlink()
-        try {
-          fs.unlinkSync(filePath)
-        } catch (err) {
-          return
-        }
-      } catch (error) {
-        return
-      }
-    }
-    lectures.push(lectureObj)
-    lectureObj = {}
-  }
-  chapterObj.lectures = lectureObj
+  chapterObj.lectures = lectures
   return chapterObj
 }
 
-const convertToCourseObject = (workbook) => {
+const processLecture = async (rawData, index) => {
+  let lectureObj = {
+    id: rawData[index][0],
+    name: rawData[index][2],
+    description: rawData[index + 1][2],
+    type: rawData[index + 2][2],
+    source: rawData[index + 3][2],
+    QnA: []
+  }
+
+  if (lectureObj.id >= max_lecture)
+    max_lecture = lectureObj.id
+
+  if (lectureObj.type === "quizz") {
+    const quizzObject = await processQuizzOrAssignment(lectureObj.source, convertToQuizObject)
+    Object.assign(lectureObj, quizzObject)
+  } else if (lectureObj.type === "assignment") {
+    const assignmentObject = await processQuizzOrAssignment(lectureObj.source, convertToAssignmentObject)
+    Object.assign(lectureObj, assignmentObject)
+  }
+
+  return lectureObj
+}
+
+const processQuizzOrAssignment = async (fileUrl, convertFunction) => {
+  const uniqueID = Date.now()
+  const outputPath = `../server/uploads/${uniqueID}.xlsx`
+
+  try {
+    await downloadFile(fileUrl, outputPath)
+    console.log("Download completed")
+
+    const workbook = xlsx.readFile(outputPath)
+    const result = convertFunction(workbook)
+
+    fs.unlinkSync(outputPath)
+    return result
+  } catch (error) {
+    console.error("Error processing file:", error)
+    return {}
+  }
+}
+
+const convertToCourseObject = async(workbook) => {
   const num_sheets = workbook.SheetNames.length
   let course_structure = {}
   let chapters = []
@@ -228,11 +199,18 @@ const convertToCourseObject = (workbook) => {
     if (i == 1)
       course_structure = convertGeneralInformation(sheet, course_structure)
     else {
-      chapterObj = convertChapter(sheet)
-      chapters.push(chapterObj)
+      try {
+        chapterObj = await convertChapter(sheet)
+        chapters.push(chapterObj)
+      }
+      catch (error) {
+        console.log('error when convert Chapter', error)
+      }
     }
   }
   course_structure.chapters = chapters
+  course_structure.num_lecture = max_lecture
+  return course_structure
 }
 
 export { convertToQuizObject, convertToAssignmentObject, convertToCourseObject }
