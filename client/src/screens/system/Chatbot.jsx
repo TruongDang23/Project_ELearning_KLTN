@@ -90,7 +90,8 @@ const ChatBotUI = () => {
               position: "fixed",
               bottom: "80px",
               right: "20px",
-              width: "350px",
+              width: "400px",
+              minHeight: "500px",
               backgroundColor: "#f5f5f5",
               boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.2)",
               borderRadius: "10px",
@@ -157,10 +158,10 @@ const ChatBotUI = () => {
               ref={chatRef}
               style={{
                 flex: 1,
-                minHeight: "150px",
+                minHeight: "200px",
+                maxHeight: "400px",
                 padding: "10px",
                 overflowY: "auto",
-                maxHeight: "250px",
                 display: "flex",
                 flexDirection: "column",
                 gap: "10px",
