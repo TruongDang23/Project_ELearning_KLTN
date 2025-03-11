@@ -1241,11 +1241,24 @@ const createCourse = catchAsync(async (req, res, next) => {
 
 // Tạo mới khóa học
 const uploadCourse = catchAsync(async (req, res, next) => {
-  const filePath = `../server/uploads/Require upload full course.xlsm`
-  const workbook = xlsx.readFile(filePath)
-  const courseID = await getNewCourseID()
-  const object = await convertToCourseObject(workbook)
-  res.status(200).send(object)
+  if (!req.files || req.files.length === 0) {
+    return next({ status: 400, message: 'No file uploaded!' })
+  }
+
+  const file = req.files[0]
+  try {
+    const workbook = xlsx.read(file.buffer, { type: 'buffer' })
+
+    const courseID = await getNewCourseID()
+    const object = await convertToCourseObject(workbook)
+    object.courseID = courseID
+    object.userID = req.userID
+
+    res.status(201).send(object)
+  }
+  catch (error) {
+    return next({ status: 500, message: 'Error processing file' })
+  }
 })
 
 // cập nhật thông tin khóa học

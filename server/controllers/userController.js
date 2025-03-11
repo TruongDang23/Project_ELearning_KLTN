@@ -52,7 +52,7 @@ const updateAvatar = catchAsync(async (req, res, next) => {
     return next({ status: 400, message: 'No file uploaded!' })
   }
 
-  const file = req.files[0]; // Lấy file đầu tiên (nếu có nhiều file)
+  const file = req.files[0] // Lấy file đầu tiên (nếu có nhiều file)
 
   // Gọi hàm để upload file lên GCS
   // eslint-disable-next-line no-undef
