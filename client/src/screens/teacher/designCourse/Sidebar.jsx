@@ -4,10 +4,20 @@ import { useContext } from 'react'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { DesignCourseContext } from './DesignCourseContext'
 import { useState, useEffect } from 'react'
+import { instructor } from 'api'
 
 function Sidebar({ handleSave }) {
   const { completedSections } = useContext(DesignCourseContext)
   const [isCompleted, setIsCompleted] = useState(false)
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0]
+    if (file) {
+      const res = await instructor.uploadCourse(file)
+      console.log(res)
+      console.log("Selected File:", file.name)
+    }
+  }
 
   useEffect(() => {
     setIsCompleted(Object.values(completedSections).every(value => value === true))
@@ -82,6 +92,16 @@ function Sidebar({ handleSave }) {
         <button id="btn-cancel">
                 Cancel Design
         </button>
+
+        <label htmlFor="file-upload" id="btn-upload">
+          Upload Course
+        </label>
+        <input
+          type="file"
+          id="file-upload"
+          accept=".xlsx, .xlsm, .xls"
+          onChange={handleFileChange}
+        />
       </div>
     </SidebarWrapper>
   )
@@ -168,34 +188,64 @@ const SidebarWrapper = styled.section`
   cursor: not-allowed;
   box-shadow: none;
 }
-  #btn-cancel {
-    background-color: #fff;
-    color: #ff3e3e;
-    border: none;
+
+#btn-cancel {
+  background-color: #fff;
+  color: #ff3e3e;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  min-width: 160px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+  border: none;
+  transition: 0.3s all ease;
+  box-shadow: 0 0 0 2px #ff3e3e;
+  #btn-main span {
+    svg {
+      font-size: 2rem;
+    }
+  }
+  &:hover {
+    background-color: #ff3e3e;
+    color: #fff;
+  }
+}
+
+
+  input[type="file"] {
+    display: none;
+  }
+
+  .file-name {
+    font-size: 1.4rem;
+    color: #555;
+    margin-top: 5px;
+  }
+
+  #btn-upload {
+    background-color: #8bc34a;
+    color: #fff;
     padding: 10px 20px;
     border-radius: 5px;
     font-size: 1.6rem;
     font-weight: 700;
-    min-width: 160px;
+    max-width: 120px;
+    min-width: 160px; /* Thêm min-width để đồng nhất */
     cursor: pointer;
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Đảm bảo nội dung căn giữa */
     align-items: center;
-    margin-bottom: 10px;
     gap: 10px;
-    border: none;
     transition: 0.3s all ease;
-    box-shadow: 0 0 0 2px #ff3e3e;
-    #btn-main span {
-      svg {
-        font-size: 2rem;
-      }
-    }
-
-    &:hover {
-      background-color: #ff3e3e;
-      color: #fff;
-    }
+    box-shadow: 0 0 0 2px #8bc34a;
+    margin-bottom: 10px;
   }
 `
 
