@@ -1,122 +1,243 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { format } from "date-fns";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import ReplayIcon from '@mui/icons-material/Replay'
 
-const VF_API_KEY = "VF.DM.67679c3311a754f767bec5c3.e6mcy3aMZeakREfo"; // Thay thế bằng API Key thực tế
-const USER_ID = "I000"; // Thay thế bằng user ID hợp lệ
+const ChatBotUI = () => {
+  const [showPopup, setShowPopup] = useState(false);
+  const [message, setMessage] = useState("");
+  const initialChat = [
+    { sender: "ai", text: "Xin chào! Tôi có thể giúp gì cho bạn?", time: new Date().toLocaleTimeString() }
+  ];
+  const [chat, setChat] = useState(initialChat);
 
-export default function ChatbotUI() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [typing, setTyping] = useState(false);
+  const chatRef = useRef(null);
 
   useEffect(() => {
-    startChat();
-  }, []);
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [chat]);
 
-  const startChat = async () => {
-    setLoading(true);
-    setTyping(true);
-    try {
-      const response = await fetch(`https://general-runtime.voiceflow.com/state/user/${USER_ID}/interact?logs=off`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": VF_API_KEY
-        },
-        body: JSON.stringify({ action: { type: "launch" }, config: { tts: false } })
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      const data = await response.json();
-
-      setTyping(false);
-      setLoading(false);
-
-      data?.forEach((msg, index) => {
-        if (msg?.payload?.message) {
-          setTimeout(() => {
-            setMessages((prev) => [...prev, { text: msg.payload.message, sender: "bot", time: new Date() }]);
-          }, msg.payload.delay || 500 * index);
-        }
-      });
-    } catch (error) {
-      console.error("Lỗi khi gọi API Voiceflow:", error);
-      setTyping(false);
-      setLoading(false);
+  const sendMessage = () => {
+    if (message.trim()) {
+      const newMessage = {
+        sender: "user",
+        text: message,
+        time: new Date().toLocaleTimeString()
+      };
+      setChat([...chat, newMessage]);
+      setMessage("");
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userMessage = { text: input, sender: "user", time: new Date() };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setLoading(true);
-    setTyping(true);
-
-    try {
-      const response = await fetch("/api/voiceflow/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": VF_API_KEY
-        },
-        body: JSON.stringify({ message: input })
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      const data = await response.json();
-
-      setTimeout(() => {
-        setMessages((prev) => [...prev, { text: data[0]?.payload?.message || "Không có phản hồi", sender: "bot", time: new Date() }]);
-        setTyping(false);
-        setLoading(false);
-      }, data[0]?.payload?.delay || 1000);
-    } catch (error) {
-      console.error("Lỗi khi gửi tin nhắn:", error);
-      setMessages((prev) => [...prev, { text: "Lỗi khi gửi tin nhắn", sender: "bot", time: new Date() }]);
-      setTyping(false);
-      setLoading(false);
-    }
+  // Hàm reset chat
+  const refreshChat = () => {
+    setChat(initialChat);
   };
 
   return (
-    <Card className="max-w-md mx-auto p-4 shadow-lg rounded-2xl bg-gray-100">
-      <CardContent className="h-96 overflow-y-auto space-y-4 p-4 flex flex-col">
-        {messages.map((msg, index) => (
+    <>
+      {/* Button mở popup */}
+      <button
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          backgroundColor: "#007bff",
+          color: "white",
+          border: "none",
+          padding: "12px 20px 12px 50px",
+          borderRadius: "50px",
+          cursor: "pointer",
+          boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.2)",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          fontSize: "16px",
+          fontWeight: "bold",
+          transition: "all 0.3s ease"
+        }}
+        onClick={() => setShowPopup(!showPopup)}
+      >
+        <img
+          width="60"
+          height="60"
+          src="https://img.icons8.com/fluency/48/jasper-ai.png"
+          alt="AI Assistant"
+          style={{
+            position: "absolute",
+            left: "-20px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            backgroundColor: "white",
+            borderRadius: "50%",
+            padding: "5px",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)"
+          }}
+        />
+        AI Assistant
+      </button>
+
+      {/* Popup hội thoại có hiệu ứng */}
+      <AnimatePresence>
+        {showPopup && (
           <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-3 rounded-xl max-w-[80%] ${msg.sender === "bot" ? "bg-white text-black self-start" : "bg-blue-100 text-black self-end"}`}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            style={{
+              position: "fixed",
+              bottom: "80px",
+              right: "20px",
+              width: "350px",
+              backgroundColor: "#f5f5f5",
+              boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.2)",
+              borderRadius: "10px",
+              padding: "15px",
+              zIndex: 1000,
+              display: "flex",
+              flexDirection: "column"
+            }}
           >
-            <p className="text-sm">{msg.text}</p>
-            <span className="block text-xs text-gray-500 mt-1">{format(msg.time, "HH:mm:ss")}</span>
-          </motion.div>
-        ))}
-        {typing && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ repeat: Infinity, repeatType: "reverse", duration: 0.6 }}
-            className="p-3 rounded-xl max-w-[80%] bg-white text-black self-start flex items-center"
-          >
-            <span className="text-sm">Đang nhập</span>
-            <motion.span className="ml-1 w-2 h-2 bg-black rounded-full" animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6 }}></motion.span>
-            <motion.span className="ml-1 w-2 h-2 bg-black rounded-full" animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}></motion.span>
-            <motion.span className="ml-1 w-2 h-2 bg-black rounded-full" animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}></motion.span>
+            {/* Header popup */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderBottom: "1px solid #ddd",
+                paddingBottom: "10px"
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <img
+                  width="32"
+                  height="32"
+                  src="https://img.icons8.com/fluency/48/jasper-ai.png"
+                  alt="AI Assistant"
+                />
+                <h3 style={{ margin: 0, fontSize: "1.6rem", fontWeight: "bold", color: "#333" }}>
+                  AI Assistant
+                </h3>
+              </div>
+              <div>
+                {/* Nút Refresh */}
+                <button
+                  onClick={refreshChat}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "23px",
+                    color: "#007bff",
+                    marginRight: "10px"
+                  }}
+                >
+                  <ReplayIcon/>
+                </button>
+                {/* Nút Đóng */}
+                <button
+                  onClick={() => setShowPopup(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "18px",
+                    color: "#999"
+                  }}
+                >
+                  ✖
+                </button>
+              </div>
+            </div>
+
+            {/* Nội dung chat */}
+            <div
+              ref={chatRef}
+              style={{
+                flex: 1,
+                minHeight: "150px",
+                padding: "10px",
+                overflowY: "auto",
+                maxHeight: "250px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                scrollbarWidth: "thin",
+                scrollbarColor: "#ccc #f5f5f5"
+              }}
+            >
+              {chat.map((msg, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: msg.sender === "user" ? 50 : -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{
+                    alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
+                    backgroundColor: msg.sender === "user" ? "#cce5ff" : "white",
+                    padding: "10px",
+                    borderRadius: "10px",
+                    maxWidth: "75%",
+                    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)"
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: "1.6rem", color: "#333" }}>{msg.text}</p>
+                  <small style={{ display: "block", textAlign: "right", color: "#888", marginTop: "5px" }}>
+                    {msg.time}
+                  </small>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Input chat */}
+            <div
+              style={{
+                display: "flex",
+                borderTop: "1px solid #ddd",
+                paddingTop: "10px",
+                backgroundColor: "#fff",
+                padding: "10px",
+                borderRadius: "5px"
+              }}
+            >
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Nhập tin nhắn..."
+                style={{
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: "5px",
+                  border: "1px solid #ccc",
+                  outline: "none",
+                  fontSize: "1.6rem"
+                }}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              />
+              <button
+                style={{
+                  marginLeft: "8px",
+                  backgroundColor: "#007bff",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 12px",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  fontSize: "1.6rem"
+                }}
+                onClick={sendMessage}
+              >
+                Gửi
+              </button>
+            </div>
           </motion.div>
         )}
-      </CardContent>
-      <div className="flex gap-2 p-2 border-t">
-        <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Nhập tin nhắn..." className="flex-1" />
-        <Button onClick={sendMessage} disabled={loading}>Gửi</Button>
-      </div>
-    </Card>
+      </AnimatePresence>
+    </>
   );
-}
+};
+
+export default ChatBotUI;
