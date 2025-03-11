@@ -185,7 +185,7 @@ const ChatBotUI = () => {
                   }}
                 >
                   <p style={{ margin: 0, fontSize: "1.6rem", color: "#333" }}>{msg.text}</p>
-                  <small style={{ display: "block", textAlign: "right", color: "#888", marginTop: "5px" }}>
+                  <small style={{ display: "block", textAlign: "right", color: "#888", marginTop: "5px", fontSize: "1.3rem" }}>
                     {msg.time}
                   </small>
                 </motion.div>
