@@ -1220,11 +1220,11 @@ const createCourse = catchAsync(async (req, res, next) => {
     }
     else
     {
-      await mysqlTransaction.query("COMMIT")
-      await mongoTransaction.commitTransaction()
-
       if (list_email.length != 0 )
         await emailController.sendCreateCourse(courseID, structure.title, list_email)
+
+      await mysqlTransaction.query("COMMIT")
+      await mongoTransaction.commitTransaction()
 
       res.status(201).send()
     }
@@ -1334,11 +1334,11 @@ const uploadCourse = catchAsync(async (req, res, next) => {
     }
     else
     {
-      await mysqlTransaction.query("COMMIT")
-      await mongoTransaction.commitTransaction()
-
       if (list_email.length != 0 )
         await emailController.sendCreateCourse(courseID, structure.title, list_email)
+
+      await mysqlTransaction.query("COMMIT")
+      await mongoTransaction.commitTransaction()
 
       res.status(201).send()
     }

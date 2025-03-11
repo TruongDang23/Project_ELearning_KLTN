@@ -25,6 +25,7 @@ courseRouter
 courseRouter
   .route('/upload-course')
   .post(
+    authController.protect,
     authController.restrictTo('instructor'),
     uploadTemp.any(),
     courseController.uploadCourse

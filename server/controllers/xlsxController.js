@@ -183,7 +183,6 @@ const processQuizzOrAssignment = async (fileUrl, convertFunction) => {
     fs.unlinkSync(outputPath)
     return result
   } catch (error) {
-    console.error("Error processing file:", error)
     return {}
   }
 }
@@ -204,7 +203,7 @@ const convertToCourseObject = async(workbook) => {
         chapters.push(chapterObj)
       }
       catch (error) {
-        console.log('error when convert Chapter', error)
+        //console.log('error when convert Chapter', error)
       }
     }
   }
