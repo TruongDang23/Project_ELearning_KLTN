@@ -1246,18 +1246,112 @@ const uploadCourse = catchAsync(async (req, res, next) => {
   }
 
   const file = req.files[0]
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
   try {
     const workbook = xlsx.read(file.buffer, { type: 'buffer' })
 
     const courseID = await getNewCourseID()
-    const object = await convertToCourseObject(workbook)
-    object.courseID = courseID
-    object.userID = req.userID
+    const structure = await convertToCourseObject(workbook)
+    const time = formatDateTime(new Date())
+    const emailController = new Email()
+    let list_email = await getListEmailAdmin()
+    list_email = list_email.map(row => row.mail)
+    structure.courseID = courseID
+    structure.userID = req.userID
 
-    res.status(201).send(object)
+    await mysqlTransaction.query("START TRANSACTION")
+    mongoTransaction.startTransaction()
+
+    //Insert course structure into mongoDB
+    await Course.collection.insertOne(
+      {
+        courseID: courseID,
+        image_introduce: structure.image_introduce,
+        video_introduce: structure.video_introduce,
+        keywords: structure.keywords,
+        targets: structure.targets,
+        requirements: structure.requirements,
+        chapters: structure.chapters
+      },
+      {
+        session: mongoTransaction
+      }
+    )
+
+    //Insert course information into table course
+    let queryInsertNewCourse = `INSERT INTO course (
+                courseID,
+                type_of_course,
+                title,
+                method,
+                language,
+                price,
+                currency,
+                program,
+                category,
+                course_for,
+                status,
+                num_lecture,
+                userID)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  `
+
+    //Insert course information into table created_course
+    let queryInsertCreateCourse = `INSERT INTO created_course (
+                courseID,
+                time)
+              VALUES (?, ?)`
+
+    const [rowscourse] = await mysqlTransaction.query(queryInsertNewCourse,
+      [
+        courseID,
+        structure.type_of_course,
+        structure.title,
+        structure.method,
+        structure.language,
+        structure.price,
+        structure.currency,
+        structure.program,
+        structure.category,
+        structure.course_for,
+        'created',
+        structure.num_lecture,
+        req.userID
+      ])
+
+    const [rowscreated_course] = await mysqlTransaction.query(queryInsertCreateCourse,
+      [
+        courseID,
+        time
+      ])
+
+    if (rowscourse.affectedRows == 0 || rowscreated_course.affectedRows == 0 )
+    {
+      await mysqlTransaction.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next({ status: 204, message: "No course has created" })
+    }
+    else
+    {
+      await mysqlTransaction.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+
+      if (list_email.length != 0 )
+        await emailController.sendCreateCourse(courseID, structure.title, list_email)
+
+      res.status(201).send()
+    }
+
   }
   catch (error) {
-    return next({ status: 500, message: 'Error processing file' })
+    await mysqlTransaction.query("ROLLBACK")
+    await mongoTransaction.abortTransaction()
+    console.log(error)
+    return next({ status: 500, message: 'Error processing upload course' })
+  }
+  finally {
+    mongoTransaction.endSession()
   }
 })
 
