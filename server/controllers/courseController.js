@@ -8,7 +8,7 @@ import storage from '../config/connGCS.js'
 import { getListEmailAdmin, getUserByID } from './userController.js'
 import { putFileToStorage } from './googleCloudController.js'
 import xlsx from 'xlsx'
-import { convertToAssignmentObject, convertToQuizObject } from './xlsxController.js'
+import { convertToAssignmentObject, convertToCourseObject, convertToQuizObject } from './xlsxController.js'
 import fs from 'fs'
 import Email from './emailController.js'
 
@@ -1220,11 +1220,11 @@ const createCourse = catchAsync(async (req, res, next) => {
     }
     else
     {
-      await mysqlTransaction.query("COMMIT")
-      await mongoTransaction.commitTransaction()
-
       if (list_email.length != 0 )
         await emailController.sendCreateCourse(courseID, structure.title, list_email)
+
+      await mysqlTransaction.query("COMMIT")
+      await mongoTransaction.commitTransaction()
 
       res.status(201).send()
     }
@@ -1233,6 +1233,122 @@ const createCourse = catchAsync(async (req, res, next) => {
     await mysqlTransaction.query("ROLLBACK")
     await mongoTransaction.abortTransaction()
     next(error)
+  }
+  finally {
+    mongoTransaction.endSession()
+  }
+})
+
+// Tạo mới khóa học
+const uploadCourse = catchAsync(async (req, res, next) => {
+  if (!req.files || req.files.length === 0) {
+    return next({ status: 400, message: 'No file uploaded!' })
+  }
+
+  const file = req.files[0]
+  const mysqlTransaction = connectMysql.promise()
+  const mongoTransaction = await mongoose.startSession()
+  try {
+    const workbook = xlsx.read(file.buffer, { type: 'buffer' })
+
+    const courseID = await getNewCourseID()
+    const structure = await convertToCourseObject(workbook)
+    const time = formatDateTime(new Date())
+    const emailController = new Email()
+    let list_email = await getListEmailAdmin()
+    list_email = list_email.map(row => row.mail)
+    structure.courseID = courseID
+    structure.userID = req.userID
+
+    await mysqlTransaction.query("START TRANSACTION")
+    mongoTransaction.startTransaction()
+
+    //Insert course structure into mongoDB
+    await Course.collection.insertOne(
+      {
+        courseID: courseID,
+        image_introduce: structure.image_introduce,
+        video_introduce: structure.video_introduce,
+        keywords: structure.keywords,
+        targets: structure.targets,
+        requirements: structure.requirements,
+        chapters: structure.chapters
+      },
+      {
+        session: mongoTransaction
+      }
+    )
+
+    //Insert course information into table course
+    let queryInsertNewCourse = `INSERT INTO course (
+                courseID,
+                type_of_course,
+                title,
+                method,
+                language,
+                price,
+                currency,
+                program,
+                category,
+                course_for,
+                status,
+                num_lecture,
+                userID)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  `
+
+    //Insert course information into table created_course
+    let queryInsertCreateCourse = `INSERT INTO created_course (
+                courseID,
+                time)
+              VALUES (?, ?)`
+
+    const [rowscourse] = await mysqlTransaction.query(queryInsertNewCourse,
+      [
+        courseID,
+        structure.type_of_course,
+        structure.title,
+        structure.method,
+        structure.language,
+        structure.price,
+        structure.currency,
+        structure.program,
+        structure.category,
+        structure.course_for,
+        'created',
+        structure.num_lecture,
+        req.userID
+      ])
+
+    const [rowscreated_course] = await mysqlTransaction.query(queryInsertCreateCourse,
+      [
+        courseID,
+        time
+      ])
+
+    if (rowscourse.affectedRows == 0 || rowscreated_course.affectedRows == 0 )
+    {
+      await mysqlTransaction.query("ROLLBACK")
+      await mongoTransaction.abortTransaction()
+      next({ status: 204, message: "No course has created" })
+    }
+    else
+    {
+      if (list_email.length != 0 )
+        await emailController.sendCreateCourse(courseID, structure.title, list_email)
+
+      await mysqlTransaction.query("COMMIT")
+      await mongoTransaction.commitTransaction()
+
+      res.status(201).send()
+    }
+
+  }
+  catch (error) {
+    await mysqlTransaction.query("ROLLBACK")
+    await mongoTransaction.abortTransaction()
+    console.log(error)
+    return next({ status: 500, message: 'Error processing upload course' })
   }
   finally {
     mongoTransaction.endSession()
@@ -1294,7 +1410,8 @@ export default {
   createCourse,
   updateCourse,
   uploadFileGCS,
-  getQnA
+  getQnA,
+  uploadCourse
 }
 
 export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL, getInstructorOfCourse }

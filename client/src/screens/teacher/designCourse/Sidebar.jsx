@@ -4,86 +4,136 @@ import { useContext } from 'react'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { DesignCourseContext } from './DesignCourseContext'
 import { useState, useEffect } from 'react'
+import { instructor } from 'api'
+import { useNavigate } from 'react-router-dom'
+import { Snackbar } from "~/components/general"
 
 function Sidebar({ handleSave }) {
   const { completedSections } = useContext(DesignCourseContext)
   const [isCompleted, setIsCompleted] = useState(false)
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
+  const navigate = useNavigate()
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0]
+    const formData = new FormData()
+    if (file) {
+      formData.append(`upload full course`, file)
+      const res = await instructor.uploadCourse(formData)
+      if (res.status === 201) {
+        setOpenSuccess(true)
+        setTimeout(() => {
+          navigate('/instructor/manageCourse')
+        }, 2000)
+      }
+      else {
+        setOpenError({
+          status: true,
+          message: res.response.data.error
+        })
+        setTimeout(() => {
+          setOpenError({
+            status: false
+          })
+        }, 3000)
+      }
+    }
+  }
 
   useEffect(() => {
     setIsCompleted(Object.values(completedSections).every(value => value === true))
   }, [completedSections])
 
   return (
-    <SidebarWrapper>
-      <div className="sidebar-container">
-        <h3>Publish Your Course</h3>
-        <div className="sidebar-content">
-          <Link to="general" duration={500} offset={-10}>
-            <button>
+    <>
+      <SidebarWrapper>
+        <div className="sidebar-container">
+          <h3>Publish Your Course</h3>
+          <div className="sidebar-content">
+            <Link to="general" duration={500} offset={-10}>
+              <button>
               General
-              {completedSections.general && (
-                <span>
-                  <CheckCircleOutlineIcon />
-                </span>
-              )}
-            </button>
-          </Link>
-          <Link to="categories" duration={500} offset={-10}>
-            <button>
+                {completedSections.general && (
+                  <span>
+                    <CheckCircleOutlineIcon />
+                  </span>
+                )}
+              </button>
+            </Link>
+            <Link to="categories" duration={500} offset={-10}>
+              <button>
               Categories
-              {completedSections.categories && (
-                <span>
-                  <CheckCircleOutlineIcon />
-                </span>
-              )}
-            </button>
-          </Link>
+                {completedSections.categories && (
+                  <span>
+                    <CheckCircleOutlineIcon />
+                  </span>
+                )}
+              </button>
+            </Link>
+          </div>
         </div>
-      </div>
-      <div className="sidebar-container">
-        <h3>Plan Your Course</h3>
-        <div className="sidebar-content">
-          <Link to="intended-learners" duration={500} offset={-10}>
-            <button>
+        <div className="sidebar-container">
+          <h3>Plan Your Course</h3>
+          <div className="sidebar-content">
+            <Link to="intended-learners" duration={500} offset={-10}>
+              <button>
               Intended learners
-              {completedSections.intendedLearners && (
-                <span>
-                  <CheckCircleOutlineIcon />
-                </span>
-              )}
-            </button>
-          </Link>
-          <Link to="course-structure" duration={500} offset={-10}>
-            <button>
+                {completedSections.intendedLearners && (
+                  <span>
+                    <CheckCircleOutlineIcon />
+                  </span>
+                )}
+              </button>
+            </Link>
+            <Link to="course-structure" duration={500} offset={-10}>
+              <button>
               Course Structure
-              {completedSections.courseStructure && (
-                <span>
-                  <CheckCircleOutlineIcon />
-                </span>
-              )}
-            </button>
-          </Link>
-          <Link to="introduce-course" duration={500} offset={-10}>
-            <button>
+                {completedSections.courseStructure && (
+                  <span>
+                    <CheckCircleOutlineIcon />
+                  </span>
+                )}
+              </button>
+            </Link>
+            <Link to="introduce-course" duration={500} offset={-10}>
+              <button>
               Introduce Course
-              {completedSections.introduceCourse && (
-                <span>
-                  <CheckCircleOutlineIcon />
-                </span>
-              )}
-            </button>
-          </Link>
+                {completedSections.introduceCourse && (
+                  <span>
+                    <CheckCircleOutlineIcon />
+                  </span>
+                )}
+              </button>
+            </Link>
+          </div>
         </div>
-      </div>
-      <div className='buttons'>
-        <button id="btn-save" onClick={handleSave} disabled={!isCompleted}>
+        <div className='buttons'>
+          <button id="btn-save" onClick={handleSave} disabled={!isCompleted}>
                 Save Design
-        </button>
-        <button id="btn-cancel">
+          </button>
+          <button id="btn-cancel">
                 Cancel Design
-        </button>
-      </div>
-    </SidebarWrapper>
+          </button>
+
+          <label htmlFor="file-upload" id="btn-upload">
+          Upload Course
+          </label>
+          <input
+            type="file"
+            id="file-upload"
+            accept=".xlsx, .xlsm, .xls"
+            onChange={handleFileChange}
+          />
+        </div>
+      </SidebarWrapper>
+      {openSuccess ? <> <Snackbar vertical="bottom" horizontal="center" severity="success" message="Create Successfully" /> </> : <> </>}
+      {openError.status ? <> <Snackbar vertical="bottom" horizontal="center" severity="error" message={openError.message} /> </> : <> </>}
+    </>
+
   )
 }
 
@@ -168,34 +218,64 @@ const SidebarWrapper = styled.section`
   cursor: not-allowed;
   box-shadow: none;
 }
-  #btn-cancel {
-    background-color: #fff;
-    color: #ff3e3e;
-    border: none;
+
+#btn-cancel {
+  background-color: #fff;
+  color: #ff3e3e;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  min-width: 160px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+  border: none;
+  transition: 0.3s all ease;
+  box-shadow: 0 0 0 2px #ff3e3e;
+  #btn-main span {
+    svg {
+      font-size: 2rem;
+    }
+  }
+  &:hover {
+    background-color: #ff3e3e;
+    color: #fff;
+  }
+}
+
+
+  input[type="file"] {
+    display: none;
+  }
+
+  .file-name {
+    font-size: 1.4rem;
+    color: #555;
+    margin-top: 5px;
+  }
+
+  #btn-upload {
+    background-color: #8bc34a;
+    color: #fff;
     padding: 10px 20px;
     border-radius: 5px;
     font-size: 1.6rem;
     font-weight: 700;
-    min-width: 160px;
+    max-width: 120px;
+    min-width: 160px; /* Thêm min-width để đồng nhất */
     cursor: pointer;
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Đảm bảo nội dung căn giữa */
     align-items: center;
-    margin-bottom: 10px;
     gap: 10px;
-    border: none;
     transition: 0.3s all ease;
-    box-shadow: 0 0 0 2px #ff3e3e;
-    #btn-main span {
-      svg {
-        font-size: 2rem;
-      }
-    }
-
-    &:hover {
-      background-color: #ff3e3e;
-      color: #fff;
-    }
+    box-shadow: 0 0 0 2px #8bc34a;
+    margin-bottom: 10px;
   }
 `
 

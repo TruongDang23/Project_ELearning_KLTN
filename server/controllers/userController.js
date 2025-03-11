@@ -7,10 +7,6 @@ import mongoose from 'mongoose'
 import { createNotification } from './notificationController.js'
 import { socketFunction } from '../app.js'
 
-
-import { convertToAssignmentObject, convertToQuizObject } from './xlsxController.js'
-import xlsx from 'xlsx'
-
 const newQnA = catchAsync(async (req, res, next) => {
   // Implement here
   const { id, lectureID } = req.params
@@ -56,7 +52,7 @@ const updateAvatar = catchAsync(async (req, res, next) => {
     return next({ status: 400, message: 'No file uploaded!' })
   }
 
-  const file = req.files[0]; // Lấy file đầu tiên (nếu có nhiều file)
+  const file = req.files[0] // Lấy file đầu tiên (nếu có nhiều file)
 
   // Gọi hàm để upload file lên GCS
   // eslint-disable-next-line no-undef
@@ -156,14 +152,7 @@ const getListEmailAdmin = async () => {
   })
 }
 
-const test = catchAsync(async (req, res, next) => {
-  const filePath = `../server/uploads/assignment.xlsx`
-  const workbook = xlsx.readFile(filePath)
-  const quizObject = convertToAssignmentObject(workbook)
-  res.status(200).send(quizObject)
-})
-
-export default { newQnA, updateAvatar, test }
+export default { newQnA, updateAvatar }
 
 export {
   getUserByEmail,

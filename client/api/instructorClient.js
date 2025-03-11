@@ -62,6 +62,10 @@ export class InstructorClient extends ApiClient {
       return res_files
   }
 
+  async uploadCourse (formData) {
+    return this.course.uploadCourse(formData)
+  }
+
   async updateCourse(courseID, newdata) {
     return this.course.update(courseID, newdata)
   }

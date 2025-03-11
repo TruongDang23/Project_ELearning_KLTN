@@ -1,4 +1,24 @@
 import xlsx from 'xlsx'
+import fs from 'fs'
+import axios from 'axios'
+
+let max_lecture = 0
+
+async function downloadFile(url, outputPath) {
+  const response = await axios({
+    url,
+    method: 'GET',
+    responseType: 'stream'
+  })
+
+  const writer = fs.createWriteStream(outputPath);
+  response.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on('finish', resolve)
+    writer.on('error', reject)
+  })
+}
 
 const convertToQuizObject = (workbook) => {
   const sheetName = workbook.SheetNames[0]
@@ -99,5 +119,97 @@ const convertToAssignmentObject = (workbook) => {
   return jsonData
 }
 
+const convertGeneralInformation = (sheet, course_structure) => {
+  const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 })
+  for (let i = 1; i < rawData.length; i++) {
+    let [key, value] = rawData[i]
 
-export { convertToQuizObject, convertToAssignmentObject }
+    if (typeof value === 'string' && value.includes('\r\n'))
+      value = value.split('\r\n')
+    course_structure[key] = value
+  }
+  return course_structure
+}
+
+const convertChapter = async (sheet) => {
+  const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 })
+  let chapterObj = { chapter_name: rawData[0][1], lectures: [] }
+
+  const lectures = await Promise.all(
+    Array.from({ length: Math.floor((rawData.length - 2) / 4) }, (_, i) =>
+      processLecture(rawData, 2 + i * 4)
+    )
+  )
+
+  chapterObj.lectures = lectures
+  return chapterObj
+}
+
+const processLecture = async (rawData, index) => {
+  let lectureObj = {
+    id: rawData[index][0],
+    name: rawData[index][2],
+    description: rawData[index + 1][2],
+    type: rawData[index + 2][2],
+    source: rawData[index + 3][2],
+    QnA: []
+  }
+
+  if (lectureObj.id >= max_lecture)
+    max_lecture = lectureObj.id
+
+  if (lectureObj.type === "quizz") {
+    const quizzObject = await processQuizzOrAssignment(lectureObj.source, convertToQuizObject)
+    Object.assign(lectureObj, quizzObject)
+  } else if (lectureObj.type === "assignment") {
+    const assignmentObject = await processQuizzOrAssignment(lectureObj.source, convertToAssignmentObject)
+    Object.assign(lectureObj, assignmentObject)
+  }
+
+  return lectureObj
+}
+
+const processQuizzOrAssignment = async (fileUrl, convertFunction) => {
+  const uniqueID = Date.now()
+  const outputPath = `../server/uploads/${uniqueID}.xlsx`
+
+  try {
+    await downloadFile(fileUrl, outputPath)
+    console.log("Download completed")
+
+    const workbook = xlsx.readFile(outputPath)
+    const result = convertFunction(workbook)
+
+    fs.unlinkSync(outputPath)
+    return result
+  } catch (error) {
+    return {}
+  }
+}
+
+const convertToCourseObject = async(workbook) => {
+  const num_sheets = workbook.SheetNames.length
+  let course_structure = {}
+  let chapters = []
+  let chapterObj = {}
+  for (let i = 1; i < num_sheets; i++) {
+    const sheetName = workbook.SheetNames[i]
+    const sheet = workbook.Sheets[sheetName]
+    if (i == 1)
+      course_structure = convertGeneralInformation(sheet, course_structure)
+    else {
+      try {
+        chapterObj = await convertChapter(sheet)
+        chapters.push(chapterObj)
+      }
+      catch (error) {
+        //console.log('error when convert Chapter', error)
+      }
+    }
+  }
+  course_structure.chapters = chapters
+  course_structure.num_lecture = max_lecture
+  return course_structure
+}
+
+export { convertToQuizObject, convertToAssignmentObject, convertToCourseObject }

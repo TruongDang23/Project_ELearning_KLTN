@@ -44,7 +44,7 @@ studentRouter
   .route('/:courseID/:lectureID/updateprogress')
   .post(
     authController.protect,
-    authController.restrictTo('student'),
+    authController.restrictTo('student', 'instructor'),
     studentController.updateProgressCourse
   )
 
@@ -85,10 +85,5 @@ studentRouter
 studentRouter
   .route('/payos-hook')
   .post(studentController.payoshook)
-
-
-studentRouter
-  .route('/test/file')
-  .get(userController.test)
 
 export default studentRouter

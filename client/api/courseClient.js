@@ -57,6 +57,20 @@ export class CourseClient extends ApiClient {
     }
   }
 
+  async uploadCourse(formData) {
+    try {
+      const response = await axios.post(`${this.domain}/upload-course`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async getLectureQnA(courseID, lectureID) {
     try {
       const response = await axios.get(`${this.domain}/${courseID}/${lectureID}/QA`)
