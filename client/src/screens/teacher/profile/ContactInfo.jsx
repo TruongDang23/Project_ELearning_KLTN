@@ -4,6 +4,7 @@ import BorderColorIcon from '@mui/icons-material/BorderColor'
 import Link from '@mui/material/Link'
 
 function ContactInfo({ userProfile }) {
+  const DOMAIN = import.meta.env.VITE_DOMAIN
   const {
     avatar,
     fullname,
@@ -15,7 +16,7 @@ function ContactInfo({ userProfile }) {
   } = userProfile
 
   const handleOnCick = () => {
-    const url = `http://localhost:5173/instructor/information`
+    const url = `${DOMAIN}/instructor/information`
     window.open(url, '_blank')
   }
   return (

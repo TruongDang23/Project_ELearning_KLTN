@@ -75,6 +75,7 @@ function Categories() {
           placement="bottom-start"
           transition
           disablePortal
+          sx={{ zIndex: 9999 }}
         >
           {({ TransitionProps, placement }) => (
             <Grow
@@ -83,7 +84,12 @@ function Categories() {
                 transformOrigin: placement === 'bottom-start' ? 'left top' : 'left bottom'
               }}
             >
-              <Paper sx={{ maxHeight: 300, overflowY: 'auto' }}>
+              <Paper sx={{
+                maxHeight: 300,
+                overflowY: 'auto',
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)', // Đổ bóng tùy chỉnh
+                borderRadius: '8px' // Bo góc cho đẹp
+              }}>
                 <ClickAwayListener onClickAway={handleClose}>
                   <MenuList
                     autoFocusItem={open}
