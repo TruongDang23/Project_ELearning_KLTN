@@ -24,17 +24,17 @@ function SideBar({ inforCourseData }) {
     if (inforCourseData.price == 0) {
       //If course is free => call API buyCourse to insert directly into database table
       const res = await student.buyCourse(courseID)
-      if (res.data === 'enrolled') {
+      if (res.data.message === 'enrolled') {
         toggleBuy('enrolled')
       }
-      else if (res.data === 'created') {
+      else if (res.data.message === 'created') {
         toggleBuy('created')
       }
     }
     else {
       //If course is not free => Open link payment
       const res = await student.payment(courseID, cancel_url, return_url)
-      if (res.data === 'enrolled') {
+      if (res.data.message === 'enrolled') {
         toggleBuy('enrolled')
       }
       else {

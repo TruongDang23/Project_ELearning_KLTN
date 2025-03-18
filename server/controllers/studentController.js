@@ -433,7 +433,7 @@ const buyCourse = catchAsync(async (req, res, next) => {
   const emailController = new Email()
   const enrolled = await isEnrolled(courseID, req.userID)
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
-    res.send('enrolled')
+    res.send({ message: 'enrolled' })
   }
   else { // Chưa tham gia khóa học
     try {
@@ -447,7 +447,7 @@ const buyCourse = catchAsync(async (req, res, next) => {
       await mongoTransaction.commitTransaction()
       await emailController.sendBuyCourseSuccess(courseID, inf_student)
       await emailController.sendCourseIsBuy(courseID, inf_instruc)
-      res.status(201).send('created')
+      res.status(201).send({ message: 'created' })
     }
     catch (error) {
       await connection.query("ROLLBACK")
@@ -464,7 +464,7 @@ const payment = catchAsync(async (req, res, next) => {
   const userID = req.userID
   const enrolled = await isEnrolled(courseID, req.userID)
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
-    res.send('enrolled')
+    res.send({ message: 'enrolled' })
   }
   else { // Chưa tham gia khóa học
     const orderID = Math.floor(Math.random() * 9007199254740991) //Get random orderCode, orderCode is unique

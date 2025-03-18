@@ -3,7 +3,7 @@ import { useEffect } from "react"
 const DOMAIN = import.meta.env.VITE_DOMAIN
 const PROJECTID = import.meta.env.VITE_PRODUCT_ID_VOICEFLOW
 const userID = localStorage.getItem("userID") ? localStorage.getItem("userID") : 'guest'
-
+const COOKIE = document.cookie
 const ChatBotUI = () => {
   useEffect(() => {
     if (!document.getElementById("voiceflow-chat-script")) {
@@ -24,7 +24,8 @@ const ChatBotUI = () => {
                 type: "launch",
                 payload: {
                   userID: userID,
-                  domain: DOMAIN
+                  domain: DOMAIN,
+                  cookie: COOKIE
                 }
               }
             },

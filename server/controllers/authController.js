@@ -130,7 +130,7 @@ const createSendToken = async (userID, statusCode, res) => {
 
   // Lưu token vào cookie
   res.cookie('access_token', token, {
-    httpOnly: true,
+    //httpOnly: true,
     sameSite: 'Strict', // Ngăn chặn CSRF
     maxAge: 60 * 60 * 1000, // Token có hiệu lực trong 60 phút
     secure: true,

@@ -37,7 +37,8 @@ const socketFunction = registerSocketHandlers(io)
 // Cấu hình CORS
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'https://techskillup.online', 'http://localhost:4173'], //yarn dev | production | yarn build
+    //origin: ['http://localhost:5173', 'https://techskillup.online', 'http://localhost:4173'], //yarn dev | production | yarn build
+    origin: ['http://localhost:5173', 'https://techskillup.online'],
     credentials: true // Cho phép gửi cookie
   })
 )
