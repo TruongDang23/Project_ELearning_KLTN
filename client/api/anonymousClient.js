@@ -60,6 +60,16 @@ export class AnonymousClient extends ApiClient {
     }
   }
 
+  async getToken() {
+    try {
+      const data = await axios.get(`${this.domain}get-token`)
+      return data
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async getCourseSummary(id) {
     return await this.course.loadSumaryInformation(id)
   }

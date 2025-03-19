@@ -1,11 +1,28 @@
-import { useEffect } from "react"
+import { anonymous } from "api"
+import { useEffect, useState } from "react"
 
 const DOMAIN = import.meta.env.VITE_DOMAIN
 const PROJECTID = import.meta.env.VITE_PRODUCT_ID_VOICEFLOW
 const userID = localStorage.getItem("userID") ? localStorage.getItem("userID") : 'guest'
-const COOKIE = document.cookie
+
 const ChatBotUI = () => {
+  const [cookie, setCookie] = useState(null);
+
+  const getCookie = async () => {
+    try {
+      const response = await anonymous.getToken()
+
+      if (response.status === 200) {
+        setCookie(response.data.token)
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to get token:", error.response?.data || error)
+    }
+  }
+
   useEffect(() => {
+    getCookie()
     if (!document.getElementById("voiceflow-chat-script")) {
       const script = document.createElement("script")
       script.id = "voiceflow-chat-script"; // Thêm ID để tránh chèn nhiều lần
@@ -25,7 +42,7 @@ const ChatBotUI = () => {
                 payload: {
                   userID: userID,
                   domain: DOMAIN,
-                  cookie: COOKIE
+                  cookie: cookie
                 }
               }
             },
@@ -38,6 +55,7 @@ const ChatBotUI = () => {
 
       document.body.appendChild(script)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return <div id="chatbot-container"></div>
