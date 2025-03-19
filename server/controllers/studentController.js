@@ -482,11 +482,11 @@ const payment = catchAsync(async (req, res, next) => {
             price: Number(courseInfo[0].price)
           }
         ],
-        cancelUrl: cancel_url,
-        returnUrl: return_url
+        cancelUrl: cancel_url ? 'http://localhost:5173' : cancel_url,
+        returnUrl: return_url ? 'http://localhost:5173' : return_url
       }
       let link = await createPayment(requestPayment)
-      res.status(200).send(link)
+      res.status(200).send({ message: link })
     }
     catch (error) {
       next({ status: 400, message: "Failed when create payment information" })

@@ -305,6 +305,7 @@ const getCourseWithParams = (connection, params) => {
                 c.language like ? and 
                 method like ? and 
                 price >= ? and 
+                price <= ? and 
                 program like ?
             )
             -- Find on category
@@ -321,7 +322,8 @@ const getCourseWithParams = (connection, params) => {
       params.ratings,
       `%${params.language}%`,
       `%${params.method}%`,
-      params.price,
+      params.minprice,
+      params.maxprice,
       `%${params.program}%`,
       `%${params.category}%`,
       params.limit
@@ -931,7 +933,8 @@ const searchCourse = catchAsync(async (req, res, next) => {
     language,
     method,
     program,
-    price: Number(price) || 0,
+    minprice: price === 'Free' ? 0 : price === 'Paid' ? 1 : Number(price) || 0,
+    maxprice: price === 'Free' ? 0 : price === 'Paid' ? 999999999 : Number(price) || 999999999,
     limit: Number(limit) || 9,
     page
   }

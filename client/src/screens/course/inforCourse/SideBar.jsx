@@ -38,7 +38,7 @@ function SideBar({ inforCourseData }) {
         toggleBuy('enrolled')
       }
       else {
-        window.open(res.data.checkoutUrl, "_blank", "noopener,noreferrer")
+        window.open(res.data.message.checkoutUrl, "_blank", "noopener,noreferrer")
       }
     }
   }
