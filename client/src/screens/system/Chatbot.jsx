@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 
 const DOMAIN = import.meta.env.VITE_DOMAIN
 const PROJECTID = import.meta.env.VITE_PRODUCT_ID_VOICEFLOW
+const GLOBAL_API = import.meta.env.VITE_GLOBAL_API_URL
 const userID = localStorage.getItem("userID") ? localStorage.getItem("userID") : 'guest'
 
 const ChatBotUI = () => {
@@ -42,6 +43,7 @@ const ChatBotUI = () => {
                 payload: {
                   userID: userID,
                   domain: DOMAIN,
+                  global_api: GLOBAL_API,
                   cookie: cookie
                 }
               }
