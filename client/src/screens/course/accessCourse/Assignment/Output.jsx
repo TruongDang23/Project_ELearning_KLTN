@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useParams, useSearchParams } from "react-router-dom";
+import { student } from 'api'
 
 function Output({ editorRef, language, testcases, setProgress }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -61,15 +62,16 @@ function Output({ editorRef, language, testcases, setProgress }) {
     try
     {
       setIsLoading(true)
-      const res = await axios.post('http://localhost:3000/c/acceptAssignment',
-        { language, sourceCode, testcases },
-        {
-          headers: {
-            'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            'user': userAuth
-          }
-        }
-      )
+      const res = await student.submitAssignment(language, sourceCode, testcases)
+      // const res = await axios.post('http://localhost:3000/c/acceptAssignment',
+      //   { language, sourceCode, testcases },
+      //   {
+      //     headers: {
+      //       'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
+      //       'user': userAuth
+      //     }
+      //   }
+      // )
       if (res.data === true)
       {
         let result = 'Accepted'

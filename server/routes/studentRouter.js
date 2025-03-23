@@ -44,7 +44,7 @@ studentRouter
   .route('/:courseID/:lectureID/updateprogress')
   .post(
     authController.protect,
-    authController.restrictTo('student', 'instructor'),
+    authController.restrictTo('student', 'instructor', 'admin'),
     studentController.updateProgressCourse
   )
 

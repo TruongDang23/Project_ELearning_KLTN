@@ -21,9 +21,10 @@ const ChatBotUI = () => {
       console.error("Failed to get token:", error.response?.data || error)
     }
   }
-
+  console.log('chatbot')
   useEffect(() => {
     getCookie()
+    console.log('cookie')
     if (!document.getElementById("voiceflow-chat-script")) {
       const script = document.createElement("script")
       script.id = "voiceflow-chat-script"; // Thêm ID để tránh chèn nhiều lần

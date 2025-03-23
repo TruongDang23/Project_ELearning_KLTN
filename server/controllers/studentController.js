@@ -332,6 +332,8 @@ const updateProgressCourse = catchAsync(async (req, res, next) => {
   // Implement here
   const { courseID, lectureID } = req.params
   const userID = req.userID
+  if ( userID[0] != 'I' ) //Nếu không phải là Student thì ko ghi progress
+    return
   const progress = parseInt(req.body.data, 10)
   const lectureIDInt = parseInt(lectureID, 10)
   const time = formatDateTime(new Date())

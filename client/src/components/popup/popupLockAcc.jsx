@@ -1,55 +1,66 @@
 import styled from "styled-components"
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import axios from "axios"
-
+import { admin } from 'api'
+import { useState } from "react"
+import { Snackbar } from "~/components/general"
 const PopupLockAcc = ({ handleClose, account, reload, setReload }) => {
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
-
+  const [openSuccess, setOpenSuccess] = useState({
+    status: false,
+    message: ""
+  })
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
   const handleSave = async() => {
-    try
-    {
-      const res = await axios.post('http://localhost:3000/ad/lockacc',
-        { account },
-        {
-          headers: {
-            'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-            'user': userAuth
-          }
-        }
-      )
-      if (res.data === true)
-      {
-        alert('Action Successfully')
-        setTimeout(() => setReload(!reload), 100);
-      }
-      else
-        alert('Action Failed')
+    const res = await admin.lockAccount(account)
+    if (res.status == 200) {
+      setOpenSuccess({
+        status: true,
+        message: "Action successfuly"
+      })
+      setTimeout(() => {
+        setOpenSuccess({
+          status: false
+        })
+        setReload(!reload)
+      }, 3000)
     }
-    catch (error) {
-      alert('An error occurred while trying to lock account.')
-      //console.error(error)
+    else {
+      setOpenError({
+        status: true,
+        message: "An error occurred while trying to lock account"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
     }
   }
 
   return (
-    <WrapperPopup>
-      <div className="popup-box">
-        <div className="box">
-          <span className="close-icon" onClick={handleClose}>x</span>
-          <label>
-            <LockOutlinedIcon sx={{ color: '#E20000', fontSize: '3.0rem', margin: 'auto' }}/>
-            <h1>User <strong>{account}</strong> will be locked</h1>
-          </label>
-          <div className="item-btns">
-            <button className="item-btn" onClick={() => {
-              handleSave()
-              handleClose()
-            }}>Save</button>
+    <>
+      <WrapperPopup>
+        <div className="popup-box">
+          <div className="box">
+            <span className="close-icon" onClick={handleClose}>x</span>
+            <label>
+              <LockOutlinedIcon sx={{ color: '#E20000', fontSize: '3.0rem', margin: 'auto' }}/>
+              <h1>User <strong>{account}</strong> will be locked</h1>
+            </label>
+            <div className="item-btns">
+              <button className="item-btn" onClick={() => {
+                handleSave()
+                handleClose()
+              }}>Save</button>
+            </div>
           </div>
         </div>
-      </div>
-    </WrapperPopup>
+      </WrapperPopup>
+      { openSuccess.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message={openSuccess.message}/> </> : <> </> }
+      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
+    </>
   )
 }
 

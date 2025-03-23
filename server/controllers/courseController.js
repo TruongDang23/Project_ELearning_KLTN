@@ -11,6 +11,7 @@ import xlsx from 'xlsx'
 import { convertToAssignmentObject, convertToCourseObject, convertToQuizObject } from './xlsxController.js'
 import fs from 'fs'
 import Email from './emailController.js'
+import axios from 'axios'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -509,6 +510,32 @@ const getPendingCourseAdmin = (mysqlTransaction) => {
       reject(error)
     }
   })
+}
+
+const callAPICompile = async (language, sourceCode, testcase) => {
+  try {
+    const response = await axios.post(
+      // eslint-disable-next-line no-undef
+      process.env.API_PISTON, //"https://emkc.org/api/v2/piston/execute",
+      {
+        language,
+        version: "*",
+        files: [
+          {
+            content: sourceCode
+          }
+        ],
+        stdin: testcase
+      }
+    )
+    return response.data.run.output.trim()
+  } catch (error) {
+    return error
+  }
+}
+
+const compareResult = async (output, key) => {
+  return output === key ? true : false
 }
 
 const getPublishedCourseAdmin = (mysqlTransaction) => {
@@ -1350,7 +1377,6 @@ const uploadCourse = catchAsync(async (req, res, next) => {
   catch (error) {
     await mysqlTransaction.query("ROLLBACK")
     await mongoTransaction.abortTransaction()
-    console.log(error)
     return next({ status: 500, message: 'Error processing upload course' })
   }
   finally {
@@ -1405,6 +1431,32 @@ const getQnA = catchAsync(async (req, res, next) => {
   }
 })
 
+const acceptAssignment = catchAsync(async (req, res, next) => {
+  const { language, sourceCode, testcases } = req.body
+  let wrongAns = null
+  let lang = language === "cplus" ? "c++" : language
+  for (const test of testcases) {
+    try {
+      const output = await callAPICompile(lang, sourceCode, test.case)
+      const result = await compareResult(output, test.key)
+      if (!result) {
+        wrongAns = {
+          testcase: test.case,
+          expected: test.key,
+          found: output
+        }
+        break
+      }
+    }
+    catch (error) {
+      next(error)
+      break
+    }
+  }
+  if (wrongAns == null) res.status(200).send(true)
+  else res.status(200).send(wrongAns)
+})
+
 export default {
   getAllCourses,
   getCourseById,
@@ -1414,7 +1466,8 @@ export default {
   updateCourse,
   uploadFileGCS,
   getQnA,
-  uploadCourse
+  uploadCourse,
+  acceptAssignment
 }
 
 export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL, getInstructorOfCourse }

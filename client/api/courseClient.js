@@ -80,4 +80,16 @@ export class CourseClient extends ApiClient {
       return error
     }
   }
+
+  async submitAssignment(language, sourceCode, testcases) {
+    try {
+      const response = await axios.post(`${this.domain}/acceptAssignment`, {
+        language, sourceCode, testcases
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
 }

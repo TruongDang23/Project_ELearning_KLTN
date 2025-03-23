@@ -62,4 +62,13 @@ courseRouter
     courseController.getQnA
   )
 
+courseRouter
+  .route('/acceptAssignment')
+  .post(
+    authController.protect,
+    checkAccessCourse,
+    authController.restrictTo('admin', 'instructor', 'student'),
+    courseController.acceptAssignment
+  )
+
 export default courseRouter
