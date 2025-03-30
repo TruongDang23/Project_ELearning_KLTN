@@ -21,15 +21,15 @@ function Welcome() {
   const getInformation = async (userID) => {
     let userInfo
     switch (userID[0]) {
-    case 'A':
-      userInfo = await admin.getInformation(userID)
-      break
-    case 'I':
-      userInfo = await instructor.getInformation(userID)
-      break
-    case 'S':
-      userInfo = await student.getInformation(userID)
-      break
+      case 'A':
+        userInfo = await admin.getInformation(userID)
+        break
+      case 'I':
+        userInfo = await instructor.getInformation(userID)
+        break
+      case 'S':
+        userInfo = await student.getInformation(userID)
+        break
     }
 
     if (userInfo) {
@@ -37,25 +37,25 @@ function Welcome() {
     }
   }
 
-  userID = localStorage.getItem("userID")
+  userID = localStorage.getItem('userID')
 
   const joinGroupSocket = async (userID) => {
     switch (userID[0]) {
-    case 'A': {
-      await admin.joinIndividualGroup(userID)
-      await admin.joinCourseGroup(userID, 'admin')
-      break;
-    }
-    case 'I': {
-      await instructor.joinIndividualGroup(userID)
-      await instructor.joinCourseGroup(userID, 'instructor')
-      break;
-    }
-    case 'S': {
-      await student.joinIndividualGroup(userID)
-      await student.joinCourseGroup(userID, 'student')
-      break;
-    }
+      case 'A': {
+        await admin.joinIndividualGroup(userID)
+        await admin.joinCourseGroup(userID, 'admin')
+        break
+      }
+      case 'I': {
+        await instructor.joinIndividualGroup(userID)
+        await instructor.joinCourseGroup(userID, 'instructor')
+        break
+      }
+      case 'S': {
+        await student.joinIndividualGroup(userID)
+        await student.joinCourseGroup(userID, 'student')
+        break
+      }
     }
   }
 
@@ -65,7 +65,7 @@ function Welcome() {
       getInformation(userID)
       joinGroupSocket(userID)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -73,7 +73,10 @@ function Welcome() {
       <Helmet>
         <title>Website ELearning | EL-Space</title>
       </Helmet>
-      <Sticky disabled={window.innerWidth <= 768}>
+      <Sticky
+        disabled={window.innerWidth <= 768}
+        stickyStyle={{ zIndex: 1500 }}
+      >
         <GeneralHeader />
       </Sticky>
       <WelcomeWrapper>
