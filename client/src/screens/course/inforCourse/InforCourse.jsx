@@ -17,27 +17,28 @@ function InforCourse() {
   const [inforCourseData, setInforCourseData] = useState()
   const loadInforCourse = async(courseID) => {
     let course
-    switch (userID[0]) {
-    case 'A':
-      course = await admin.getCourseSummary(courseID)
-      break;
-    case 'I':
-      course = await instructor.getCourseSummary(courseID)
-      break;
-    case 'S':
-      course = await student.getCourseSummary(courseID)
-      break;
-    default:
-      course = await anonymous.getCourseSummary(courseID)
-      break;
+    if (userID) {
+      switch (userID[0]) {
+      case 'A':
+        course = await admin.getCourseSummary(courseID)
+        break;
+      case 'I':
+        course = await instructor.getCourseSummary(courseID)
+        break;
+      case 'S':
+        course = await student.getCourseSummary(courseID)
+        break;
+      }
     }
+    else
+      course = await anonymous.getCourseSummary(courseID)
     setIsLoad(false)
     setInforCourseData(course.data)
   }
 
   useEffect(() => {
     loadInforCourse(courseID)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
