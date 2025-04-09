@@ -5,6 +5,8 @@ import DoneRoundedIcon from '@mui/icons-material/DoneRounded'
 import StarRating from '~/components/general/Other/StarRating'
 
 function CourseCard({ course }) {
+  const DOMAIN = import.meta.env.VITE_DOMAIN
+
   const {
     courseID,
     title,
@@ -33,7 +35,7 @@ function CourseCard({ course }) {
   }
 
   const handleOnCick = () => {
-    const url = `http://localhost:5173/course/infor/${courseID}`
+    const url = `${DOMAIN}/course/infor/${courseID}`
     window.open(url, '_blank')
   }
 

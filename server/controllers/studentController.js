@@ -332,6 +332,8 @@ const updateProgressCourse = catchAsync(async (req, res, next) => {
   // Implement here
   const { courseID, lectureID } = req.params
   const userID = req.userID
+  if ( userID[0] != 'I' ) //Nếu không phải là Student thì ko ghi progress
+    return
   const progress = parseInt(req.body.data, 10)
   const lectureIDInt = parseInt(lectureID, 10)
   const time = formatDateTime(new Date())
@@ -433,7 +435,7 @@ const buyCourse = catchAsync(async (req, res, next) => {
   const emailController = new Email()
   const enrolled = await isEnrolled(courseID, req.userID)
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
-    res.send('enrolled')
+    res.send({ message: 'enrolled' })
   }
   else { // Chưa tham gia khóa học
     try {
@@ -447,7 +449,7 @@ const buyCourse = catchAsync(async (req, res, next) => {
       await mongoTransaction.commitTransaction()
       await emailController.sendBuyCourseSuccess(courseID, inf_student)
       await emailController.sendCourseIsBuy(courseID, inf_instruc)
-      res.status(201).send('created')
+      res.status(201).send({ message: 'created' })
     }
     catch (error) {
       await connection.query("ROLLBACK")
@@ -464,7 +466,7 @@ const payment = catchAsync(async (req, res, next) => {
   const userID = req.userID
   const enrolled = await isEnrolled(courseID, req.userID)
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
-    res.send('enrolled')
+    res.send({ message: 'enrolled' })
   }
   else { // Chưa tham gia khóa học
     const orderID = Math.floor(Math.random() * 9007199254740991) //Get random orderCode, orderCode is unique
@@ -482,11 +484,11 @@ const payment = catchAsync(async (req, res, next) => {
             price: Number(courseInfo[0].price)
           }
         ],
-        cancelUrl: cancel_url,
-        returnUrl: return_url
+        cancelUrl: cancel_url ? 'http://localhost:5173' : cancel_url,
+        returnUrl: return_url ? 'http://localhost:5173' : return_url
       }
       let link = await createPayment(requestPayment)
-      res.status(200).send(link)
+      res.status(200).send({ message: link })
     }
     catch (error) {
       next({ status: 400, message: "Failed when create payment information" })

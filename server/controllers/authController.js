@@ -342,6 +342,16 @@ const restrictTo = (...roles) => {
   }
 }
 
+const getToken = catchAsync(async (req, res, next) => {
+  const token = req.cookies.access_token
+  if (token) {
+    res.status(200).json({ token })
+  } else {
+    next({ status: 404, message: "You don't have a token" })
+    res.status(404).json({ message: "You don't have a token" })
+  }
+})
+
 const refreshToken = catchAsync(async (req, res, next) => {
   //refeshToken will be stored in mongoDB. Must find that token exist in db then processing
   const refresh = req.cookies.refresh_token
@@ -380,4 +390,4 @@ const refreshToken = catchAsync(async (req, res, next) => {
   }
 })
 
-export default { signup, login, protect, restrictTo, refreshToken, loginWithGoogle, logout }
+export default { signup, login, protect, restrictTo, refreshToken, loginWithGoogle, logout, getToken }

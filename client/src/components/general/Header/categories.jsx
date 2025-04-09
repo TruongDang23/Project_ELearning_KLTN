@@ -1,38 +1,58 @@
-import Button from '@mui/material/Button'
-import { Menu, MenuItem, ListItemIcon, Divider } from '@mui/material'
-import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import Button from '@mui/material/Button';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import Grow from '@mui/material/Grow';
+import Paper from '@mui/material/Paper';
+import Popper from '@mui/material/Popper';
+import MenuItem from '@mui/material/MenuItem';
+import MenuList from '@mui/material/MenuList';
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom"
 import useCategories from '~/constants/listCategories'
-import CategoryIcon from '@mui/icons-material/Category'
 
 function Categories() {
+
   const navigate = useNavigate()
-  const [anchorEl, setAnchorEl] = useState(null)
-  const open = Boolean(anchorEl)
-  const anchorRef = useRef(null)
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef(null);
   const categories = useCategories()
 
-  const handleToggle = (event) => {
-    setAnchorEl(event.currentTarget)
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen);
+  };
+
+  const handleClose = (event) => {
+    if (anchorRef.current && anchorRef.current.contains(event.target)) {
+      return;
+    }
+    setOpen(false);
+  };
+
+  const handleSearch = (e) => {
+    navigate(`/course/search/${e.target.textContent}`)
+    if (anchorRef.current && anchorRef.current.contains(e.target)) {
+      return;
+    }
+    setOpen(false);
   }
 
-  const handleClose = () => {
-    setAnchorEl(null)
+  function handleListKeyDown(event) {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      setOpen(false);
+    } else if (event.key === 'Escape') {
+      setOpen(false);
+    }
   }
 
-  const handleSearch = (category) => {
-    navigate(`/course/search/${category}`)
-    setAnchorEl(null)
-  }
-
-  
-  const prevOpen = useRef(open)
+  // return focus to the button when we transitioned from !open -> open
+  const prevOpen = useRef(open);
   useEffect(() => {
     if (prevOpen.current === true && open === false) {
-      anchorRef.current.focus()
+      anchorRef.current.focus();
     }
-    prevOpen.current = open
-  }, [open])
+
+    prevOpen.current = open;
+  }, [open]);
 
   return (
     <>
@@ -44,60 +64,54 @@ function Categories() {
           aria-expanded={open ? 'true' : undefined}
           aria-haspopup="true"
           onClick={handleToggle}
-          sx={{
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#333',
-            textTransform: 'capitalize'
-          }}
+          sx={{ fontSize: "16px", fontWeight: "bold", color: '#333', textTransform: 'capitalize' }}
         >
-          Categories
+        Categories
         </Button>
-        <Menu
-          anchorEl={anchorEl}
-          id="composition-menu"
+        <Popper
           open={open}
-          onClose={handleClose}
-          PaperProps={{
-            elevation: 0,
-            sx: {
-              overflow: 'visible',
-              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-              mt: 1.5,
-              maxHeight: 300,
-              overflowX: 'hidden',
-              overflowY: 'auto',
-              '&::before': {
-                content: '""',
-                display: 'block',
-                position: 'absolute',
-                top: 0,
-                left: 14,
-                width: 10,
-                height: 10,
-                bgcolor: 'background.paper',
-                transform: 'translateY(-50%) rotate(45deg)',
-                zIndex: 0
-              }
-            }
-          }}
-          transformOrigin={{ horizontal: 'left', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-          disableScrollLock={true}
+          anchorEl={anchorRef.current}
+          role={undefined}
+          placement="bottom-start"
+          transition
+          disablePortal
+          sx={{ zIndex: 9999 }}
         >
-          {categories.map((category, index) => (
-            <MenuItem
-              key={index}
-              sx={{ fontSize: '16px', color: '#333' }}
-              onClick={() => handleSearch(category)}
+          {({ TransitionProps, placement }) => (
+            <Grow
+              {...TransitionProps}
+              style={{
+                transformOrigin: placement === 'bottom-start' ? 'left top' : 'left bottom'
+              }}
             >
-              <ListItemIcon>
-                <CategoryIcon fontSize="large" />
-              </ListItemIcon>
-              {category}
-            </MenuItem>
-          ))}
-        </Menu>
+              <Paper sx={{
+                maxHeight: 300,
+                overflowY: 'auto',
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)', // Đổ bóng tùy chỉnh
+                borderRadius: '8px' // Bo góc cho đẹp
+              }}>
+                <ClickAwayListener onClickAway={handleClose}>
+                  <MenuList
+                    autoFocusItem={open}
+                    id="composition-menu"
+                    aria-labelledby="composition-button"
+                    onKeyDown={handleListKeyDown}
+                  >
+                    {categories.map((category, index) => (
+                      <MenuItem
+                        key={index}
+                        sx={{ fontSize: "16px", color: '#333' }}
+                        onClick={(e) => handleSearch(e)}
+                      >
+                        {category}
+                      </MenuItem>
+                    ))}
+                  </MenuList>
+                </ClickAwayListener>
+              </Paper>
+            </Grow>
+          )}
+        </Popper>
       </div>
     </>
   )

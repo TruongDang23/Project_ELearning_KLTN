@@ -9,8 +9,8 @@ function App() {
 
   return (
     <>
-      <ChatBotUI/>
       <System />
+      <ChatBotUI/>
       <Admin />
       <Instructor />
       <Student />
