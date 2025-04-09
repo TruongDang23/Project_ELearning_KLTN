@@ -13,6 +13,7 @@ import CryptoJS from "crypto-js"
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 import { anonymous } from 'api'
 import { Snackbar } from "~/components/general"
+import { globalFlag } from "~/context/GlobalFlag"
 
 function Login() {
   const [username, setUsername] = useState("")
@@ -25,6 +26,8 @@ function Login() {
     message: ""
   })
   const navigate = useNavigate()
+
+  const reloadVoiceFlow = globalFlag((state) => state.setReloadVoiceflow)
 
   const typeUsername = (e) => {
     setUsername(e.target.value);
@@ -53,6 +56,7 @@ function Login() {
         setOpenSuccess(true)
         localStorage.setItem("userID", res.data.userID)
         setTimeout(async () => {
+          reloadVoiceFlow()
           navigate('/')
         }, 2000)
       }
@@ -100,6 +104,7 @@ function Login() {
         setOpenSuccess(true)
         localStorage.setItem("userID", res.data.userID)
         setTimeout(async () => {
+          reloadVoiceFlow()
           navigate('/')
         }, 2000)
       }
