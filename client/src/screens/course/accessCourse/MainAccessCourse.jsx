@@ -51,7 +51,8 @@ function MainAccessCourse({ accessCourseData, setReload }) {
   }
 
   useEffect(() => {
-    updateProgress()
+    if (userID[0] === 'S')
+      updateProgress()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress.percent])
 
