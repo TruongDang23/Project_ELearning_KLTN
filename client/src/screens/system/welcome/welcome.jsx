@@ -21,15 +21,15 @@ function Welcome() {
   const getInformation = async (userID) => {
     let userInfo
     switch (userID[0]) {
-      case 'A':
-        userInfo = await admin.getInformation(userID)
-        break
-      case 'I':
-        userInfo = await instructor.getInformation(userID)
-        break
-      case 'S':
-        userInfo = await student.getInformation(userID)
-        break
+    case 'A':
+      userInfo = await admin.getInformation(userID)
+      break
+    case 'I':
+      userInfo = await instructor.getInformation(userID)
+      break
+    case 'S':
+      userInfo = await student.getInformation(userID)
+      break
     }
 
     if (userInfo) {
@@ -41,21 +41,21 @@ function Welcome() {
 
   const joinGroupSocket = async (userID) => {
     switch (userID[0]) {
-      case 'A': {
-        await admin.joinIndividualGroup(userID)
-        await admin.joinCourseGroup(userID, 'admin')
-        break
-      }
-      case 'I': {
-        await instructor.joinIndividualGroup(userID)
-        await instructor.joinCourseGroup(userID, 'instructor')
-        break
-      }
-      case 'S': {
-        await student.joinIndividualGroup(userID)
-        await student.joinCourseGroup(userID, 'student')
-        break
-      }
+    case 'A': {
+      await admin.joinIndividualGroup(userID)
+      await admin.joinCourseGroup(userID, 'admin')
+      break
+    }
+    case 'I': {
+      await instructor.joinIndividualGroup(userID)
+      await instructor.joinCourseGroup(userID, 'instructor')
+      break
+    }
+    case 'S': {
+      await student.joinIndividualGroup(userID)
+      await student.joinCourseGroup(userID, 'student')
+      break
+    }
     }
   }
 

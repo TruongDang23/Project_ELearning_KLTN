@@ -7,21 +7,21 @@ import heroNewSix from '../screens/system/assets/heroNew-six.png'
 
 export const slidesWelcome = [
   {
-    title: 'Prep for your IT Certificate',
+    title: `ELSpace - Unlock Knowledge, Build Your Tech Career!`,
     description:
-      'Embark on a journey to a rewarding IT career. This course prepares you for top industry certifications. Learn the fundamentals of networking, security, and cloud computing.',
+      'EL-Space is the best place to learn IT courses. Build your skills, connect with experts, and grow your tech career easily!',
     images: [heroNew, heroNewTwo]
   },
   {
-    title: 'Master Web Development',
+    title: 'FullStack Development - Build Real World Applications!',
     description:
-      'Dive deep into the world of web development and become a full-stack developer. This comprehensive program covers modern technologies like Node.js for powerful back-ends, and JavaScript for interactivity. ',
+      'Learn modern web technologies like Node.js and React to create powerful, interactive applications.',
     images: [heroNewThree, heroNewFour]
   },
   {
-    title: 'Dive into Data Science',
+    title: 'Data Science & AI Shape the Future with Technology!',
     description:
-      'Transform your career by mastering data science with this in-depth course. Explore Python for data analysis, dive into machine learning with libraries like TensorFlow and Scikit-learn, and harness the power of artificial intelligence.',
+      'Unlock the power of data with Python, TensorFlow, and machine learning to drive innovation.',
     images: [heroNewFive, heroNewSix]
   }
 ]
