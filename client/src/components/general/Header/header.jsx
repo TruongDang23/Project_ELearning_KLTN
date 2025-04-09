@@ -2,6 +2,7 @@ import styled from 'styled-components'
 import { Link } from 'react-router-dom'
 import Logo from '../../../assets/Logo.png'
 import Badge from '@mui/material/Badge'
+import HamburgerMenu from './HamburgerMenu'
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined' // import AccountCircle from "@mui/icons-material/AccountCircle";
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
 import Categories from './categories'
@@ -11,6 +12,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { notifyStore } from '~/context/NotifyStore'
 import useNavigation from '~/utils/navigate'
 import { socket } from 'api'
+import { useMediaQuery } from '@mui/material'
 
 function Header() {
   const navigate = useNavigate()
@@ -41,6 +43,19 @@ function Header() {
   }, [])
   // eslint-disable-next-line no-unused-vars
   const [reload, setReload] = useState(false)
+  const isMobile = useMediaQuery('(max-width:768px)')
+  const mobileLinks = [
+    { text: 'Home', path: '/' },
+    {
+      text: userID ? 'My Learning' : 'Login',
+      path: userID ? '/student/my-learning' : '/login'
+    },
+    { text: 'Search', path: `/course/search?q=${title}` },
+    { text: 'Teach on EL-Space', path: '/login' },
+    { text: 'My Profile', path: userID ? `/student/profile` : '/login' },
+    { text: 'Logout', path: '/logout' }
+  ]
+
   {
     //Chưa login
     if (userID == null) {
@@ -49,30 +64,34 @@ function Header() {
           <a className="brand" href="/">
             <img src={Logo} alt="Web Logo" />
           </a>
-          <div className="navLinks">
-            <Categories />
-            <div className="searchBox">
-              <input
-                type="text"
-                placeholder="Search for anything"
-                value={title ? title : ''}
-                onChange={(e) => setTitle(e.target.value)}
-                onKeyDown={handleSearch}
-              />
-              <a href={`/course/search?q=${title}`}>
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/54/54481.png"
-                  alt="Search Icon"
+          {isMobile ? (
+            <HamburgerMenu links={mobileLinks} />
+          ) : (
+            <div className="navLinks">
+              <Categories />
+              <div className="searchBox">
+                <input
+                  type="text"
+                  placeholder="Search for anything"
+                  value={title ? title : ''}
+                  onChange={(e) => setTitle(e.target.value)}
+                  onKeyDown={handleSearch}
                 />
+                <a href={`/course/search?q=${title}`}>
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/54/54481.png"
+                    alt="Search Icon"
+                  />
+                </a>
+              </div>
+              <a href="/login" className="link">
+                Teach on EL-Space
+              </a>
+              <a href="/login" className="link">
+                My Learning
               </a>
             </div>
-            <a href="/login" className="link">
-              Teach on EL-Space
-            </a>
-            <a href="/login" className="link">
-              My Learning
-            </a>
-          </div>
+          )}
           <div className="authButtons">
             <Link to="/login">
               <button className="login">Log in</button>
@@ -93,46 +112,54 @@ function Header() {
           <a className="brand" href="/">
             <img src={Logo} alt="Udemy Logo" />
           </a>
-          <div className="navLinks">
-            <Categories />
-            <div className="searchBox">
-              <input
-                type="text"
-                placeholder="Search for anything"
-                value={title ? title : ''}
-                onChange={(e) => setTitle(e.target.value)}
-                onKeyDown={handleSearch}
-              />
-              <a href={`/course/search?q=${title}`}>
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/54/54481.png"
-                  alt="Search Icon"
+          {isMobile ? (
+            <HamburgerMenu links={mobileLinks} />
+          ) : (
+            <div className="navLinks">
+              <Categories />
+              <div className="searchBox">
+                <input
+                  type="text"
+                  placeholder="Search for anything"
+                  value={title ? title : ''}
+                  onChange={(e) => setTitle(e.target.value)}
+                  onKeyDown={handleSearch}
                 />
-              </a>
-            </div>
-            {/* <a href="/" className="link">
+                <a href={`/course/search?q=${title}`}>
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/54/54481.png"
+                    alt="Search Icon"
+                  />
+                </a>
+              </div>
+              {/* <a href="/" className="link">
               Teach on EL-Space
             </a> */}
 
-            {userID[0] === 'S' && (
-              <a href="#" className="link" onClick={() => goTo('/student/my-learning')}>
-                My learning
+              {userID[0] === 'S' && (
+                <a
+                  href="#"
+                  className="link"
+                  onClick={() => goTo('/student/my-learning')}
+                >
+                  My learning
+                </a>
+              )}
+              <a>
+                <StyledBadge badgeContent={4} color="primary">
+                  <ShoppingCartOutlinedIcon />
+                </StyledBadge>
               </a>
-            )}
-            <a>
-              <StyledBadge badgeContent={4} color="primary">
-                <ShoppingCartOutlinedIcon />
-              </StyledBadge>
-            </a>
-            <a href="#" onClick={() => goTo('/notification')}>
-              <StyledBadge badgeContent={unread} color="primary">
-                <NotificationsOutlinedIcon />
-              </StyledBadge>
-            </a>
-            <a>
-              <AvatarAction setReload={setReload} />
-            </a>
-          </div>
+              <a href="#" onClick={() => goTo('/notification')}>
+                <StyledBadge badgeContent={unread} color="primary">
+                  <NotificationsOutlinedIcon />
+                </StyledBadge>
+              </a>
+              <a>
+                <AvatarAction setReload={setReload} />
+              </a>
+            </div>
+          )}
         </Navbar>
       )
     }
@@ -159,6 +186,7 @@ const Navbar = styled.nav`
   }
 
   .navLinks {
+    z-index: 1600;
     display: flex;
     align-items: center;
     gap: 20px;
