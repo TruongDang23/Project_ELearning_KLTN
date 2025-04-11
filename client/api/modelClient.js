@@ -16,12 +16,11 @@ export class ModelClient extends ApiClient {
       return error
     }
   }
-  async chatBot(content) {
+
+  async extractText(url) {
     try {
-      const response = await axios.post(`${this.domain}/chatBot`, {
-        data: {
-          context: content
-        }
+      const response = await axios.post(`${this.domain}/extractPDF`, {
+        url: url
       })
       return response
     }

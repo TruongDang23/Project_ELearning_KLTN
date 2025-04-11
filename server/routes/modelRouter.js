@@ -6,6 +6,5 @@ const modelRouter = express.Router()
 
 modelRouter.post('/chatAI', authController.protect, modelController.chatAI)
 
-modelRouter.post('/chatBot', modelController.chatBot)
-
+modelRouter.post('/extractPDF', modelController.extractPDFText)
 export default modelRouter
