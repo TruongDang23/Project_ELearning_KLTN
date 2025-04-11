@@ -4,7 +4,6 @@ import { Instructor } from "./screens/teacher"
 import { Student } from "./screens/student"
 import { Course } from "./screens/course"
 import ChatBotUI from "./screens/system/Chatbot"
-
 function App() {
 
   return (
