@@ -344,12 +344,10 @@ const restrictTo = (...roles) => {
 
 const getToken = catchAsync(async (req, res, next) => {
   const token = req.cookies.access_token
-  if (token) {
-    res.status(200).json({ token })
-  } else {
-    next({ status: 404, message: "You don't have a token" })
-    res.status(404).json({ message: "You don't have a token" })
-  }
+  if (token)
+    res.status(200).send(token)
+  else
+    next({ status: 204, message: "No token" })
 })
 
 const refreshToken = catchAsync(async (req, res, next) => {

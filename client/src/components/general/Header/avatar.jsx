@@ -42,7 +42,7 @@ export default function AvatarAction({ setReload }) {
     reloadVoiceFlow()
     resetInfor()
     setReload(true)
-    navigate('/')
+    window.location.href = '/'
   }
 
   const menuItems = [

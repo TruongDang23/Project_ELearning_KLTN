@@ -21,13 +21,9 @@ const ChatBotUI = () => {
       console.error("Failed to get token:", error.response?.data || error)
     }
   }
-  console.log('chatbot')
   useEffect(() => {
     const userID = localStorage.getItem("userID") ? localStorage.getItem("userID") : 'guest'
-    console.log('reload')
     getCookie()
-    console.log('specify: ', userID, cookie)
-    console.log("Reloading VoiceFlow Chatbot...");
     if (!document.getElementById("voiceflow-chat-script")) {
       const script = document.createElement("script")
       script.id = "voiceflow-chat-script"; // Thêm ID để tránh chèn nhiều lần
@@ -61,7 +57,7 @@ const ChatBotUI = () => {
 
       document.body.appendChild(script)
     }
-  }, [flagReload])
+  }, [cookie, flagReload])
 
   return <div id="chatbot-container"></div>
 }
