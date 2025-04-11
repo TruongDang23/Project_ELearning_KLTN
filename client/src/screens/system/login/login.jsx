@@ -5,7 +5,7 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline"
 import LockIcon from "@mui/icons-material/Lock"
 import ExitToAppIcon from "@mui/icons-material/ExitToApp"
 import CloseIcon from "@mui/icons-material/Close"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import "bootstrap/dist/css/bootstrap.css"
 import styled from "styled-components"
 import { useState } from "react"
@@ -13,6 +13,7 @@ import CryptoJS from "crypto-js"
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 import { anonymous } from 'api'
 import { Snackbar } from "~/components/general"
+import { globalFlag } from "~/context/GlobalFlag"
 
 function Login() {
   const [username, setUsername] = useState("")
@@ -24,7 +25,8 @@ function Login() {
     status: false,
     message: ""
   })
-  const navigate = useNavigate()
+
+  const reloadVoiceFlow = globalFlag((state) => state.setReloadVoiceflow)
 
   const typeUsername = (e) => {
     setUsername(e.target.value);
@@ -45,6 +47,7 @@ function Login() {
     return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
   }
 
+  //Login with Google
   const handleSuccess = async (response) => {
     try {
       const res = await anonymous.authenticateGoogle(response.credential)
@@ -53,7 +56,8 @@ function Login() {
         setOpenSuccess(true)
         localStorage.setItem("userID", res.data.userID)
         setTimeout(async () => {
-          navigate('/')
+          reloadVoiceFlow()
+          window.location.href = '/'
         }, 2000)
       }
       else {
@@ -79,14 +83,14 @@ function Login() {
       }, 3000)
     }
   }
-
+  //Login fail with Google
   const handleFailure = () => {
     setOpenError({
       status: true,
       message: "An error occurred when logging in with Google!"
     })
   }
-
+  //Login manual
   const checkLogin = async () => {
     try {
       const hassed = hashPassword(pass)
@@ -100,7 +104,8 @@ function Login() {
         setOpenSuccess(true)
         localStorage.setItem("userID", res.data.userID)
         setTimeout(async () => {
-          navigate('/')
+          reloadVoiceFlow()
+          window.location.href = '/'
         }, 2000)
       }
       else {

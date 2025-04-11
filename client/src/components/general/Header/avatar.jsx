@@ -22,6 +22,7 @@ import DesignServicesIcon from '@mui/icons-material/DesignServices'
 import { useNavigate } from 'react-router-dom'
 import { userStore } from '~/context/UserStore'
 import { anonymous } from 'api'
+import { globalFlag } from '~/context/GlobalFlag'
 
 export default function AvatarAction({ setReload }) {
   const { resetInfor } = userStore()
@@ -32,14 +33,16 @@ export default function AvatarAction({ setReload }) {
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
 
+  const reloadVoiceFlow = globalFlag((state) => state.setReloadVoiceflow)
   const handleClick = (event) => setAnchorEl(event.currentTarget)
   const handleClose = () => setAnchorEl(null)
   const handleLogout = async() => {
     localStorage.clear()
     await anonymous.logOut()
+    reloadVoiceFlow()
     resetInfor()
     setReload(true)
-    navigate('/')
+    window.location.href = '/'
   }
 
   const menuItems = [

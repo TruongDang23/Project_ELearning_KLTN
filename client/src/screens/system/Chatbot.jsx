@@ -1,14 +1,14 @@
 import { anonymous } from "api"
 import { useEffect, useState } from "react"
+import { globalFlag } from "~/context/GlobalFlag"
 
 const DOMAIN = import.meta.env.VITE_DOMAIN
 const PROJECTID = import.meta.env.VITE_PRODUCT_ID_VOICEFLOW
 const GLOBAL_API = import.meta.env.VITE_GLOBAL_API_URL
-const userID = localStorage.getItem("userID") ? localStorage.getItem("userID") : 'guest'
 
 const ChatBotUI = () => {
   const [cookie, setCookie] = useState(null);
-
+  const flagReload = globalFlag((state) => state.reloadVoiceflow)
   const getCookie = async () => {
     try {
       const response = await anonymous.getToken()
@@ -21,10 +21,9 @@ const ChatBotUI = () => {
       console.error("Failed to get token:", error.response?.data || error)
     }
   }
-  console.log('chatbot')
   useEffect(() => {
+    const userID = localStorage.getItem("userID") ? localStorage.getItem("userID") : 'guest'
     getCookie()
-    console.log('cookie')
     if (!document.getElementById("voiceflow-chat-script")) {
       const script = document.createElement("script")
       script.id = "voiceflow-chat-script"; // Thêm ID để tránh chèn nhiều lần
@@ -58,10 +57,10 @@ const ChatBotUI = () => {
 
       document.body.appendChild(script)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [cookie, flagReload])
 
   return <div id="chatbot-container"></div>
 }
 
 export default ChatBotUI
+
