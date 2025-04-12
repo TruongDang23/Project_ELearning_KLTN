@@ -886,6 +886,43 @@ const getAllCourses = catchAsync(async (req, res, next) => {
   }
 })
 
+const getListInforPublishForModel = (connection) => {
+  return new Promise(async (resolve, reject) => {
+    let query = `SELECT c.courseID,
+                        title,
+                        method,
+                        program,
+                        fullname as instructor
+                    FROM course as c
+                    INNER JOIN published_course as pc ON c.courseID = pc.courseID
+                    INNER JOIN user as u ON u.userID = c.userID`
+    try {
+      const [rowsInfo] = await connection.query(query)
+      const listID = rowsInfo.map(row => row.courseID)
+      const mongoData = await Course.find({ courseID: { $in: listID } }).select('courseID keywords targets requirements')
+      if (rowsInfo.affectedRows !== 0) {
+        //Merge data with Mysql and MongoDB
+        const mergeData = rowsInfo.map(course => {
+          const data = mongoData.find(mc => mc.courseID === course.courseID)
+          return {
+            ...course,
+            keywords: data ? data.keywords : '',
+            targets: data ? data.targets: '',
+            requirements: data ? data.requirements : ''
+          }
+        })
+        resolve(mergeData)
+      }
+      else {
+        reject("This course does not contain data")
+      }
+    }
+    catch (error) {
+      reject(error)
+    }
+  })
+}
+
 const getCourseById = catchAsync(async (req, res, next) => {
   // Implement here
   const courseID = req.params.id
@@ -1470,4 +1507,4 @@ export default {
   acceptAssignment
 }
 
-export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL, getInstructorOfCourse }
+export { getListInforPublish, switchCourseStatus, getListInforEnroll, getListCourseBaseUserID, getProgress, getFullInfoMySQL, getFullInfoMongo, getInstructorOfCourse, getListInforPublishForModel }

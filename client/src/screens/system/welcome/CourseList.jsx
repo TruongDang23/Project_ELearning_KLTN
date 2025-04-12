@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import Course from './Course'
 import { useState, useEffect } from 'react'
 import { Element } from 'react-scroll'
-import { anonymous } from 'api/index'
+import { anonymous, model } from 'api'
 import { Snackbar } from "~/components/general"
 
 const CourseListWrapper = styled.section`
@@ -21,6 +21,7 @@ const CourseListWrapper = styled.section`
 `
 
 function CourseList() {
+  const userID = localStorage.getItem('userID') ? localStorage.getItem('userID') : 'anonymous'
   const [courses, setCourse] = useState([])
   const [openError, setOpenError] = useState({
     status: false,
@@ -30,8 +31,19 @@ function CourseList() {
     limit: 9,
     page: 'welcome'
   }
+  let res
   const loadCourseWelcome = async() => {
-    const res = await anonymous.searchCourse(params)
+    switch (userID[0]) {
+    case 'S':
+      res = await model.recommendCourse()
+      break
+    case 'I':
+      res = await model.recommendCourse()
+      break
+    default:
+      res = await anonymous.searchCourse(params)
+      break
+    }
     if (res.status === 200) {
       setCourse(res.data)
     }
