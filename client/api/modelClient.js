@@ -28,4 +28,14 @@ export class ModelClient extends ApiClient {
       return error
     }
   }
+
+  async recommendCourse() {
+    try {
+      const response = await axios.get(`${this.domain}/recommend-course`)
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
 }

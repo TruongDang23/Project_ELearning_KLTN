@@ -29,4 +29,19 @@ async function downloadPDF(url, outputPath) {
   }
 }
 
-export { formatTextfromPDF, downloadPDF }
+function formatContentForRecommendModel(data) {
+  return data.map(course => {
+    const { courseID, ...rest } = course;
+    // Nối tất cả các trường còn lại thành 1 chuỗi
+    const content = Object.values(rest)
+      .flat() // nếu là mảng thì flatten
+      .join(". ") // nối bằng dấu chấm cách
+
+    return {
+      courseID,
+      content
+    }
+  })
+}
+
+export { formatTextfromPDF, downloadPDF, formatContentForRecommendModel }
