@@ -1,13 +1,50 @@
-import styled from "styled-components";
-
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import PersonalVideoIcon from "@mui/icons-material/PersonalVideo";
-import LocalLibraryIcon from "@mui/icons-material/LocalLibrary";
-import DnsIcon from "@mui/icons-material/Dns";
-import PaidIcon from "@mui/icons-material/Paid";
-import ChatIcon from "@mui/icons-material/Chat";
+import { useEffect, useState } from 'react'
+import { admin } from 'api'
+import styled from 'styled-components'
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import PersonalVideoIcon from '@mui/icons-material/PersonalVideo'
+import LocalLibraryIcon from '@mui/icons-material/LocalLibrary'
+import DnsIcon from '@mui/icons-material/Dns'
+import PaidIcon from '@mui/icons-material/Paid'
+import ChatIcon from '@mui/icons-material/Chat'
+import { Snackbar } from '~/components/general'
 
 function GeneralDashboard() {
+  const [data, setData] = useState({
+    instructors: 0,
+    courses: 0,
+    students: 0,
+    categories: 0,
+    reviews: 0
+  })
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ''
+  })
+
+  const loadDataDashboard = async () => {
+    try {
+      const response = await admin.loadDataDashboard()
+      const { instructors, courses, students, categories, reviews } =
+        response.data
+      setData({ instructors, courses, students, categories, reviews })
+    } catch (error) {
+      setOpenError({
+        status: true,
+        message: 'Failed to load general dashboard data'
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false,
+          message: ''
+        })
+      }, 3000)
+    }
+  }
+
+  useEffect(() => {
+    loadDataDashboard()
+  }, [])
   return (
     <GeneralDashboardWrapper>
       <h3>General</h3>
@@ -20,7 +57,7 @@ function GeneralDashboard() {
           </div>
           <div className="general-content">
             <h4>Instructor</h4>
-            <p>1000</p>
+            <p>{data.instructors}</p>
           </div>
         </div>
         <div className="general-card">
@@ -31,7 +68,7 @@ function GeneralDashboard() {
           </div>
           <div className="general-content">
             <h4>Courses</h4>
-            <p>1000</p>
+            <p>{data.courses}</p>
           </div>
         </div>
         <div className="general-card">
@@ -42,7 +79,7 @@ function GeneralDashboard() {
           </div>
           <div className="general-content">
             <h4>Students</h4>
-            <p>1000</p>
+            <p>{data.students}</p>
           </div>
         </div>
         <div className="general-card">
@@ -53,7 +90,7 @@ function GeneralDashboard() {
           </div>
           <div className="general-content">
             <h4>Categories</h4>
-            <p>3</p>
+            <p>{data.categories}</p>
           </div>
         </div>
         <div className="general-card">
@@ -75,12 +112,20 @@ function GeneralDashboard() {
           </div>
           <div className="general-content">
             <h4>Review</h4>
-            <p>2000</p>
+            <p>{data.reviews}</p>
           </div>
         </div>
       </div>
+      {openError.status && (
+        <Snackbar
+          vertical="bottom"
+          horizontal="right"
+          severity="error"
+          message={openError.message}
+        />
+      )}
     </GeneralDashboardWrapper>
-  );
+  )
 }
 
 const GeneralDashboardWrapper = styled.section`
@@ -214,6 +259,6 @@ const GeneralDashboardWrapper = styled.section`
       grid-template-columns: repeat(1, 1fr);
     }
   }
-`;
+`
 
-export default GeneralDashboard;
+export default GeneralDashboard

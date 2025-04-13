@@ -15,6 +15,7 @@ import modelRouter from './routes/modelRouter.js'
 import courseRouter from './routes/courseRouter.js'
 import errorHandler from './utils/errorHandler.js'
 import masterDataRouter from './routes/masterDataRouter.js'
+import dashboardRouter from './routes/dashboardRouter.js'
 
 const app = express()
 
@@ -64,6 +65,7 @@ app.use('/api/course', courseRouter)
 app.use('/api/masterdata', masterDataRouter)
 app.use('/api/notification', notificationRouter)
 app.use('/api/model', modelRouter)
+app.use('/api/dashboard', dashboardRouter)
 
 app.all('*', (req, res, next) => {
   res.status(404).json({

@@ -1,10 +1,44 @@
-import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
-import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
-import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import { useEffect, useState } from 'react'
+import { admin } from 'api'
+import styled from 'styled-components'
+import { useNavigate } from 'react-router-dom'
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
+import { Snackbar } from '~/components/general'
 
 function AccountDashboard() {
   const navigate = useNavigate()
+  const [data, setData] = useState({
+    activeAccounts: 0,
+    blockedAccounts: 0
+  })
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ''
+  })
+
+  const loadDataDashboard = async () => {
+    try {
+      const response = await admin.loadDataDashboard()
+      const { activeAccounts, blockedAccounts } = response.data
+      setData({ activeAccounts, blockedAccounts })
+    } catch (error) {
+      setOpenError({
+        status: true,
+        message: 'Failed to load dashboard data'
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false,
+          message: ''
+        })
+      }, 3000)
+    }
+  }
+
+  useEffect(() => {
+    loadDataDashboard()
+  }, [])
   return (
     <AccountDashboardWrapper>
       <h3>Account</h3>
@@ -17,7 +51,7 @@ function AccountDashboard() {
           </div>
           <div className="general-content">
             <h4>Active</h4>
-            <p>1000</p>
+            <p>{data.activeAccounts}</p>
           </div>
         </div>
         <div className="general-card">
@@ -28,16 +62,26 @@ function AccountDashboard() {
           </div>
           <div className="general-content">
             <h4>Block</h4>
-            <p>1000</p>
+            <p>{data.blockedAccounts}</p>
           </div>
         </div>
       </div>
       <div className="account-all">
         <h4>See all</h4>
-        <button onClick={() => navigate('/admin/manageAccount')}>Go to list of all accounts</button>
+        <button onClick={() => navigate('/admin/manageAccount')}>
+          Go to list of all accounts
+        </button>
       </div>
+      {openError.status && (
+        <Snackbar
+          vertical="bottom"
+          horizontal="right"
+          severity="error"
+          message={openError.message}
+        />
+      )}
     </AccountDashboardWrapper>
-  );
+  )
 }
 
 const AccountDashboardWrapper = styled.section`
@@ -173,6 +217,6 @@ const AccountDashboardWrapper = styled.section`
       }
     }
   }
-`;
+`
 
-export default AccountDashboard;
+export default AccountDashboard

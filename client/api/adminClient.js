@@ -5,6 +5,7 @@ import { ModelClient } from './modelClient'
 import { InstructorClient } from './instructorClient'
 import { StudentClient } from './studentClient'
 import { MasterDataClient } from './masterDataClient'
+import { DashboardClient } from './dashboardClient'
 
 export class AdminClient extends ApiClient {
   constructor() {
@@ -14,6 +15,7 @@ export class AdminClient extends ApiClient {
     this.instructor = new InstructorClient()
     this.student = new StudentClient()
     this.master = new MasterDataClient()
+    this.dashboard = new DashboardClient()
   }
 
   async updateAvatar(id, formData) {
@@ -103,8 +105,16 @@ export class AdminClient extends ApiClient {
     try {
       const response = await this.master.getListInformation()
       return response
+    } catch (error) {
+      return error
     }
-    catch (error) {
+  }
+
+  async loadDataDashboard() {
+    try {
+      const response = await this.dashboard.getListInformation()
+      return response
+    } catch (error) {
       return error
     }
   }

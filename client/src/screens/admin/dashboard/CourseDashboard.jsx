@@ -1,11 +1,46 @@
-import styled from "styled-components"
-import { useNavigate } from "react-router-dom"
-import PublishIcon from "@mui/icons-material/Publish"
-import DraftsIcon from "@mui/icons-material/Drafts"
-import CancelIcon from "@mui/icons-material/Cancel"
+import { useEffect, useState } from 'react'
+import { admin } from 'api'
+import styled from 'styled-components'
+import { useNavigate } from 'react-router-dom'
+import PublishIcon from '@mui/icons-material/Publish'
+import DraftsIcon from '@mui/icons-material/Drafts'
+import CancelIcon from '@mui/icons-material/Cancel'
+import { Snackbar } from '~/components/general'
 
 function CourseDashboard() {
   const navigate = useNavigate()
+  const [data, setData] = useState({
+    published: 0,
+    monitoring: 0,
+    terminated: 0
+  })
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ''
+  })
+
+  const loadDataDashboard = async () => {
+    try {
+      const response = await admin.loadDataDashboard()
+      const { published, monitoring, terminated } = response.data
+      setData({ published, monitoring, terminated })
+    } catch (error) {
+      setOpenError({
+        status: true,
+        message: 'Failed to load dashboard data'
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false,
+          message: ''
+        })
+      }, 3000)
+    }
+  }
+
+  useEffect(() => {
+    loadDataDashboard()
+  }, [])
   return (
     <CourseDashboardWrapper>
       <h3>Courses</h3>
@@ -18,7 +53,7 @@ function CourseDashboard() {
           </div>
           <div className="general-content">
             <h4>Publish</h4>
-            <p>1000</p>
+            <p>{data.published}</p>
           </div>
         </div>
         <div className="general-card">
@@ -29,7 +64,7 @@ function CourseDashboard() {
           </div>
           <div className="general-content">
             <h4>Monitoring</h4>
-            <p>1000</p>
+            <p>{data.monitoring}</p>
           </div>
         </div>
         <div className="general-card">
@@ -40,16 +75,26 @@ function CourseDashboard() {
           </div>
           <div className="general-content">
             <h4>Terminated</h4>
-            <p>1000</p>
+            <p>{data.terminated}</p>
           </div>
         </div>
       </div>
       <div className="course-all">
         <h4>See all</h4>
-        <button onClick={() => navigate('/admin/manageCourse')}>Go to list of all courses</button>
+        <button onClick={() => navigate('/admin/manageCourse')}>
+          Go to list of all courses
+        </button>
       </div>
+      {openError.status && (
+        <Snackbar
+          vertical="bottom"
+          horizontal="right"
+          severity="error"
+          message={openError.message}
+        />
+      )}
     </CourseDashboardWrapper>
-  );
+  )
 }
 
 const CourseDashboardWrapper = styled.section`
@@ -196,6 +241,6 @@ const CourseDashboardWrapper = styled.section`
       }
     }
   }
-`;
+`
 
-export default CourseDashboard;
+export default CourseDashboard
