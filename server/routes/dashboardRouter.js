@@ -10,4 +10,28 @@ dashboardRouter
   .all(authController.restrictTo('admin'))
   .get(dashboardController.loadDataDashboard)
 
+dashboardRouter
+  .route('/statistic-course')
+  .all(authController.protect)
+  .all(authController.restrictTo('admin'))
+  .get(dashboardController.getCourseStatistics)
+
+dashboardRouter
+  .route('/statistic-user')
+  .all(authController.protect)
+  .all(authController.restrictTo('admin'))
+  .get(dashboardController.getUserStatistics)
+
+dashboardRouter
+  .route('/statistic-category')
+  .all(authController.protect)
+  .all(authController.restrictTo('admin'))
+  .get(dashboardController.getCourseByCategory)
+
+dashboardRouter
+  .route('/statistic-review')
+  .all(authController.protect)
+  .all(authController.restrictTo('admin'))
+  .get(dashboardController.getRatingStatistics)
+
 export default dashboardRouter

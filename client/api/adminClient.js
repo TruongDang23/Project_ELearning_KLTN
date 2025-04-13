@@ -9,7 +9,7 @@ import { DashboardClient } from './dashboardClient'
 
 export class AdminClient extends ApiClient {
   constructor() {
-    super("admin")
+    super('admin')
     this.course = new CourseClient()
     this.model = new ModelClient()
     this.instructor = new InstructorClient()
@@ -20,14 +20,17 @@ export class AdminClient extends ApiClient {
 
   async updateAvatar(id, formData) {
     try {
-      const response = await axios.put(`${this.domain}/avatar/${id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      const response = await axios.put(
+        `${this.domain}/avatar/${id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         }
-      })
+      )
       return response
-    }
-    catch (error) {
+    } catch (error) {
       return error
     }
   }
@@ -36,8 +39,7 @@ export class AdminClient extends ApiClient {
     try {
       const response = await axios.put(`${this.domain}/accept/${id}`)
       return response
-    }
-    catch (error) {
+    } catch (error) {
       return error
     }
   }
@@ -46,8 +48,7 @@ export class AdminClient extends ApiClient {
     try {
       const response = await axios.put(`${this.domain}/republish/${id}`)
       return response
-    }
-    catch (error) {
+    } catch (error) {
       return error
     }
   }
@@ -56,18 +57,18 @@ export class AdminClient extends ApiClient {
     try {
       const response = await axios.put(`${this.domain}/reject/${id}`)
       return response
-    }
-    catch (error) {
+    } catch (error) {
       return error
     }
   }
 
   async terminateCourse(id, dateRange) {
     try {
-      const response = await axios.put(`${this.domain}/terminate/${id}`, { time: dateRange })
+      const response = await axios.put(`${this.domain}/terminate/${id}`, {
+        time: dateRange
+      })
       return response
-    }
-    catch (error) {
+    } catch (error) {
       return error
     }
   }
@@ -78,10 +79,12 @@ export class AdminClient extends ApiClient {
 
   async QnA(courseID, lectureID, content, url) {
     try {
-      const response = await axios.post(`${this.domain}/${courseID}/${lectureID}/QA`, { data: content, url: url })
+      const response = await axios.post(
+        `${this.domain}/${courseID}/${lectureID}/QA`,
+        { data: content, url: url }
+      )
       return response
-    }
-    catch (error) {
+    } catch (error) {
       return error
     }
   }
@@ -94,8 +97,7 @@ export class AdminClient extends ApiClient {
         }
       })
       return response
-    }
-    catch (error) {
+    } catch (error) {
       return error
     }
   }
@@ -113,6 +115,42 @@ export class AdminClient extends ApiClient {
   async loadDataDashboard() {
     try {
       const response = await this.dashboard.getListInformation()
+      return response
+    } catch (error) {
+      return error
+    }
+  }
+
+  async getCourseStatistics() {
+    try {
+      const response = await this.dashboard.getCourseStatistics()
+      return response
+    } catch (error) {
+      return error
+    }
+  }
+
+  async getUserStatistics() {
+    try {
+      const response = await this.dashboard.getUserStatistics()
+      return response
+    } catch (error) {
+      return error
+    }
+  }
+
+  async getCourseByCategory() {
+    try {
+      const response = await this.dashboard.getCourseByCategory()
+      return response
+    } catch (error) {
+      return error
+    }
+  }
+
+  async getRatingStatistics() {
+    try {
+      const response = await this.dashboard.getRatingStatistics()
       return response
     } catch (error) {
       return error
