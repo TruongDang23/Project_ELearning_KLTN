@@ -388,4 +388,38 @@ const refreshToken = catchAsync(async (req, res, next) => {
   }
 })
 
-export default { signup, login, protect, restrictTo, refreshToken, loginWithGoogle, logout, getToken }
+const forgotPassword = catchAsync(async (req, res, next) => {
+  const { email } = req.body
+
+  const connection = connectMysql.promise()
+
+  const [rows] = await connection.query(
+    'SELECT account.username FROM user INNER JOIN account ON user.userID = account.userID WHERE user.mail = ?',
+    [email]
+  )
+  if (rows.length === 0) {
+    return next({ status: 404, message: 'Email not found' })
+  }
+
+  const username = rows[0].username
+
+  const newPassword = crypto.randomBytes(6).toString('hex')
+  const hashedPassword = crypto.createHash('sha512').update(newPassword).digest('hex')
+
+  await connection.query('UPDATE account SET password = ? WHERE username = ?', [hashedPassword, username])
+
+  try {
+    const emailController = new Email()
+    await emailController.sendForgetPass(
+      'Your New Password',
+      username,
+      email,
+      newPassword
+    )
+    res.status(200).send({ message: 'A new password has been sent to your email.' })
+  } catch (error) {
+    return next({ status: 500, message: 'Failed to send email. Please try again later.' })
+  }
+})
+
+export default { signup, login, protect, restrictTo, refreshToken, loginWithGoogle, logout, forgotPassword, getToken }

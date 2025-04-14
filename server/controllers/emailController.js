@@ -32,9 +32,9 @@ class Email {
     await this.newTransport().sendMail(mailOptions)
   }
 
-  async sendForgetPass(subject, receiver, newPassword) {
+  async sendForgetPass(subject, username, receiver, newPassword) {
     const url = `${process.env.DOMAIN}/login`
-    const html = this.#generateHtmlForgotPass(subject, newPassword, url)
+    const html = this.#generateHtmlForgotPass(subject, username, newPassword, url)
     const mailOptions = {
       from: `EL Space <${process.env.EMAIL_USERNAME}>`,
       to: receiver,
@@ -82,23 +82,23 @@ class Email {
     await this.newTransport().sendMail(mailOptions)
   }
 
-  #generateHtmlForgotPass(subject, newPassword, url) {
+  #generateHtmlForgotPass(subject, username, newPassword, url) {
     return `
-      <div style="background: linear-gradient(to right, #212121, ##3a3a3a); padding: 20px;">
+      <div style="background: linear-gradient(to right, #212121, #3a3a3a); padding: 20px;">
         <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);">
           <div style="text-align: center; font-family: Arial, sans-serif; color: #333;">
             <h2 style="color: #212121;">${subject}</h2>
             <hr style="border: 1px solid #212121; width: 80%; margin: 20px auto;">
-            <p style="font-size: 16px;">Chào <strong>${this.firstName}</strong>,</p>
-            <p style="font-size: 16px;">Mật khẩu mới của bạn là:</p>
+            <p style="font-size: 16px;">Dear <strong>${username}</strong>,</p>
+            <p style="font-size: 16px;">Your new password is:</p>
             <div style="background-color: #c5f6fa; padding: 10px 20px; border-radius: 5px; font-size: 18px; font-weight: bold; color: #212121; display: inline-block;">
               ${newPassword}
             </div>
-            <p style="font-size: 16px; margin-top: 20px;">Vui lòng đăng nhập ngay lập tức để đảm bảo tính bảo mật.</p>
-            <a href="${url}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color:#212121; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px;">
-              Đăng nhập ngay
+            <p style="font-size: 16px; margin-top: 20px;">Please log in using the new password and change it as soon as possible for security.</p>
+            <a href="${url}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #187BCE; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px;">
+              Log In Now
             </a>
-            <p style="margin-top: 30px; font-size: 14px; color: #999;">Trân trọng,<br>Quản lý sự kiện - System</p>
+            <p style="margin-top: 30px; font-size: 14px; color: #999;">Thank you,<br>E-Learning System</p>
           </div>
         </div>
       </div>

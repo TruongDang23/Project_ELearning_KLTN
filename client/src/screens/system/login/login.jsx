@@ -1,50 +1,50 @@
 /* eslint-disable no-unused-vars */
-import imgLogin from "../assets/image_loginNew.png"
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline"
-import LockIcon from "@mui/icons-material/Lock"
-import ExitToAppIcon from "@mui/icons-material/ExitToApp"
-import CloseIcon from "@mui/icons-material/Close"
-import { Link } from "react-router-dom"
-import "bootstrap/dist/css/bootstrap.css"
-import styled from "styled-components"
-import { useState } from "react"
-import CryptoJS from "crypto-js"
+import imgLogin from '../assets/image_loginNew.png'
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import LockIcon from '@mui/icons-material/Lock'
+import ExitToAppIcon from '@mui/icons-material/ExitToApp'
+import CloseIcon from '@mui/icons-material/Close'
+import { Link } from 'react-router-dom'
+import 'bootstrap/dist/css/bootstrap.css'
+import styled from 'styled-components'
+import { useState } from 'react'
+import CryptoJS from 'crypto-js'
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 import { anonymous } from 'api'
-import { Snackbar } from "~/components/general"
-import { globalFlag } from "~/context/GlobalFlag"
+import { Snackbar } from '~/components/general'
+import { globalFlag } from '~/context/GlobalFlag'
 
 function Login() {
-  const [username, setUsername] = useState("")
-  const [pass, setPass] = useState("")
-  const [role, setRole] = useState("Student") //default value radio button is Student
-  const [message, setMessage] = useState("")
+  const [username, setUsername] = useState('')
+  const [pass, setPass] = useState('')
+  const [role, setRole] = useState('Student') //default value radio button is Student
+  const [message, setMessage] = useState('')
   const [openSuccess, setOpenSuccess] = useState(false)
   const [openError, setOpenError] = useState({
     status: false,
-    message: ""
+    message: ''
   })
 
   const reloadVoiceFlow = globalFlag((state) => state.setReloadVoiceflow)
 
   const typeUsername = (e) => {
-    setUsername(e.target.value);
-    setMessage("");
+    setUsername(e.target.value)
+    setMessage('')
   }
 
   const typePassword = (e) => {
-    setPass(e.target.value);
-    setMessage("");
+    setPass(e.target.value)
+    setMessage('')
   }
 
   const typeRole = (e) => {
-    setRole(e.target.value);
-    setMessage("");
+    setRole(e.target.value)
+    setMessage('')
   }
 
   const hashPassword = (password) => {
-    return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
+    return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex)
   }
 
   //Login with Google
@@ -54,13 +54,12 @@ function Login() {
       if (res.status === 200) {
         //login successfully
         setOpenSuccess(true)
-        localStorage.setItem("userID", res.data.userID)
+        localStorage.setItem('userID', res.data.userID)
         setTimeout(async () => {
           reloadVoiceFlow()
           window.location.href = '/'
         }, 2000)
-      }
-      else {
+      } else {
         setOpenError({
           status: true,
           message: res.response.data.error
@@ -74,7 +73,7 @@ function Login() {
     } catch (error) {
       setOpenError({
         status: true,
-        message: "Error occurred when login!"
+        message: 'Error occurred when login!'
       })
       setTimeout(() => {
         setOpenError({
@@ -87,7 +86,7 @@ function Login() {
   const handleFailure = () => {
     setOpenError({
       status: true,
-      message: "An error occurred when logging in with Google!"
+      message: 'An error occurred when logging in with Google!'
     })
   }
   //Login manual
@@ -102,13 +101,12 @@ function Login() {
       if (res.status === 200) {
         //login successfully
         setOpenSuccess(true)
-        localStorage.setItem("userID", res.data.userID)
+        localStorage.setItem('userID', res.data.userID)
         setTimeout(async () => {
           reloadVoiceFlow()
           window.location.href = '/'
         }, 2000)
-      }
-      else {
+      } else {
         setOpenError({
           status: true,
           message: res.response.data.error
@@ -122,7 +120,7 @@ function Login() {
     } catch (error) {
       setOpenError({
         status: true,
-        message: "Error occurred when login!"
+        message: 'Error occurred when login!'
       })
       setTimeout(() => {
         setOpenError({
@@ -154,11 +152,11 @@ function Login() {
                 <div className="input-box">
                   <PersonOutlineIcon
                     sx={{
-                      width: "10%",
+                      width: '10%',
                       fontSize: 40,
-                      color: "#187BCE",
-                      padddingLeft: "10px",
-                      marginRight: "10px"
+                      color: '#187BCE',
+                      padddingLeft: '10px',
+                      marginRight: '10px'
                     }}
                     className="icon"
                   />
@@ -179,11 +177,11 @@ function Login() {
                 <div className="input-box">
                   <LockIcon
                     sx={{
-                      width: "10%",
+                      width: '10%',
                       fontSize: 40,
-                      color: "#187BCE",
-                      paddingBottom: "2px",
-                      marginRight: "10px"
+                      color: '#187BCE',
+                      paddingBottom: '2px',
+                      marginRight: '10px'
                     }}
                     className="icon"
                   />
@@ -233,10 +231,10 @@ function Login() {
               {message && (
                 <p
                   style={{
-                    color: "red",
-                    textAlign: "center",
-                    marginTop: "20px",
-                    fontSize: "1.6rem"
+                    color: 'red',
+                    textAlign: 'center',
+                    marginTop: '20px',
+                    fontSize: '1.6rem'
                   }}
                 >
                   {message}
@@ -244,13 +242,13 @@ function Login() {
               )}
               <div className="button">
                 <button onClick={checkLogin} className="button-login">
-                  <ExitToAppIcon sx={{ paddingRight: "10px", fontSize: 35 }} />
+                  <ExitToAppIcon sx={{ paddingRight: '10px', fontSize: 35 }} />
                   Log in
                 </button>
                 <Link to="/">
                   <button className="button-cancel">
                     <CloseIcon
-                      sx={{ paddingRight: "10px", fontSize: 35, color: "red" }}
+                      sx={{ paddingRight: '10px', fontSize: 35, color: 'red' }}
                     />
                     Cancel
                   </button>
@@ -264,18 +262,42 @@ function Login() {
                   />
                 </div>
               </GoogleOAuthProvider>
-              {/* <div className="forgot">
-                <a href="#">Forgot Password</a>
-              </div> */}
+              <div className="forgot">
+                <Link to="/forgot-password">Forgot Password?</Link>
+              </div>
             </div>
           </div>
         </div>
       </LoginWrapper>
 
-      { openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Login Successfully"/> </> : <> </> }
-      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
+      {openSuccess ? (
+        <>
+          {' '}
+          <Snackbar
+            vertical="bottom"
+            horizontal="right"
+            severity="success"
+            message="Login Successfully"
+          />{' '}
+        </>
+      ) : (
+        <> </>
+      )}
+      {openError.status ? (
+        <>
+          {' '}
+          <Snackbar
+            vertical="bottom"
+            horizontal="right"
+            severity="error"
+            message={openError.message}
+          />{' '}
+        </>
+      ) : (
+        <> </>
+      )}
     </>
-  );
+  )
 }
 
 const LoginWrapper = styled.section`
@@ -290,7 +312,7 @@ const LoginWrapper = styled.section`
 
     /* Background animation */
     &::after {
-      content: "";
+      content: '';
       position: absolute;
       top: 0;
       left: 0;
@@ -450,7 +472,7 @@ const LoginWrapper = styled.section`
         margin-top: 30px;
         align-items: center;
 
-        input[type="radio"] {
+        input[type='radio'] {
           display: none;
         }
 
@@ -469,7 +491,7 @@ const LoginWrapper = styled.section`
           }
 
           .custom-radio::after {
-            content: "";
+            content: '';
             width: 12px;
             height: 12px;
             background-color: #187bce;
@@ -484,7 +506,7 @@ const LoginWrapper = styled.section`
         }
 
         /* Sửa lại selector để nó target đúng element */
-        input[type="radio"]:checked + .custom-radio::after {
+        input[type='radio']:checked + .custom-radio::after {
           opacity: 1;
         }
       }
@@ -654,5 +676,5 @@ const LoginWrapper = styled.section`
       }
     }
   }
-`;
-export default Login;
+`
+export default Login

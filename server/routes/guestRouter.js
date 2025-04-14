@@ -9,4 +9,5 @@ guestRouter.route('/loginWithGoogle').post(authController.loginWithGoogle)
 guestRouter.route('/logout').post(authController.logout)
 guestRouter.route('/refreshtoken').post(authController.refreshToken)
 guestRouter.route('/get-token').get(authController.getToken)
+guestRouter.route('/forgot-password').post(authController.forgotPassword)
 export default guestRouter

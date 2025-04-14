@@ -8,6 +8,7 @@ import ConnectError from './500error'
 import ServerShutdownPage from './ServerShutdown'
 import ErrorGetData from './ErrorGetData'
 import Notication from '~/components/general/notification/Notication'
+import ForgotPassword from './forgotPass/ForgotPassword'
 /* index.jsx của các folder: system, admin, student, teacher có nhiệm vụ
   tạo route để hiển thị các màn hình tương ứng theo từng folder */
 
@@ -20,6 +21,7 @@ function System () {
       <Routes>
         <Route path = '/login' element = {<Login/>} />
         <Route path = '/signup' element = {<Signup/>} />
+        <Route path='/forgot-password' element={<ForgotPassword />} />
         <Route path='/' element={<Welcome />} />
         <Route path = '/401error' element = {<UnauthorizedPage/>} />
         <Route path = '/403error' element = {<ForbiddenPage/>} />
