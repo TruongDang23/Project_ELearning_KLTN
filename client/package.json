@@ -38,6 +38,7 @@
     "react-router-dom": "^6.22.3",
     "react-scroll": "^1.9.0",
     "react-sticky-el": "^2.1.1",
+    "recharts": "^2.15.2",
     "screenfull": "^6.0.2",
     "socket.io-client": "^4.8.0",
     "styled-components": "^6.1.11",

@@ -70,6 +70,18 @@ export class AnonymousClient extends ApiClient {
     }
   }
 
+  async forgotPassword(email) {
+    try {
+      const data = await axios.post(`${this.domain}forgot-password`, {
+        email: email
+      })
+      return data
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async getCourseSummary(id) {
     return await this.course.loadSumaryInformation(id)
   }
