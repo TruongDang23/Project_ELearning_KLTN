@@ -73,6 +73,13 @@ const recommendCourse = catchAsync(async (req, res, next) => {
   // Lấy vector của các khóa học đã mua
   const purchasedCourses = vectorizedCourses.filter(c => listEnrolledCourseID.includes(c.courseID));
 
+  //Case người dùng chưa mua khóa học nào
+  if (purchasedCourses.length === 0) {
+    res.status(204).send([])
+    return
+  }
+
+  // Nếu người dùng đã mua khóa học thì tiếp tục
   // Lọc ra những khóa học chưa mua
   const candidateCourses = vectorizedCourses.filter(c => !listEnrolledCourseID.includes(c.courseID));
 

@@ -37,8 +37,6 @@ function AccessCourse() {
     loadDetailsCourse(courseID)
   }, [])
 
-  // console.log(accessCourseData)
-
   return (
     <>
       {

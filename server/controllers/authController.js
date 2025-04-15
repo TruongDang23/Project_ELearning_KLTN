@@ -295,7 +295,7 @@ const loginWithGoogle = catchAsync(async (req, res, next) => {
     }
   } else {
     //If User is existing
-    createSendToken(userID, 200, res)
+    createSendToken(user.userID, 200, res)
   }
 })
 
