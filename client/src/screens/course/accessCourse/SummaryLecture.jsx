@@ -1,27 +1,35 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
+import { globalFlag } from '~/context/GlobalFlag'
 
-const SummaryLecture = ({ isOpen, onClose, htmlContent }) => {
-  htmlContent = "```html\n<!DOCTYPE html>\n<html lang=\"vi\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Tóm tắt nội dung bài giảng về Dữ liệu và Cơ sở dữ liệu</title>\n    <style>\n        body {\n            font-family: Arial, sans-serif;\n            line-height: 1.6;\n            max-width: 800px;\n            margin: 0 auto;\n            padding: 20px;\n        }\n        h1 {\n            color: #333;\n            text-align: center;\n        }\n        h2 {\n            color: #2c3e50;\n            border-bottom: 2px solid #3498db;\n            padding-bottom: 5px;\n        }\n        ul {\n            padding-left: 30px;\n        }\n    </style>\n</head>\n<body>\n    <h1>Tóm tắt nội dung bài giảng:</h1>\n\n    <h2>1. Dữ liệu:</h2>\n    <ul>\n        <li>Định nghĩa: Những thông tin đã biết, có thể ghi lại và mang ý nghĩa</li>\n        <li>Ví dụ: Dữ liệu về nhân viên, thời tiết, công dân</li>\n    </ul>\n\n    <h2>2. Cơ sở dữ liệu (CSDL):</h2>\n    <ul>\n        <li>Định nghĩa: Tập hợp dữ liệu có liên quan, được lưu trữ trên máy tính, có nhiều người sử dụng và được tổ chức theo mô hình</li>\n    </ul>\n\n    <h2>3. Ví dụ minh họa:</h2>\n    <ul>\n        <li>CSDL SOHUUOTO gồm 3 bảng: CONGDAN, OTO, SOHUU</li>\n        <li>Chứa thông tin về công dân, xe ô tô và mối quan hệ sở hữu</li>\n    </ul>\n\n    <h2>4. Các tính chất của CSDL:</h2>\n    <ul>\n        <li>Biểu thị một khía cạnh của thế giới thực</li>\n        <li>Được thiết kế cho mục đích cụ thể</li>\n        <li>Dữ liệu được liên kết logic và mang ý nghĩa</li>\n        <li>Không phải là tập hợp dữ liệu ngẫu nhiên</li>\n    </ul>\n</body>\n</html>\n"
+const SummaryLecture = ({ isOpen }) => {
+  const text = globalFlag((state) => state.summaryText)
   const [animate, setAnimate] = useState(false);
+  const openPopup = globalFlag((state) => state.setOpenPopupSummary)
+  const [htmlContent, setHtmlContent] = useState("")
+  const onClose = () => {
+    openPopup()
+  }
+
+  console.log('summary', text)
+  const regexHTML = (html) => {
+    const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/i
+    const match = html.match(bodyRegex)
+    if (match && match[1]) {
+      return match[1].trim()
+    }
+    return null
+  }
 
   useEffect(() => {
+    console.log('open popup')
     if (isOpen) {
+      setHtmlContent(regexHTML(text))
       // Trigger animation after component mounts
       setTimeout(() => setAnimate(true), 100);
-
-      // Prevent background scrolling when popup is open
-      document.body.style.overflow = 'hidden';
     } else {
       setAnimate(false);
-      // Re-enable scrolling when popup is closed
-      document.body.style.overflow = 'auto';
     }
-
-    // Cleanup function
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isOpen]);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -48,13 +56,14 @@ const SummaryLecture = ({ isOpen, onClose, htmlContent }) => {
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(240, 245, 255, 0.6)', // Lighter background
-    backdropFilter: 'blur(12px)', // Stronger blur effect
-    WebkitBackdropFilter: 'blur(12px)', // For Safari
+    backdropFilter: 'blur(8px)', // Reduced blur effect (from 12px to 8px)
+    WebkitBackdropFilter: 'blur(8px)', // For Safari
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
-    transition: 'all 0.3s ease'
+    transition: 'all 0.3s ease',
+    pointerEvents: 'all' // Ensures clicks on the overlay are captured
   };
 
   const modalContentStyle = {
@@ -218,7 +227,7 @@ const SummaryLecture = ({ isOpen, onClose, htmlContent }) => {
     /* Added backdrop animation */
     @keyframes backdropFadeIn {
       from { background-color: rgba(240, 245, 255, 0); backdrop-filter: blur(0px); }
-      to { background-color: rgba(240, 245, 255, 0.6); backdrop-filter: blur(12px); }
+      to { background-color: rgba(240, 245, 255, 0.6); backdrop-filter: blur(8px); }
     }
     
     .modal-overlay {
@@ -248,14 +257,21 @@ const SummaryLecture = ({ isOpen, onClose, htmlContent }) => {
     </div>
   );
 
+  // Function to handle overlay click - prevent propagation to modal content
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
   return (
-    <div style={modalOverlayStyle} className="modal-overlay">
+    <div style={modalOverlayStyle} className="modal-overlay" onClick={handleOverlayClick}>
       <style>{contentOverrides}</style>
       <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
         <div style={glowBorder}></div>
         <div style={innerContentStyle}>
           <button
             style={closeButtonStyle}
+            onClick={onClose}
             onMouseOver={(e) => {
               e.target.style.background = 'rgba(100, 150, 255, 0.25)';
               e.target.style.transform = 'rotate(90deg)';
@@ -267,7 +283,6 @@ const SummaryLecture = ({ isOpen, onClose, htmlContent }) => {
           >
             ×
           </button>
-
           <div style={headerStyle}>
             <h2 className="title-glow" style={{
               margin: 0,
@@ -279,14 +294,12 @@ const SummaryLecture = ({ isOpen, onClose, htmlContent }) => {
               fontWeight: '600',
               display: 'inline-block'
             }}>
-              Nội dung được tạo bởi AI
+                    Nội dung được tạo bởi AI
             </h2>
           </div>
-
           <div style={contentStyle} className="content-area">
             <div className="summary-content" dangerouslySetInnerHTML={{ __html: htmlContent }} />
           </div>
-
           <TechDecoration />
         </div>
       </div>

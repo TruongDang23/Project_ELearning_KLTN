@@ -8,6 +8,7 @@ import fs from 'fs'
 import connectMysql from '../config/connMySql.js'
 import mongoose from 'mongoose'
 import { getFullInfoMongo, getFullInfoMySQL, getListCourseBaseUserID, getListInforPublishForModel } from './courseController.js'
+import axios from 'axios'
 
 //library for recommend system
 import natural from 'natural'
@@ -195,4 +196,18 @@ const calculateVectors = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ 'vector': vectorizedCourses })
 })
-export default { chatAI, extractPDFText, recommendCourse, calculateVectors }
+
+const summaryLecture = catchAsync(async (req, res, next) => {
+  const { url } = req.body
+  try {
+    const response = await axios.post("https://n8n.techskillup.online/webhook/summary-lecture", { url: url }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    res.status(200).send(response.data[0].format_html)
+  } catch (error) {
+    next(error)
+  }
+})
+export default { chatAI, extractPDFText, recommendCourse, calculateVectors, summaryLecture }

@@ -2,7 +2,6 @@ import axios from 'axios'
 import { ApiClient } from './apiClient'
 
 export class ModelClient extends ApiClient {
-  domainN8N = import.meta.env.VITE_DOMAIN_N8N
   constructor() {
     super("model")
   }
@@ -42,7 +41,7 @@ export class ModelClient extends ApiClient {
 
   async getSummaryLecture(url) {
     try {
-      const response = await axios.post(`${this.domainN8N}/webhook/summary-lecture`, {
+      const response = await axios.post(`${this.domain}/summary-lecture`, {
         url: url
       })
       return response

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-// import { useParams, useLocation } from 'react-router-dom'
 import { AppBar, Tabs, Tab, Box } from '@mui/material'
 import PropTypes from 'prop-types'
 import styled from 'styled-components'
@@ -7,8 +6,11 @@ import TabOverview from './TabOverview'
 import TabReview from './TabReview'
 import TabChatAI from './TabChatAI'
 import TabQA from './TabQA'
-
-// import courseQA from '~/data/QAdata'
+import { globalFlag } from '~/context/GlobalFlag'
+import { Button } from '@mui/material'
+import SummarizeIcon from '@mui/icons-material/Summarize' // optional icon
+import { model } from 'api'
+import CircularProgress from '@mui/material/CircularProgress'
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props
@@ -44,7 +46,24 @@ function a11yProps(index) {
 
 function TabviewAccessCourse({ accessCourseData, lectureId, setReload }) {
   const [value, setValue] = useState(0)
+  const openPopup = globalFlag((state) => state.setOpenPopupSummary)
+  const setText = globalFlag((state) => state.setSummaryText)
+  const [isLoading, setIsLoading] = useState(false)
 
+  const summaryLecture = async () => {
+    setIsLoading(true)
+    try {
+      const res = await model.getSummaryLecture("https://storage.googleapis.com/e-learning-bucket/C008/CT02/02-database.pdf")
+      if (res.status === 200) {
+        setText(res.data)
+        openPopup()
+      }
+    } catch (error) {
+      console.error("Error fetching summary:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
   // const location = useLocation()
   const [lectureQA, setLectureQA] = useState([])
 
@@ -72,16 +91,29 @@ function TabviewAccessCourse({ accessCourseData, lectureId, setReload }) {
     <TabviewAccessCourseWrapper>
       <div>
         <AppBar position="static">
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            aria-label="simple tabs example"
-          >
-            <TabStyled label="Overview" {...a11yProps(0)} />
-            <TabStyled label="Chat AI" {...a11yProps(1)} />
-            <TabStyled label="Reviews" {...a11yProps(2)} />
-            <TabStyled label="Q&A" {...a11yProps(3)} />
-          </Tabs>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              aria-label="simple tabs example"
+            >
+              <TabStyled label="Overview" {...a11yProps(0)} />
+              <TabStyled label="Chat AI" {...a11yProps(1)} />
+              <TabStyled label="Reviews" {...a11yProps(2)} />
+              <TabStyled label="Q&A" {...a11yProps(3)} />
+            </Tabs>
+
+            <Box pr={2}>
+              <SummaryButton
+                startIcon={!isLoading && <SummarizeIcon />}
+                onClick={summaryLecture}
+                variant="outlined"
+                disabled={isLoading}
+              >
+                {isLoading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Summary Lecture'}
+              </SummaryButton>
+            </Box>
+          </Box>
         </AppBar>
         <TabPanel value={value} index={0}>
           <TabOverview accessCourseData={accessCourseData} />
@@ -132,5 +164,22 @@ const TabviewAccessCourseWrapper = styled.section`
     text-transform: none;
   }
 `
+const SummaryButton = styled(Button)`
+  && {
+    color: #f9f9f9;
+    border: 1px solid #f9f9f9;
+    font-size: 1.4rem;
+    text-transform: none;
+    font-weight: 500;
+    padding: 6px 16px;
+    border-radius: 8px;
+    margin-right: 16px;
+    transition: all 0.3s ease;
 
+    &:hover {
+      background-color: #ffffff22;
+      border-color: #ffffff;
+    }
+  }
+`
 export default TabviewAccessCourse
