@@ -4,10 +4,12 @@ import { Instructor } from "./screens/teacher"
 import { Student } from "./screens/student"
 import { Course } from "./screens/course"
 import ChatBotUI from "./screens/system/Chatbot"
-function App() {
+import SummaryLecture from "./screens/course/accessCourse/SummaryLecture"
 
+function App() {
   return (
     <>
+      <SummaryLecture />
       <System />
       <ChatBotUI/>
       <Admin />

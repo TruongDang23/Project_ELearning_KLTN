@@ -8,6 +8,7 @@ import fs from 'fs'
 import connectMysql from '../config/connMySql.js'
 import mongoose from 'mongoose'
 import { getFullInfoMongo, getFullInfoMySQL, getListCourseBaseUserID, getListInforPublishForModel } from './courseController.js'
+import axios from 'axios'
 
 //library for recommend system
 import natural from 'natural'
@@ -73,6 +74,13 @@ const recommendCourse = catchAsync(async (req, res, next) => {
   // Lấy vector của các khóa học đã mua
   const purchasedCourses = vectorizedCourses.filter(c => listEnrolledCourseID.includes(c.courseID));
 
+  //Case người dùng chưa mua khóa học nào
+  if (purchasedCourses.length === 0) {
+    res.status(204).send([])
+    return
+  }
+
+  // Nếu người dùng đã mua khóa học thì tiếp tục
   // Lọc ra những khóa học chưa mua
   const candidateCourses = vectorizedCourses.filter(c => !listEnrolledCourseID.includes(c.courseID));
 
@@ -188,4 +196,20 @@ const calculateVectors = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ 'vector': vectorizedCourses })
 })
-export default { chatAI, extractPDFText, recommendCourse, calculateVectors }
+
+const summaryLecture = catchAsync(async (req, res, next) => {
+  const { url } = req.body
+  try {
+    //"https://n8n.techskillup.online/webhook/summary-lecture"
+    // eslint-disable-next-line no-undef
+    const response = await axios.post(`${process.env.API_N8N}/webhook/summary-lecture`, { url: url }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    res.status(200).send(response.data[0].format_html)
+  } catch (error) {
+    next(error)
+  }
+})
+export default { chatAI, extractPDFText, recommendCourse, calculateVectors, summaryLecture }

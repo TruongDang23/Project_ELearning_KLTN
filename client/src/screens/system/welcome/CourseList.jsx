@@ -47,6 +47,20 @@ function CourseList() {
     if (res.status === 200) {
       setCourse(res.data)
     }
+    // Case học viên chưa mua khóa học nào hoặc giảng viên chưa tạo khóa học nào
+    // => trả về danh sách khóa học mặc định
+    else if (res.status === 204) {
+      res = await anonymous.searchCourse(params)
+      if (res.status === 200) {
+        setCourse(res.data)
+      }
+      else {
+        setOpenError({
+          status: true,
+          message: res.response.data.error
+        })
+      }
+    }
     else {
       setOpenError({
         status: true,
@@ -63,7 +77,7 @@ function CourseList() {
     <>
       <CourseListWrapper className="container white-space-medium">
         <Element name="courses">
-          <h2 className="heading-tertiary">Courses</h2>
+          <h2 className="heading-tertiary">Recommended for You</h2>
         </Element>
         <div className="courses">
           {courses.map((course) => (

@@ -38,4 +38,16 @@ export class ModelClient extends ApiClient {
       return error
     }
   }
+
+  async getSummaryLecture(url) {
+    try {
+      const response = await axios.post(`${this.domain}/summary-lecture`, {
+        url: url
+      })
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
 }

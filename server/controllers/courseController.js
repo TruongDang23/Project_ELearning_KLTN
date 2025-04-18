@@ -161,6 +161,7 @@ const getFullInfoMySQL = (connection, courseID) => {
                 status,\
                 num_lecture,\
                 avg.star,\
+                avg.raters as number_reviews,\
                 num.number_enrolled\
                 FROM course AS c\
                 LEFT JOIN user AS u ON c.userID = u.userID\
