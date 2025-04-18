@@ -1,121 +1,156 @@
-import ReactPlayer from "react-player";
-import { useState, useRef, useEffect } from "react";
-import screenfull from "screenfull";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import PauseIcon from "@mui/icons-material/Pause";
-import Replay5Icon from "@mui/icons-material/Replay5";
-import Forward5Icon from "@mui/icons-material/Forward5";
-import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import SpeedIcon from "@mui/icons-material/Speed";
-import VolumeUpIcon from "@mui/icons-material/VolumeUp";
-import styled from "styled-components";
+import ReactPlayer from 'react-player'
+import { useState, useRef, useEffect } from 'react'
+import screenfull from 'screenfull'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import PauseIcon from '@mui/icons-material/Pause'
+import Replay5Icon from '@mui/icons-material/Replay5'
+import Forward5Icon from '@mui/icons-material/Forward5'
+import FullscreenIcon from '@mui/icons-material/Fullscreen'
+import SpeedIcon from '@mui/icons-material/Speed'
+import VolumeUpIcon from '@mui/icons-material/VolumeUp'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import styled from 'styled-components'
 
-function VideoPlayer({ video, setProgress }) {
-  const playerRef = useRef(null);
-  const [playing, setPlaying] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [played, setPlayed] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.8);
-  const [muted, setMuted] = useState(false);
-  const [speedMenuOpen, setSpeedMenuOpen] = useState(false);
-  const [volumeMenuOpen, setVolumeMenuOpen] = useState(false);
-  const [videoEnded, setVideoEnded] = useState(false);
-  const [controlsVisible, setControlsVisible] = useState(false);
+function VideoPlayer({
+  video,
+  setProgress,
+  isFaceTrackingEnabled,
+  toggleFaceTracking,
+  isFocused
+}) {
+  const playerRef = useRef(null)
+  const [playing, setPlaying] = useState(false)
+  const [playbackRate, setPlaybackRate] = useState(1)
+  const [played, setPlayed] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [volume, setVolume] = useState(0.8)
+  const [muted, setMuted] = useState(false)
+  const [speedMenuOpen, setSpeedMenuOpen] = useState(false)
+  const [volumeMenuOpen, setVolumeMenuOpen] = useState(false)
+  const [videoEnded, setVideoEnded] = useState(false)
+  const [controlsVisible, setControlsVisible] = useState(false)
   const [isPause, setPause] = useState(true)
   const [showConfirmation, setShowconfirmation] = useState(false)
   const [minute, setMinutes] = useState(0)
+  const [showFocusWarning, setShowFocusWarning] = useState(false)
+  const focusTimeoutRef = useRef(null)
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--value", `${played * 100}%`);
-  }, [played]);
+    document.documentElement.style.setProperty('--value', `${played * 100}%`)
+  }, [played])
 
   useEffect(() => {
-    if (minute > 0) {
-      setPlaying(!playing)
-      setPause(!isPause)
-      setShowconfirmation(!showConfirmation)
+    if (!isFaceTrackingEnabled) {
+      setShowFocusWarning(false)
+      return
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [minute])
+
+    if (!isFocused && playing && !videoEnded) {
+      setPlaying(false)
+      setShowFocusWarning(true)
+      setProgress((prevProgress) => ({
+        ...prevProgress,
+        percent: (
+          (playerRef.current.getCurrentTime() * 100) /
+          duration
+        ).toFixed(1)
+      }))
+    } else if (isFocused && showFocusWarning) {
+      setShowFocusWarning(false)
+      if (!videoEnded) {
+        setPlaying(true)
+      }
+    }
+  }, [
+    isFocused,
+    isFaceTrackingEnabled,
+    playing,
+    videoEnded,
+    duration,
+    setProgress
+  ])
 
   const handleConfirmation = () => {
     setPlaying(!playing)
     setPause(!isPause)
     setShowconfirmation(!showConfirmation)
-    if (!isPause)
-    {
+    if (!isPause) {
       setProgress((prevProgress) => ({
         ...prevProgress,
-        percent: (playerRef.current.getCurrentTime() * 100 / duration).toFixed(1)
+        percent: (
+          (playerRef.current.getCurrentTime() * 100) /
+          duration
+        ).toFixed(1)
       }))
     }
   }
 
   const handlePlayPause = () => {
     if (videoEnded) {
-      setVideoEnded(false); // Đặt lại trạng thái khi bắt đầu chơi lại video
+      setVideoEnded(false)
     }
-    setPlaying(!playing);
-    setPause(!isPause)
-    if (!isPause)
-    {
+    setPlaying(!playing)
+    if (!playing) {
       setProgress((prevProgress) => ({
         ...prevProgress,
-        percent: (playerRef.current.getCurrentTime() * 100 / duration).toFixed(1)
+        percent: (
+          (playerRef.current.getCurrentTime() * 100) /
+          duration
+        ).toFixed(1)
       }))
     }
   }
 
   const handleSpeedChange = (rate) => {
-    setPlaybackRate(rate);
-    setSpeedMenuOpen(false);
-  };
+    setPlaybackRate(rate)
+    setSpeedMenuOpen(false)
+  }
 
   const handleSeekChange = (e) => {
-    setPlayed(parseFloat(e.target.value));
-    playerRef.current.seekTo(parseFloat(e.target.value));
-  };
+    setPlayed(parseFloat(e.target.value))
+    playerRef.current.seekTo(parseFloat(e.target.value))
+  }
 
   const handleVolumeChange = (e) => {
-    setVolume(parseFloat(e.target.value));
-  };
+    setVolume(parseFloat(e.target.value))
+  }
 
   const handleFullscreen = () => {
-    screenfull.toggle(playerRef.current.wrapper);
-  };
+    screenfull.toggle(playerRef.current.wrapper)
+  }
 
   const handleRewind = () => {
-    playerRef.current.seekTo(playerRef.current.getCurrentTime() - 5);
-  };
+    playerRef.current.seekTo(playerRef.current.getCurrentTime() - 5)
+  }
 
   const handleFastForward = () => {
-    playerRef.current.seekTo(playerRef.current.getCurrentTime() + 5);
-  };
+    playerRef.current.seekTo(playerRef.current.getCurrentTime() + 5)
+  }
 
   const handleProgress = (state) => {
     setPlayed(state.played)
-    const seconds = ( state.playedSeconds / 10 ) | 0 //Chia lấy phần nguyên. Cứ hết 60s thì hiển thị confirmation messagemessage
+    const seconds = (state.playedSeconds / 10) | 0 //Chia lấy phần nguyên. Cứ hết 60s thì hiển thị confirmation messagemessage
     setMinutes(seconds)
-  };
+  }
 
   const handleEnded = () => {
-    setVideoEnded(true);
+    setVideoEnded(true)
     handlePlayPause()
-  };
+  }
 
   const formatTime = (seconds) => {
-    const date = new Date(seconds * 1000);
-    const hh = date.getUTCHours();
-    const mm = date.getUTCMinutes();
-    const ss = date.getUTCSeconds();
+    const date = new Date(seconds * 1000)
+    const hh = date.getUTCHours()
+    const mm = date.getUTCMinutes()
+    const ss = date.getUTCSeconds()
     if (hh) {
-      return `${hh}:${mm.toString().padStart(2, "0")}:${ss
+      return `${hh}:${mm.toString().padStart(2, '0')}:${ss
         .toString()
-        .padStart(2, "0")}`;
+        .padStart(2, '0')}`
     }
-    return `${mm}:${ss.toString().padStart(2, "0")}`;
-  };
+    return `${mm}:${ss.toString().padStart(2, '0')}`
+  }
 
   return (
     <VideoPlayerWrapper
@@ -137,7 +172,12 @@ function VideoPlayer({ video, setProgress }) {
         width="100%"
         height="100%"
       />
-      <div className={`controls ${controlsVisible ? "visible" : ""}`}>
+      {showFocusWarning && (
+        <div className="focus-warning">
+          Vui lòng quay lại khung hình để tiếp tục!
+        </div>
+      )}
+      <div className={`controls ${controlsVisible ? 'visible' : ''}`}>
         <div className="controls-right">
           <button id="main" onClick={handlePlayPause} title="Play/Pause">
             {playing ? <PauseIcon /> : <PlayArrowIcon />}
@@ -164,6 +204,17 @@ function VideoPlayer({ video, setProgress }) {
               </div>
             )}
           </div>
+          <button
+            onClick={toggleFaceTracking}
+            title={
+              isFaceTrackingEnabled
+                ? 'Tắt theo dõi ánh mắt'
+                : 'Bật theo dõi ánh mắt'
+            }
+            className={isFaceTrackingEnabled ? 'tracking-enabled' : ''}
+          >
+            {isFaceTrackingEnabled ? <VisibilityIcon /> : <VisibilityOffIcon />}
+          </button>
         </div>
         <div className="controls-center">
           <input
@@ -201,9 +252,9 @@ function VideoPlayer({ video, setProgress }) {
                 />
                 <button
                   onClick={() => setMuted(!muted)}
-                  title={muted ? "Unmute" : "Mute"}
+                  title={muted ? 'Unmute' : 'Mute'}
                 >
-                  {muted ? "Unmute" : "Mute"}
+                  {muted ? 'Unmute' : 'Mute'}
                 </button>
               </div>
             )}
@@ -227,7 +278,7 @@ function VideoPlayer({ video, setProgress }) {
         </div>
       )}
     </VideoPlayerWrapper>
-  );
+  )
 }
 
 const VideoPlayerWrapper = styled.div`
@@ -238,6 +289,42 @@ const VideoPlayerWrapper = styled.div`
     position: absolute;
     top: 0;
     left: 0;
+  }
+
+  .focus-warning {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(220, 53, 69, 0.9);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    z-index: 100;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 0.8;
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.05);
+    }
+    100% {
+      opacity: 0.8;
+      transform: translateX(-50%) scale(1);
+    }
+  }
+
+  .tracking-enabled {
+    background-color: #28a745 !important;
   }
 
   .controls {
@@ -286,7 +373,7 @@ const VideoPlayerWrapper = styled.div`
     border-radius: 5px;
   }
 
-  .controls input[type="range"].seek-bar {
+  .controls input[type='range'].seek-bar {
     -webkit-appearance: none; /* Loại bỏ giao diện mặc định của trình duyệt */
     width: 100%; /* Chiều rộng của thanh trượt */
     height: 8px; /* Chiều cao của thanh trượt */
@@ -303,7 +390,7 @@ const VideoPlayerWrapper = styled.div`
     margin: 0;
   }
 
-  .controls input[type="range"]::-webkit-slider-thumb {
+  .controls input[type='range']::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 16px; /* Chiều rộng của nút trượt */
     height: 16px; /* Chiều cao của nút trượt */
@@ -313,7 +400,7 @@ const VideoPlayerWrapper = styled.div`
     margin-top: -3px; /* Để nút trượt căn giữa với thanh trượt */
   }
 
-  .controls input[type="range"]::-moz-range-thumb {
+  .controls input[type='range']::-moz-range-thumb {
     width: 16px;
     height: 16px;
     background: #000;
@@ -395,7 +482,13 @@ const VideoPlayerWrapper = styled.div`
         }
       }
     }
-  }
-`;
 
-export default VideoPlayer;
+    .focus-warning {
+      font-size: 1rem;
+      padding: 10px 20px;
+      top: 15%;
+    }
+  }
+`
+
+export default VideoPlayer
