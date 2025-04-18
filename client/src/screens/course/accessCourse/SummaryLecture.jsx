@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { globalFlag } from '~/context/GlobalFlag'
 
-const SummaryLecture = ({ isOpen }) => {
+const SummaryLecture = () => {
+  const flagOpen = globalFlag((state) => state.openPopupSummary)
   const text = globalFlag((state) => state.summaryText)
   const [animate, setAnimate] = useState(false);
   const openPopup = globalFlag((state) => state.setOpenPopupSummary)
@@ -10,7 +11,6 @@ const SummaryLecture = ({ isOpen }) => {
     openPopup()
   }
 
-  console.log('summary', text)
   const regexHTML = (html) => {
     const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/i
     const match = html.match(bodyRegex)
@@ -21,17 +21,17 @@ const SummaryLecture = ({ isOpen }) => {
   }
 
   useEffect(() => {
-    console.log('open popup')
-    if (isOpen) {
+    if (flagOpen) {
       setHtmlContent(regexHTML(text))
       // Trigger animation after component mounts
       setTimeout(() => setAnimate(true), 100);
     } else {
       setAnimate(false);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flagOpen]);
 
-  if (!isOpen) return null;
+  if (!flagOpen) return null;
 
   // Colorful gradient border for light mode
   const glowBorder = {

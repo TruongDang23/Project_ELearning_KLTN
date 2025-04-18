@@ -200,7 +200,9 @@ const calculateVectors = catchAsync(async (req, res, next) => {
 const summaryLecture = catchAsync(async (req, res, next) => {
   const { url } = req.body
   try {
-    const response = await axios.post("https://n8n.techskillup.online/webhook/summary-lecture", { url: url }, {
+    //"https://n8n.techskillup.online/webhook/summary-lecture"
+    // eslint-disable-next-line no-undef
+    const response = await axios.post(`${process.env.API_N8N}/webhook/summary-lecture`, { url: url }, {
       headers: {
         'Content-Type': 'application/json'
       }

@@ -5,13 +5,11 @@ import { Student } from "./screens/student"
 import { Course } from "./screens/course"
 import ChatBotUI from "./screens/system/Chatbot"
 import SummaryLecture from "./screens/course/accessCourse/SummaryLecture"
-import { globalFlag } from "./context/GlobalFlag"
 
 function App() {
-  const flagOpen = globalFlag((state) => state.openPopupSummary)
   return (
     <>
-      <SummaryLecture isOpen={flagOpen}/>
+      <SummaryLecture />
       <System />
       <ChatBotUI/>
       <Admin />
