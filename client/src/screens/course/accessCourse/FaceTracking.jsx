@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import * as faceapi from 'face-api.js'
 import styled from 'styled-components'
 

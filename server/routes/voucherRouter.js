@@ -12,9 +12,6 @@ voucherRouter
   .post(
     voucherController.createVoucher
   )
-  .get(
-    voucherController.getAllVouchers
-  )
 
 voucherRouter
   .route('/:voucher_code')

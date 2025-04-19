@@ -1,99 +1,120 @@
+/* eslint-disable no-async-promise-executor */
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from '../config/connMySql.js'
 
 const createVoucherObject = async(mysqlTransaction, voucher) => {
-  return new Promise(async (resolve, reject) => {
-    let query = `INSERT INTO vouchers 
-                  (voucher_code, description, discount_value, voucher_for, 
-                  usage_limit, start_date, end_date, is_all_users, is_all_courses) 
-                VALUES 
-                  (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    try {
-      const [affectedRows] = await mysqlTransaction.query(query,
-        [voucher.voucher_code, voucher.description, voucher.discount_value,
-          voucher.voucher_for, voucher.usage_limit, voucher.start_date,
-          voucher.end_date, voucher.is_all_users, voucher.is_all_courses])
+  const query = `INSERT INTO vouchers 
+    (voucher_code, description, discount_value, voucher_for, 
+    usage_limit, start_date, end_date, is_all_users, is_all_courses) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-      if (affectedRows > 0) {
-        resolve(true)
-      }
-      else {
-        reject('Failed to create voucher')
-      }
-    }
-    catch (error) {
-      reject(error)
-    }
-  })
+  const [result] = await mysqlTransaction.query(query, [
+    voucher.voucher_code,
+    voucher.description,
+    voucher.discount_value,
+    voucher.voucher_for,
+    voucher.usage_limit,
+    voucher.start_date,
+    voucher.end_date,
+    voucher.is_all_users,
+    voucher.is_all_courses
+  ])
+
+  if (result.affectedRows === 0) {
+    throw new Error('Failed to create voucher')
+  }
 }
 
 const createVoucherCourse = async(mysqlTransaction, voucher_code, list_courses) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const insertPromises = list_courses.map((courseID) => {
-        const query = `INSERT INTO vouchers_course (voucher_code, courseID) VALUES (?, ?)`
-        return mysqlTransaction.query(query, [voucher_code, courseID])
-      })
+  try {
+    const query = `INSERT INTO vouchers_course (voucher_code, courseID) VALUES (?, ?)`
 
-      await Promise.all(insertPromises) // đợi tất cả insert hoàn tất
-
-      resolve(true) // nếu không lỗi gì
-    } catch (error) {
-      reject(error) // nếu có bất kỳ lỗi nào
+    for (const courseID of list_courses) {
+      const [result] = await mysqlTransaction.query(query, [voucher_code, courseID])
+      if (result.affectedRows === 0) {
+        throw new Error(`Failed to insert course: ${courseID}`)
+      }
     }
-  })
+
+    return true
+  } catch (error) {
+    throw `Error in createVoucherCourse: ${error}`
+  }
 }
 
 const createVoucherUser = async(mysqlTransaction, voucher_code, list_users) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const insertPromises = list_users.map((userID) => {
-        const query = `INSERT INTO vouchers_user (voucher_code, userID) VALUES (?, ?)`
-        return mysqlTransaction.query(query, [voucher_code, userID])
-      })
+  try {
+    const query = `INSERT INTO vouchers_user (voucher_code, userID) VALUES (?, ?)`
 
-      await Promise.all(insertPromises) // đợi tất cả insert hoàn tất
-
-      resolve(true) // nếu không lỗi gì
-    } catch (error) {
-      reject(error) // nếu có bất kỳ lỗi nào
+    for (const userID of list_users) {
+      const [result] = await mysqlTransaction.query(query, [voucher_code, userID])
+      if (result.affectedRows === 0) {
+        throw new Error(`Failed to insert user: ${userID}`)
+      }
     }
-  })
+
+    return true
+  } catch (error) {
+    throw `Error in createVoucherUser: ${error}`
+  }
 }
+
 const createVoucher = catchAsync(async (req, res, next) => {
-  // Implement here
   const { voucher } = req.body
   const mysqlTransaction = connectMysql.promise()
-  await mysqlTransaction.query("START TRANSACTION")
-  const promises = [
-    createVoucherObject(mysqlTransaction, voucher)
-  ]
 
-  // Thêm điều kiện gọi hàm createVoucherUser
-  if (voucher.voucher_for === 'student') {
-    promises.push(
-      createVoucherUser(mysqlTransaction, voucher.voucher_code, voucher.users)
-    )
-  }
-  else if (voucher.voucher_for === 'course') {
-    promises.push(
-      createVoucherCourse(mysqlTransaction, voucher.voucher_code, voucher.courses)
-    )
-  }
   try {
-    // Chạy tất cả promises
-    const result = await Promise.all(promises)
-    // Commit Transactions
+    await mysqlTransaction.query("START TRANSACTION")
+
+    await createVoucherObject(mysqlTransaction, voucher)
+
+    if (voucher.voucher_for === 'student' && voucher.is_all_users === 0) { //Case voucher cho một vài người dùng
+      await createVoucherUser(mysqlTransaction, voucher.voucher_code, voucher.users)
+    } else if (voucher.voucher_for === 'course' && voucher.is_all_courses === 0) { //Case voucher cho một vài khóa khóa học
+      await createVoucherCourse(mysqlTransaction, voucher.voucher_code, voucher.courses)
+    }
+
     await mysqlTransaction.query("COMMIT")
-    res.status(200).send(result[0])
+    res.status(200).send('Voucher created successfully')
   } catch (error) {
-    // Rollback Transactions in case of an error
     await mysqlTransaction.query("ROLLBACK")
-    next(error)
+    next({ status: 500, message: 'Failed to create voucher' })
   }
 })
 
-const getVoucher = catchAsync(async (req, res, next) => { })
+const getVoucher = catchAsync(async (req, res, next) => {
+  // Implement here
+  const voucher_code = req.params.voucher_code
+  if (!voucher_code) {
+    res.status(400).send('Voucher code is required')
+    return
+  }
+
+  const mysqlTransaction = connectMysql.promise()
+
+  let voucher, voucher_users, voucher_courses
+  let result = {}
+
+  await mysqlTransaction.query("START TRANSACTION")
+  try {
+    [voucher, voucher_users, voucher_courses] = await Promise.all([
+      mysqlTransaction.query(`SELECT * FROM vouchers WHERE voucher_code = ?`, [voucher_code]),
+      mysqlTransaction.query(`SELECT * FROM vouchers_user WHERE voucher_code = ?`, [voucher_code]),
+      mysqlTransaction.query(`SELECT * FROM vouchers_course WHERE voucher_code = ?`, [voucher_code])
+    ])
+
+    await mysqlTransaction.query("COMMIT")
+
+    result = voucher[0][0]
+    result.users = voucher_users[0].map((user) => user.userID)
+    result.courses = voucher_courses[0].map((course) => course.courseID)
+
+    res.status(200).send({ voucher: result })
+  } catch (error) {
+    await mysqlTransaction.query("ROLLBACK")
+    next({ status: 500, message: 'Failed to create voucher' })
+  }
+})
 
 const updateVoucher = catchAsync(async (req, res, next) => {
   // Implement here
@@ -134,10 +155,6 @@ const updateVoucher = catchAsync(async (req, res, next) => {
   })
 })
 
-const getAllVouchers = catchAsync(async (req, res, next) => {
-
-})
-
 const deleteVoucher = catchAsync(async (req, res, next) => {
   // Implement here
   const voucher_code = req.params.voucher_code
@@ -172,4 +189,4 @@ const deleteVoucher = catchAsync(async (req, res, next) => {
   })
 })
 
-export default { createVoucher, getVoucher, updateVoucher, getAllVouchers, deleteVoucher }
+export default { createVoucher, getVoucher, updateVoucher, deleteVoucher }
