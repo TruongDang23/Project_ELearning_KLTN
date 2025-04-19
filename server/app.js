@@ -16,6 +16,7 @@ import courseRouter from './routes/courseRouter.js'
 import errorHandler from './utils/errorHandler.js'
 import masterDataRouter from './routes/masterDataRouter.js'
 import dashboardRouter from './routes/dashboardRouter.js'
+import voucherRouter from './routes/voucherRouter.js'
 
 const app = express()
 
@@ -51,7 +52,7 @@ app.use((req, res, next) => {
   const start = Date.now()
   res.on('finish', () => {
     const duration = Date.now() - start
-    console.log(`Request to ${req.originalUrl} took ${duration}ms`)
+    console.log(`[${req.method}] ${req.originalUrl} took ${duration}ms`)
   })
   next()
 })
@@ -66,6 +67,7 @@ app.use('/api/masterdata', masterDataRouter)
 app.use('/api/notification', notificationRouter)
 app.use('/api/model', modelRouter)
 app.use('/api/dashboard', dashboardRouter)
+app.use('/api/voucher', voucherRouter)
 
 app.all('*', (req, res, next) => {
   res.status(404).json({
