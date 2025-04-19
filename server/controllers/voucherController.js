@@ -14,7 +14,7 @@ const createVoucherObject = async(mysqlTransaction, voucher) => {
           voucher.voucher_for, voucher.usage_limit, voucher.start_date,
           voucher.end_date, voucher.is_all_users, voucher.is_all_courses])
 
-      if (affectedRows.length > 0) {
+      if (affectedRows > 0) {
         resolve(true)
       }
       else {
@@ -65,23 +65,22 @@ const createVoucher = catchAsync(async (req, res, next) => {
   const { voucher } = req.body
   const mysqlTransaction = connectMysql.promise()
   await mysqlTransaction.query("START TRANSACTION")
+  const promises = [
+    createVoucherObject(mysqlTransaction, voucher)
+  ]
 
+  // Thêm điều kiện gọi hàm createVoucherUser
+  if (voucher.voucher_for === 'student') {
+    promises.push(
+      createVoucherUser(mysqlTransaction, voucher.voucher_code, voucher.users)
+    )
+  }
+  else if (voucher.voucher_for === 'course') {
+    promises.push(
+      createVoucherCourse(mysqlTransaction, voucher.voucher_code, voucher.courses)
+    )
+  }
   try {
-    const promises = [
-      createVoucherObject(mysqlTransaction, voucher)
-    ]
-
-    // Thêm điều kiện gọi hàm createVoucherUser
-    if (voucher.voucher_for === 'student') {
-      promises.push(
-        createVoucherUser(mysqlTransaction, voucher.voucher_code, voucher.users)
-      )
-    }
-    else if (voucher.voucher_for === 'course') {
-      promises.push(
-        createVoucherCourse(mysqlTransaction, voucher.voucher_code, voucher.courses)
-      )
-    }
     // Chạy tất cả promises
     const result = await Promise.all(promises)
     // Commit Transactions
