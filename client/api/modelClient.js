@@ -5,10 +5,10 @@ export class ModelClient extends ApiClient {
   constructor() {
     super("model")
   }
-  async chatAI(content) {
+  async chatAI(content, sessionID) {
     try {
-      const response = await axios.post(`${this.domain}/chatAI`, {
-        context: content
+      const response = await axios.post(`${this.domain}/chatAI/${sessionID}`, {
+        chatInput: content
       })
       return response
     }

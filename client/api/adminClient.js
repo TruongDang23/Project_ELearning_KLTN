@@ -193,7 +193,7 @@ export class AdminClient extends ApiClient {
     return await this.model.chatBot(content)
   }
 
-  async chatAI(content) {
-    return await this.model.chatAI(content)
+  async chatAI(content, sessionID) {
+    return await this.model.chatAI(content, sessionID)
   }
 }

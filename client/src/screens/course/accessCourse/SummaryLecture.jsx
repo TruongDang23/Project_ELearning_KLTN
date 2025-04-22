@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { globalFlag } from '~/context/GlobalFlag'
 
 const SummaryLecture = () => {
-  const flagOpen = globalFlag((state) => state.openPopupSummary)
+  const flagOpen = globalFlag((state) => state.openPopupSummary) //global flag for open popup (using zustand)
   const text = globalFlag((state) => state.summaryText)
   const [animate, setAnimate] = useState(false);
   const openPopup = globalFlag((state) => state.setOpenPopupSummary)

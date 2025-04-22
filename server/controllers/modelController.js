@@ -18,16 +18,25 @@ import TfIdfList from '../models/tfidf.js'
 const TfIdf = natural.TfIdf
 
 const chatAI = catchAsync(async (req, res, next) => {
-  const { context } = req.body
+  const { chatInput } = req.body
+  const sessionID = req.params.id
   try {
-    const result = await client.chat.completions.create({
-      messages: context,
-      model: ""
-    })
-    res.status(200).send(result.choices[0].message.content)
+    //"https://n8n.techskillup.online/webhook/summary-lecture"
+    // eslint-disable-next-line no-undef
+    const response = await axios.post(`${process.env.API_N8N}/webhook/chat-model`,
+      {
+        chatInput: chatInput,
+        sessionID: sessionID
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+    res.status(200).send(response.data[0].output)
   }
   catch (error) {
-    res.status(500).send(error)
+    next({ status: 500, message: `Error when calling chat model: ${error}` })
   }
 })
 

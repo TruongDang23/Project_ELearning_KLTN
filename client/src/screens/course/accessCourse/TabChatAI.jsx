@@ -4,6 +4,7 @@ import SendIcon from '@mui/icons-material/Send'
 import ReplayIcon from '@mui/icons-material/Replay'
 import { admin, instructor, student } from "api"
 import { Snackbar } from "~/components/general"
+import { v4 as uuidv4 } from 'uuid'
 
 function TabChatAI() {
   const [numberConver, setNumber] = useState(0)
@@ -11,6 +12,8 @@ function TabChatAI() {
   const [text, setText] = useState('')
   const [reload, setReload] = useState(true)
   const userID = localStorage.getItem('userID')
+  const [sessionID, setSessionID] = useState(uuidv4())
+  const [prompt, setPrompt] = useState('')
   const [openError, setOpenError] = useState({
     status: false,
     message: ""
@@ -34,12 +37,15 @@ function TabChatAI() {
         ...input,
         { role: 'user', content: text }
       ]
-    );
+    )
+    setPrompt(text)
     setNumber(prevNum => prevNum + 1)
     setText('')
   }
 
   const handleReloadChat = () => {
+    const newSessionID = uuidv4()
+    setSessionID(newSessionID)
     setReload((prevData) => !prevData)
     setNumber(0)
     setInput([
@@ -48,6 +54,7 @@ function TabChatAI() {
         content: 'Hello Chat Assistant'
       }
     ])
+    setPrompt('Hello Chat Assistant')
   }
 
   const chat = async (input) => {
@@ -63,7 +70,7 @@ function TabChatAI() {
       client = student
       break;
     }
-    const res = await client.chatAI(input)
+    const res = await client.chatAI(prompt, sessionID)
     if (res.status == 200) {
       setInput(
         [
