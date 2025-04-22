@@ -1,5 +1,4 @@
 import catchAsync from '../utils/catchAsync.js'
-import client from '../config/connAzureOpenAI.js'
 import path from 'path'
 import extract from 'pdf-text-extract'
 import { formatTextfromPDF, downloadPDF, formatContentForRecommendModel } from '../utils/format.js'
@@ -18,16 +17,32 @@ import TfIdfList from '../models/tfidf.js'
 const TfIdf = natural.TfIdf
 
 const chatAI = catchAsync(async (req, res, next) => {
-  const { context } = req.body
-  try {
-    const result = await client.chat.completions.create({
-      messages: context,
-      model: ""
-    })
-    res.status(200).send(result.choices[0].message.content)
+  const { chatInput } = req.body
+  const sessionID = req.params.id
+  if (chatInput === 'Hello Chat Assistant') {
+    const response = '```html\n<body>\n\n  <h2>Xin chào! 👋</h2>\n\n  <p>🤖 Tôi là trợ lý khóa học của bạn.</p>\n\n  <p>Tôi có thể giúp gì cho bạn hôm nay? ❓</p>\n\n  <p>Bạn có câu hỏi về một khóa học cụ thể 📚 hay muốn tìm hiểu thông tin ℹ️ về các khóa học của chúng tôi không?</p>\n\n</body>\n```'
+    res.status(200).send(response)
+    return
   }
-  catch (error) {
-    res.status(500).send(error)
+  else {
+    try {
+      //"https://n8n.techskillup.online/webhook/summary-lecture"
+      // eslint-disable-next-line no-undef
+      const response = await axios.post(`${process.env.API_N8N}/webhook/chat-model`,
+        {
+          chatInput: chatInput,
+          sessionID: sessionID
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+      res.status(200).send(response.data[0].output)
+    }
+    catch (error) {
+      next({ status: 500, message: `Error when calling chat model: ${error}` })
+    }
   }
 })
 
