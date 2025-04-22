@@ -5,7 +5,7 @@ import ReplayIcon from '@mui/icons-material/Replay'
 import { admin, instructor, student } from "api"
 import { Snackbar } from "~/components/general"
 import { v4 as uuidv4 } from 'uuid'
-
+import DOMPurify from 'dompurify';
 function TabChatAI() {
   const [numberConver, setNumber] = useState(0)
   const listRef = useRef(null); // Reference to the message list
@@ -13,7 +13,7 @@ function TabChatAI() {
   const [reload, setReload] = useState(true)
   const userID = localStorage.getItem('userID')
   const [sessionID, setSessionID] = useState(uuidv4())
-  const [prompt, setPrompt] = useState('')
+  const [prompt, setPrompt] = useState('Hello Chat Assistant')
   const [openError, setOpenError] = useState({
     status: false,
     message: ""
@@ -24,6 +24,15 @@ function TabChatAI() {
       content: 'Hello Chat Assistant'
     }
   ])
+
+  const regexHTML = (html) => {
+    const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/i
+    const match = html.match(bodyRegex)
+    if (match && match[1]) {
+      return match[1].trim()
+    }
+    return null
+  }
 
   const listenKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -75,7 +84,7 @@ function TabChatAI() {
       setInput(
         [
           ...input,
-          { role: 'assistant', content: res.data }
+          { role: 'assistant', content: regexHTML(res.data) }
         ]
       )
     }
@@ -121,11 +130,40 @@ function TabChatAI() {
                   borderRadius: '10px',
                   lineHeight: '25px'
                 }}>
-                {message.content.split('\n').map((line, lineIndex) => (
-                  <Typography key={lineIndex} variant="body1" sx={{ fontSize: '16px' }}>
-                    {line}
-                  </Typography>
-                ))}
+                {message.role === 'assistant' ? (
+                  <Box
+                    sx={{
+                      fontSize: '16px',
+                      lineHeight: 1.8,
+                      color: '#333',
+                      '& p': {
+                        margin: '8px 0'
+                      },
+                      '& ul': {
+                        paddingLeft: '20px',
+                        margin: '10px 0',
+                        borderRadius: '8px',
+                        padding: '10px 15px'
+                      },
+                      '& li': {
+                        marginBottom: '8px',
+                        listStyleType: 'circle', //'"👉 "',
+                        paddingLeft: '5px'
+                      },
+                      '& i': {
+                        marginRight: '8px',
+                        color: '#1976d2'
+                      }
+                    }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
+                  />
+                ) : (
+                  message.content.split('\n').map((line, lineIndex) => (
+                    <Typography key={lineIndex} variant="body1" sx={{ fontSize: '16px' }}>
+                      {line}
+                    </Typography>
+                  ))
+                )}
               </Paper>
             </ListItem>
           ))}

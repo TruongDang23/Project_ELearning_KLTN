@@ -4,7 +4,7 @@ import modelController from '../controllers/modelController.js'
 
 const modelRouter = express.Router()
 
-modelRouter.post('/chatAI:id', authController.protect, modelController.chatAI)
+modelRouter.post('/chatAI/:id', authController.protect, modelController.chatAI)
 
 modelRouter.post('/extractPDF', modelController.extractPDFText)
 
