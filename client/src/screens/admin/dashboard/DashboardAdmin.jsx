@@ -33,6 +33,7 @@ import CourseDashboard from './CourseDashboard'
 import LogoAdmin from '../../../assets/LogoAdmin.png'
 import GeneralDashboard from './GeneralDashboard'
 import StatisticsDashboard from './StatisticsDashboard'
+import VoucherDashboard from './VoucherDashboard'
 import MasterDataDashboard from './MasterData'
 
 const drawerWidth = 240
@@ -220,6 +221,10 @@ function DashboardAdmin() {
               {
                 text: 'Statistics',
                 icon: <QueryStatsIcon sx={{ fontSize: 35 }} />
+              },
+              {
+                text: 'Vouchers',
+                icon: <BallotIcon sx={{ fontSize: 35 }} />
               }
             // eslint-disable-next-line no-unused-vars
             ].map((item, index) => (
@@ -276,6 +281,7 @@ function DashboardAdmin() {
           {content === 'Account' && <AccountDashboard />}
           {content === 'Courses' && <CourseDashboard />}
           {content === 'Statistics' && <StatisticsDashboard />}
+          {content === 'Vouchers' && <VoucherDashboard />}
         </Box>
       </Box>
     </>
