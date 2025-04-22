@@ -5,12 +5,15 @@ import ReplayIcon from '@mui/icons-material/Replay'
 import { admin, instructor, student } from "api"
 import { Snackbar } from "~/components/general"
 import { v4 as uuidv4 } from 'uuid'
-import DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify'
+import CircularProgress from '@mui/material/CircularProgress'
+
 function TabChatAI() {
   const [numberConver, setNumber] = useState(0)
   const listRef = useRef(null); // Reference to the message list
   const [text, setText] = useState('')
   const [reload, setReload] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const userID = localStorage.getItem('userID')
   const [sessionID, setSessionID] = useState(uuidv4())
   const [prompt, setPrompt] = useState('Hello Chat Assistant')
@@ -47,6 +50,7 @@ function TabChatAI() {
         { role: 'user', content: text }
       ]
     )
+    setIsLoading(true)
     setPrompt(text)
     setNumber(prevNum => prevNum + 1)
     setText('')
@@ -99,6 +103,7 @@ function TabChatAI() {
         })
       }, 3000)
     }
+    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -192,9 +197,10 @@ function TabChatAI() {
             variant="contained"
             color="primary"
             onClick={handleClick}
+            disabled={isLoading ? true : false}
             sx={{ marginLeft: 1 }}
           >
-            <SendIcon sx={{ fontSize: 'large' }}/>
+            {isLoading ? <CircularProgress size={20} sx={{ color: '#0d0d0d' }} /> : <SendIcon sx={{ fontSize: 'large' }}/>}
           </Button>
         </Box>
       </Box>
