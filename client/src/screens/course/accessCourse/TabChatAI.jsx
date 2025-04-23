@@ -4,13 +4,19 @@ import SendIcon from '@mui/icons-material/Send'
 import ReplayIcon from '@mui/icons-material/Replay'
 import { admin, instructor, student } from "api"
 import { Snackbar } from "~/components/general"
+import { v4 as uuidv4 } from 'uuid'
+import DOMPurify from 'dompurify'
+import CircularProgress from '@mui/material/CircularProgress'
 
 function TabChatAI() {
   const [numberConver, setNumber] = useState(0)
   const listRef = useRef(null); // Reference to the message list
   const [text, setText] = useState('')
   const [reload, setReload] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const userID = localStorage.getItem('userID')
+  const [sessionID, setSessionID] = useState(uuidv4())
+  const [prompt, setPrompt] = useState('Hello Chat Assistant')
   const [openError, setOpenError] = useState({
     status: false,
     message: ""
@@ -21,6 +27,15 @@ function TabChatAI() {
       content: 'Hello Chat Assistant'
     }
   ])
+
+  const regexHTML = (html) => {
+    const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/i
+    const match = html.match(bodyRegex)
+    if (match && match[1]) {
+      return match[1].trim()
+    }
+    return null
+  }
 
   const listenKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -34,12 +49,16 @@ function TabChatAI() {
         ...input,
         { role: 'user', content: text }
       ]
-    );
+    )
+    setIsLoading(true)
+    setPrompt(text)
     setNumber(prevNum => prevNum + 1)
     setText('')
   }
 
   const handleReloadChat = () => {
+    const newSessionID = uuidv4()
+    setSessionID(newSessionID)
     setReload((prevData) => !prevData)
     setNumber(0)
     setInput([
@@ -48,6 +67,7 @@ function TabChatAI() {
         content: 'Hello Chat Assistant'
       }
     ])
+    setPrompt('Hello Chat Assistant')
   }
 
   const chat = async (input) => {
@@ -63,12 +83,12 @@ function TabChatAI() {
       client = student
       break;
     }
-    const res = await client.chatAI(input)
+    const res = await client.chatAI(prompt, sessionID)
     if (res.status == 200) {
       setInput(
         [
           ...input,
-          { role: 'assistant', content: res.data }
+          { role: 'assistant', content: regexHTML(res.data) }
         ]
       )
     }
@@ -83,6 +103,7 @@ function TabChatAI() {
         })
       }, 3000)
     }
+    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -114,11 +135,40 @@ function TabChatAI() {
                   borderRadius: '10px',
                   lineHeight: '25px'
                 }}>
-                {message.content.split('\n').map((line, lineIndex) => (
-                  <Typography key={lineIndex} variant="body1" sx={{ fontSize: '16px' }}>
-                    {line}
-                  </Typography>
-                ))}
+                {message.role === 'assistant' ? (
+                  <Box
+                    sx={{
+                      fontSize: '16px',
+                      lineHeight: 1.8,
+                      color: '#333',
+                      '& p': {
+                        margin: '8px 0'
+                      },
+                      '& ul': {
+                        paddingLeft: '20px',
+                        margin: '10px 0',
+                        borderRadius: '8px',
+                        padding: '10px 15px'
+                      },
+                      '& li': {
+                        marginBottom: '8px',
+                        listStyleType: 'circle', //'"👉 "',
+                        paddingLeft: '5px'
+                      },
+                      '& i': {
+                        marginRight: '8px',
+                        color: '#1976d2'
+                      }
+                    }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
+                  />
+                ) : (
+                  message.content.split('\n').map((line, lineIndex) => (
+                    <Typography key={lineIndex} variant="body1" sx={{ fontSize: '16px' }}>
+                      {line}
+                    </Typography>
+                  ))
+                )}
               </Paper>
             </ListItem>
           ))}
@@ -147,9 +197,10 @@ function TabChatAI() {
             variant="contained"
             color="primary"
             onClick={handleClick}
+            disabled={isLoading ? true : false}
             sx={{ marginLeft: 1 }}
           >
-            <SendIcon sx={{ fontSize: 'large' }}/>
+            {isLoading ? <CircularProgress size={20} sx={{ color: '#0d0d0d' }} /> : <SendIcon sx={{ fontSize: 'large' }}/>}
           </Button>
         </Box>
       </Box>
