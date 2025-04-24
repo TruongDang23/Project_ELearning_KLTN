@@ -28,4 +28,20 @@ voucherRouter
   .delete(
     voucherController.deleteVoucher
   )
+
+voucherRouter
+  .route('/match-voucher/:courseID')
+  .get(
+    authController.protect,
+    authController.restrictTo('student'),
+    voucherController.getMatchedVouchers
+  )
+
+voucherRouter
+  .route('/use-voucher/:voucher_code')
+  .post(
+    authController.protect,
+    authController.restrictTo('student'),
+    voucherController.useVoucher
+  )
 export default voucherRouter
