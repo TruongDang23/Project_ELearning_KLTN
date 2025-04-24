@@ -199,7 +199,6 @@ export class AdminClient extends ApiClient {
     return await this.model.chatAI(content, sessionID)
   }
 
-
   async createVoucher(voucherData) {
     return await this.voucher.create(voucherData)
   }
