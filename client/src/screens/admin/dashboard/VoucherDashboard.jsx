@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import {
   Table,
@@ -15,51 +15,21 @@ import {
   DialogActions,
   TextField,
   IconButton,
-  Snackbar
+  Snackbar,
+  Checkbox,
+  FormControlLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
-
-// Sample data for vouchers
-const dataSample = [
-  {
-    id: 1,
-    voucher_code: 'SUMMER2025',
-    description: 'Summer discount for all courses',
-    discount_type: 'percent',
-    discount_value: 20.0,
-    voucher_for: 'course',
-    usage_limit: 100,
-    usage_count: 10,
-    start_date: '2025-06-01',
-    end_date: '2025-08-31',
-    is_all_users: 1,
-    is_all_courses: 1,
-    create_at: '2025-01-01 10:00:00',
-    update_at: '2025-01-01 10:00:00',
-    is_deleted: 0
-  },
-  {
-    id: 2,
-    voucher_code: 'WELCOME10',
-    description: 'Welcome discount for new users',
-    discount_type: 'fixed',
-    discount_value: 10.0,
-    voucher_for: 'course',
-    usage_limit: 50,
-    usage_count: 5,
-    start_date: '2025-01-01',
-    end_date: '2025-12-31',
-    is_all_users: 0,
-    is_all_courses: 0,
-    create_at: '2025-01-01 12:00:00',
-    update_at: '2025-01-01 12:00:00',
-    is_deleted: 0
-  }
-]
+import { admin } from 'api/index'
+import { v4 as uuidv4 } from 'uuid'
 
 function VoucherDashboard() {
-  const [vouchers, setVouchers] = useState(dataSample)
+  const [vouchers, setVouchers] = useState([])
   const [openDetailDialog, setOpenDetailDialog] = useState(false)
   const [openEditDialog, setOpenEditDialog] = useState(false)
   const [openAddDialog, setOpenAddDialog] = useState(false)
@@ -69,20 +39,47 @@ function VoucherDashboard() {
   const [newVoucher, setNewVoucher] = useState({
     voucher_code: '',
     description: '',
-    discount_type: 'percent',
     discount_value: 0,
     voucher_for: '',
     usage_limit: 0,
     start_date: '',
     end_date: '',
-    is_all_users: 0,
-    is_all_courses: 0
+    is_all_users: false,
+    is_all_courses: false,
+    users: '',
+    courses: ''
   })
   const [voucherToDelete, setVoucherToDelete] = useState(null)
   const [openError, setOpenError] = useState({
     status: false,
     message: ''
   })
+
+  // Fetch vouchers from API
+  useEffect(() => {
+    const fetchVouchers = async () => {
+      try {
+        const response = await admin.getListVoucher()
+        const result = response.data
+        if (result.status === 'success') {
+          // Map API data to include is_deleted flag
+          const formattedVouchers = result.data.map((voucher) => ({
+            ...voucher,
+            is_deleted: 0
+          }))
+          setVouchers(formattedVouchers)
+        } else {
+          setOpenError({ status: true, message: 'Failed to load vouchers' })
+        }
+      } catch (error) {
+        setOpenError({
+          status: true,
+          message: 'Error fetching vouchers: ' + error.message
+        })
+      }
+    }
+    fetchVouchers()
+  }, [])
 
   const handleOpenDetail = (voucher) => {
     setSelectedVoucher(voucher)
@@ -95,7 +92,11 @@ function VoucherDashboard() {
   }
 
   const handleOpenEdit = (voucher) => {
-    setEditVoucher({ ...voucher })
+    setEditVoucher({
+      ...voucher,
+      users: voucher.users.map((u) => u.userID).join(', '),
+      courses: voucher.courses.join(', ')
+    })
     setOpenEditDialog(true)
   }
 
@@ -105,6 +106,18 @@ function VoucherDashboard() {
   }
 
   const handleOpenAdd = () => {
+    setNewVoucher({
+      voucher_code: uuidv4(), // Tạo UUID mới mỗi khi mở form thêm voucher
+      description: '',
+      discount_value: 0,
+      voucher_for: '',
+      usage_limit: 0,
+      start_date: '',
+      end_date: '',
+      is_all_users: false,
+      is_all_courses: false,
+      users: []
+    })
     setOpenAddDialog(true)
   }
 
@@ -113,14 +126,15 @@ function VoucherDashboard() {
     setNewVoucher({
       voucher_code: '',
       description: '',
-      discount_type: 'percent',
       discount_value: 0,
       voucher_for: '',
       usage_limit: 0,
       start_date: '',
       end_date: '',
-      is_all_users: 0,
-      is_all_courses: 0
+      is_all_users: false,
+      is_all_courses: false,
+      users: '',
+      courses: ''
     })
   }
 
@@ -134,54 +148,196 @@ function VoucherDashboard() {
     setVoucherToDelete(null)
   }
 
-  const handleConfirmDelete = () => {
-    if (voucherToDelete) {
-      setVouchers((prev) =>
-        prev.map((voucher) =>
-          voucher.id === voucherToDelete.id
-            ? { ...voucher, is_deleted: 1 }
-            : voucher
-        )
-      )
+  // const handleConfirmDelete = () => {
+  //   if (voucherToDelete) {
+  //     setVouchers((prev) =>
+  //       prev.map((voucher) =>
+  //         voucher.voucher_code === voucherToDelete.voucher_code
+  //           ? { ...voucher, is_deleted: 1 }
+  //           : voucher
+  //       )
+  //     )
+  //   }
+  //   handleCloseDelete()
+  // }
+  const handleConfirmDelete = async () => {
+    try {
+      if (voucherToDelete) {
+        const response = await admin.deleteVoucher(voucherToDelete.voucher_code)
+        const result = await response.json()
+        if (result.status === 'success') {
+          setVouchers((prev) =>
+            prev.filter(
+              (voucher) => voucher.voucher_code !== voucherToDelete.voucher_code
+            )
+          )
+          handleCloseDelete()
+        } else {
+          setOpenError({ status: true, message: 'Failed to delete voucher' })
+        }
+      }
+    } catch (error) {
+      setOpenError({
+        status: true,
+        message: 'Error deleting voucher: ' + error.message
+      })
     }
-    handleCloseDelete()
   }
 
   const handleEditChange = (e) => {
-    const { name, value } = e.target
-    setEditVoucher((prev) => ({ ...prev, [name]: value }))
+    const { name, value, type, checked } = e.target
+    setEditVoucher((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }))
   }
 
   const handleNewChange = (e) => {
-    const { name, value } = e.target
-    setNewVoucher((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSaveEdit = () => {
-    setVouchers((prev) =>
-      prev.map((voucher) =>
-        voucher.id === editVoucher.id
-          ? { ...editVoucher, update_at: new Date().toISOString() }
-          : voucher
-      )
-    )
-    handleCloseEdit()
-  }
-
-  const handleAddVoucher = () => {
-    const newId = Math.max(...vouchers.map((v) => v.id)) + 1
-    setVouchers((prev) => [
+    const { name, value, type, checked } = e.target
+    setNewVoucher((prev) => ({
       ...prev,
-      {
-        ...newVoucher,
-        id: newId,
-        usage_count: 0,
-        create_at: new Date().toISOString(),
-        update_at: new Date().toISOString(),
-        is_deleted: 0
+      [name]: type === 'checkbox' ? checked : value
+    }))
+  }
+
+  // const handleSaveEdit = () => {
+  //   const usersArray = editVoucher.users
+  //     ? editVoucher.users
+  //         .split(',')
+  //         .map((id) => id.trim())
+  //         .filter((id) => id)
+  //     : []
+  //   const coursesArray = editVoucher.courses
+  //     ? editVoucher.courses
+  //         .split(',')
+  //         .map((id) => id.trim())
+  //         .filter((id) => id)
+  //     : []
+  //   setVouchers((prev) =>
+  //     prev.map((voucher) =>
+  //       voucher.voucher_code === editVoucher.voucher_code
+  //         ? {
+  //             ...editVoucher,
+  //             users: usersArray.map((id) => ({ userID: id })),
+  //             courses: coursesArray,
+  //             discount_value: parseInt(editVoucher.discount_value),
+  //             usage_limit: parseInt(editVoucher.usage_limit),
+  //             update_at: new Date().toISOString()
+  //           }
+  //         : voucher
+  //     )
+  //   )
+  //   handleCloseEdit()
+  // }
+  const handleSaveEdit = async () => {
+    try {
+      const usersArray = editVoucher.users
+        ? editVoucher.users
+            .split(',')
+            .map((id) => id.trim())
+            .filter((id) => id)
+        : []
+      const coursesArray = editVoucher.courses
+        ? editVoucher.courses
+            .split(',')
+            .map((id) => id.trim())
+            .filter((id) => id)
+        : []
+
+      const response = await admin.updateVoucher({
+        ...editVoucher,
+        discount_value: parseInt(editVoucher.discount_value),
+        usage_limit: parseInt(editVoucher.usage_limit),
+        users: editVoucher.voucher_for === 'student' ? usersArray : [],
+        courses: editVoucher.voucher_for === 'course' ? coursesArray : []
+      })
+
+      const result = await response.json()
+      if (result.status === 'success') {
+        setVouchers((prev) =>
+          prev.map((voucher) =>
+            voucher.voucher_code === editVoucher.voucher_code
+              ? { ...result.data, is_deleted: 0 }
+              : voucher
+          )
+        )
+        handleCloseEdit()
+      } else {
+        setOpenError({ status: true, message: 'Failed to save voucher' })
       }
-    ])
-    handleCloseAdd()
+    } catch (error) {
+      setOpenError({
+        status: true,
+        message: 'Error saving voucher: ' + error.message
+      })
+    }
+  }
+
+  // const handleAddVoucher = () => {
+  //   const usersArray = newVoucher.users
+  //     ? newVoucher.users
+  //         .split(',')
+  //         .map((id) => id.trim())
+  //         .filter((id) => id)
+  //     : []
+  //   const coursesArray = newVoucher.courses
+  //     ? newVoucher.courses
+  //         .split(',')
+  //         .map((id) => id.trim())
+  //         .filter((id) => id)
+  //     : []
+  //   setVouchers((prev) => [
+  //     ...prev,
+  //     {
+  //       ...newVoucher,
+  //       voucher_code: newVoucher.voucher_code || `V${Date.now()}`,
+  //       discount_value: parseInt(newVoucher.discount_value),
+  //       usage_limit: parseInt(newVoucher.usage_limit),
+  //       usage_count: 0,
+  //       create_at: new Date().toISOString(),
+  //       update_at: new Date().toISOString(),
+  //       is_deleted: 0,
+  //       users: usersArray.map((id) => ({ userID: id })),
+  //       courses: coursesArray,
+  //       used: []
+  //     }
+  //   ])
+  //   handleCloseAdd()
+  // }
+  const handleAddVoucher = async () => {
+    try {
+      const usersArray = newVoucher.users
+        ? newVoucher.users
+            .split(',')
+            .map((id) => id.trim())
+            .filter((id) => id)
+        : []
+      const coursesArray = newVoucher.courses
+        ? newVoucher.courses
+            .split(',')
+            .map((id) => id.trim())
+            .filter((id) => id)
+        : []
+      const response = await admin.createVoucher({
+        ...newVoucher,
+        discount_value: parseInt(newVoucher.discount_value),
+        usage_limit: parseInt(newVoucher.usage_limit),
+        users: newVoucher.voucher_for === 'student' ? usersArray : [],
+        courses: newVoucher.voucher_for === 'course' ? coursesArray : []
+      })
+      const result = await response.json()
+      if (result.status === 'success') {
+        setVouchers((prev) => [...prev, { ...result.data, is_deleted: 0 }])
+        handleCloseAdd()
+      } else {
+        setOpenError({ status: true, message: 'Failed to add voucher' })
+      }
+    } catch (error) {
+      setOpenError({
+        status: true,
+        message: 'Error adding voucher: ' + error.message
+      })
+    }
   }
 
   // Common dialog styles
@@ -214,8 +370,48 @@ function VoucherDashboard() {
   }
 
   const dialogActionsStyles = {
-    padding: '1rem 2rem',
-    borderTop: '1px solid rgba(52, 71, 103, 0.1)'
+    display: 'flex',
+    width: '100%',
+    gap: '3rem',
+    justifyContent: 'center',
+    '.btn-save, .btn-cancel, .btn-delete': {
+      padding: '0.5rem 1rem',
+      fontSize: '1.6rem',
+      fontWeight: 600,
+      borderRadius: '0.5rem',
+      cursor: 'pointer',
+      transition: 'transform 0.2s ease',
+      '&:hover': {
+        transform: 'scale(1.05)'
+      }
+    },
+    '.btn-save': {
+      backgroundColor: '#0f4e8b',
+      color: '#fff',
+      border: 'none',
+      '&:hover': {
+        backgroundColor: '#1971c2'
+      }
+    },
+    '.btn-cancel': {
+      backgroundColor: '#fff',
+      color: '#1971c2',
+      outline: 'none',
+      border: 'none',
+      boxShadow: 'inset 0 0 0 2px #1971c2',
+      '&:hover': {
+        backgroundColor: '#1971c2',
+        color: '#fff'
+      }
+    },
+    '.btn-delete': {
+      backgroundColor: '#ff4d4f',
+      color: '#fff',
+      border: 'none',
+      '&:hover': {
+        backgroundColor: '#ff7875'
+      }
+    }
   }
 
   const textFieldStyles = {
@@ -269,7 +465,6 @@ function VoucherDashboard() {
             <TableRow>
               <TableCell>Voucher Code</TableCell>
               <TableCell>Description</TableCell>
-              <TableCell>Discount Type</TableCell>
               <TableCell>Discount Value</TableCell>
               <TableCell>Start Date</TableCell>
               <TableCell>End Date</TableCell>
@@ -281,7 +476,7 @@ function VoucherDashboard() {
               .filter((voucher) => !voucher.is_deleted)
               .map((voucher) => (
                 <TableRow
-                  key={voucher.id}
+                  key={voucher.voucher_code}
                   onClick={() => handleOpenDetail(voucher)}
                   style={{ cursor: 'pointer' }}
                 >
@@ -289,10 +484,9 @@ function VoucherDashboard() {
                   <TableCell>
                     {voucher.description.substring(0, 50)}...
                   </TableCell>
-                  <TableCell>{voucher.discount_type}</TableCell>
                   <TableCell>{voucher.discount_value}</TableCell>
-                  <TableCell>{voucher.start_date}</TableCell>
-                  <TableCell>{voucher.end_date}</TableCell>
+                  <TableCell>{voucher.start_date.split('T')[0]}</TableCell>
+                  <TableCell>{voucher.end_date.split('T')[0]}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <IconButton onClick={() => handleOpenEdit(voucher)}>
                       <EditIcon />
@@ -324,9 +518,6 @@ function VoucherDashboard() {
                 <strong>Description:</strong> {selectedVoucher.description}
               </p>
               <p>
-                <strong>Discount Type:</strong> {selectedVoucher.discount_type}
-              </p>
-              <p>
                 <strong>Discount Value:</strong>{' '}
                 {selectedVoucher.discount_value}
               </p>
@@ -341,10 +532,12 @@ function VoucherDashboard() {
                 <strong>Usage Count:</strong> {selectedVoucher.usage_count}
               </p>
               <p>
-                <strong>Start Date:</strong> {selectedVoucher.start_date}
+                <strong>Start Date:</strong>{' '}
+                {selectedVoucher.start_date.split('T')[0]}
               </p>
               <p>
-                <strong>End Date:</strong> {selectedVoucher.end_date}
+                <strong>End Date:</strong>{' '}
+                {selectedVoucher.end_date.split('T')[0]}
               </p>
               <p>
                 <strong>All Users:</strong>{' '}
@@ -355,16 +548,32 @@ function VoucherDashboard() {
                 {selectedVoucher.is_all_courses ? 'Yes' : 'No'}
               </p>
               <p>
-                <strong>Created At:</strong> {selectedVoucher.create_at}
+                <strong>Eligible Users:</strong>{' '}
+                {selectedVoucher.users?.length > 0
+                  ? selectedVoucher.users
+                      .map((user) => user.fullname)
+                      .join(', ')
+                  : 'None'}
               </p>
               <p>
-                <strong>Updated At:</strong> {selectedVoucher.update_at}
+                <strong>Eligible Courses:</strong>{' '}
+                {selectedVoucher.courses?.length > 0
+                  ? selectedVoucher.courses.join(', ')
+                  : 'None'}
+              </p>
+              <p>
+                <strong>Used By:</strong>{' '}
+                {selectedVoucher.used?.length > 0
+                  ? selectedVoucher.used.map((user) => user.fullname).join(', ')
+                  : 'None'}
               </p>
             </div>
           )}
         </DialogContent>
         <DialogActions sx={dialogActionsStyles}>
-          <Button onClick={handleCloseDetail}>Close</Button>
+          <Button className="btn-cancel" onClick={handleCloseDetail}>
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -384,6 +593,7 @@ function VoucherDashboard() {
             value={editVoucher.voucher_code || ''}
             onChange={handleEditChange}
             sx={textFieldStyles}
+            disabled
           />
           <TextField
             margin="dense"
@@ -398,27 +608,37 @@ function VoucherDashboard() {
           />
           <TextField
             margin="dense"
-            name="discount_type"
-            label="Discount Type"
-            fullWidth
-            select
-            SelectProps={{ native: true }}
-            value={editVoucher.discount_type || 'percent'}
-            onChange={handleEditChange}
-            sx={textFieldStyles}
-          >
-            <option value="percent">Percent</option>
-            <option value="fixed">Fixed</option>
-          </TextField>
-          <TextField
-            margin="dense"
             name="discount_value"
-            label="Discount Value"
+            label="Discount Value (%)"
             type="number"
             fullWidth
             value={editVoucher.discount_value || 0}
             onChange={handleEditChange}
             sx={textFieldStyles}
+            inputProps={{ step: 1, min: 0, max: 100 }}
+          />
+          <FormControl fullWidth margin="dense" sx={textFieldStyles}>
+            <InputLabel>Voucher For</InputLabel>
+            <Select
+              name="voucher_for"
+              value={editVoucher.voucher_for || ''}
+              onChange={handleEditChange}
+              disabled
+            >
+              <MenuItem value="student">Student</MenuItem>
+              <MenuItem value="course">Course</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            margin="dense"
+            name="usage_limit"
+            label="Usage Limit"
+            type="number"
+            fullWidth
+            value={editVoucher.usage_limit || 0}
+            onChange={handleEditChange}
+            sx={textFieldStyles}
+            inputProps={{ step: 1, min: 0, max: 100 }}
           />
           <TextField
             margin="dense"
@@ -427,7 +647,7 @@ function VoucherDashboard() {
             type="date"
             fullWidth
             InputLabelProps={{ shrink: true }}
-            value={editVoucher.start_date || ''}
+            value={editVoucher.start_date?.split('T')[0] || ''}
             onChange={handleEditChange}
             sx={textFieldStyles}
           />
@@ -438,14 +658,83 @@ function VoucherDashboard() {
             type="date"
             fullWidth
             InputLabelProps={{ shrink: true }}
-            value={editVoucher.end_date || ''}
+            value={editVoucher.end_date?.split('T')[0] || ''}
             onChange={handleEditChange}
             sx={textFieldStyles}
           />
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="is_all_users"
+                checked={editVoucher.is_all_users || false}
+                onChange={handleEditChange}
+              />
+            }
+            label="All Users"
+            sx={{ margin: '1rem 0' }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="is_all_courses"
+                checked={editVoucher.is_all_courses || false}
+                onChange={handleEditChange}
+              />
+            }
+            label="All Courses"
+            sx={{ margin: '1rem 0' }}
+          />
+          {!editVoucher.is_all_users &&
+            editVoucher.voucher_for === 'student' && (
+              <TextField
+                margin="dense"
+                name="users"
+                label="User IDs (comma-separated)"
+                fullWidth
+                value={editVoucher.users || ''}
+                onChange={handleEditChange}
+                sx={textFieldStyles}
+                helperText="Enter user IDs separated by commas (e.g., S000, S001)"
+              />
+            )}
+          {!editVoucher.is_all_courses &&
+            editVoucher.voucher_for === 'course' && (
+              <TextField
+                margin="dense"
+                name="courses"
+                label="Course IDs (comma-separated)"
+                fullWidth
+                value={editVoucher.courses || ''}
+                onChange={handleEditChange}
+                sx={textFieldStyles}
+                helperText="Enter course IDs separated by commas (e.g., C000, C001)"
+              />
+            )}
         </DialogContent>
         <DialogActions sx={dialogActionsStyles}>
-          <Button onClick={handleCloseEdit}>Cancel</Button>
-          <Button onClick={handleSaveEdit}>Save</Button>
+          <Button className="btn-cancel" onClick={handleCloseEdit}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveEdit}
+            className="btn-save"
+            disabled={
+              !editVoucher.description ||
+              !editVoucher.discount_value ||
+              !editVoucher.voucher_for ||
+              !editVoucher.usage_limit ||
+              !editVoucher.start_date ||
+              !editVoucher.end_date ||
+              (!editVoucher.is_all_users &&
+                editVoucher.voucher_for === 'student' &&
+                !editVoucher.users) ||
+              (!editVoucher.is_all_courses &&
+                editVoucher.voucher_for === 'course' &&
+                !editVoucher.courses)
+            }
+          >
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -479,27 +768,36 @@ function VoucherDashboard() {
           />
           <TextField
             margin="dense"
-            name="discount_type"
-            label="Discount Type"
-            fullWidth
-            select
-            SelectProps={{ native: true }}
-            value={newVoucher.discount_type}
-            onChange={handleNewChange}
-            sx={textFieldStyles}
-          >
-            <option value="percent">Percent</option>
-            <option value="fixed">Fixed</option>
-          </TextField>
-          <TextField
-            margin="dense"
             name="discount_value"
-            label="Discount Value"
+            label="Discount Value (%)"
             type="number"
             fullWidth
             value={newVoucher.discount_value}
             onChange={handleNewChange}
             sx={textFieldStyles}
+            inputProps={{ step: 1, min: 0, max: 100 }}
+          />
+          <FormControl fullWidth margin="dense" sx={textFieldStyles}>
+            <InputLabel>Voucher For</InputLabel>
+            <Select
+              name="voucher_for"
+              value={newVoucher.voucher_for}
+              onChange={handleNewChange}
+            >
+              <MenuItem value="student">Student</MenuItem>
+              <MenuItem value="course">Course</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            margin="dense"
+            name="usage_limit"
+            label="Usage Limit"
+            type="number"
+            fullWidth
+            value={newVoucher.usage_limit}
+            onChange={handleNewChange}
+            sx={textFieldStyles}
+            inputProps={{ step: 1, min: 0, max: 100 }}
           />
           <TextField
             margin="dense"
@@ -523,10 +821,78 @@ function VoucherDashboard() {
             onChange={handleNewChange}
             sx={textFieldStyles}
           />
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="is_all_users"
+                checked={newVoucher.is_all_users}
+                onChange={handleNewChange}
+              />
+            }
+            label="All Users"
+            sx={{ margin: '1rem 0' }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="is_all_courses"
+                checked={newVoucher.is_all_courses}
+                onChange={handleNewChange}
+              />
+            }
+            label="All Courses"
+            sx={{ margin: '1rem 0' }}
+          />
+          {!newVoucher.is_all_users && newVoucher.voucher_for === 'student' && (
+            <TextField
+              margin="dense"
+              name="users"
+              label="User IDs (comma-separated)"
+              fullWidth
+              value={newVoucher.users}
+              onChange={handleNewChange}
+              sx={textFieldStyles}
+              helperText="Enter user IDs separated by commas (e.g., S000, S001)"
+            />
+          )}
+          {!newVoucher.is_all_courses &&
+            newVoucher.voucher_for === 'course' && (
+              <TextField
+                margin="dense"
+                name="courses"
+                label="Course IDs (comma-separated)"
+                fullWidth
+                value={newVoucher.courses}
+                onChange={handleNewChange}
+                sx={textFieldStyles}
+                helperText="Enter course IDs separated by commas (e.g., C000, C001)"
+              />
+            )}
         </DialogContent>
         <DialogActions sx={dialogActionsStyles}>
-          <Button onClick={handleCloseAdd}>Cancel</Button>
-          <Button onClick={handleAddVoucher}>Add</Button>
+          <Button className="btn-cancel" onClick={handleCloseAdd}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddVoucher}
+            className="btn-save"
+            disabled={
+              !newVoucher.description ||
+              !newVoucher.discount_value ||
+              !newVoucher.voucher_for ||
+              !newVoucher.usage_limit ||
+              !newVoucher.start_date ||
+              !newVoucher.end_date ||
+              (!newVoucher.is_all_users &&
+                newVoucher.voucher_for === 'student' &&
+                !newVoucher.users) ||
+              (!newVoucher.is_all_courses &&
+                newVoucher.voucher_for === 'course' &&
+                !newVoucher.courses)
+            }
+          >
+            Add
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -544,21 +910,26 @@ function VoucherDashboard() {
           </p>
         </DialogContent>
         <DialogActions sx={dialogActionsStyles}>
-          <Button onClick={handleCloseDelete}>Cancel</Button>
-          <Button onClick={handleConfirmDelete} color="error">
+          <Button className="btn-cancel" onClick={handleCloseDelete}>
+            Cancel
+          </Button>
+          <Button
+            className="btn-delete"
+            onClick={handleConfirmDelete}
+            color="error"
+          >
             Delete
           </Button>
         </DialogActions>
       </Dialog>
 
-      {openError.status && (
-        <Snackbar
-          vertical="bottom"
-          horizontal="right"
-          severity="error"
-          message={openError.message}
-        />
-      )}
+      <Snackbar
+        open={openError.status}
+        autoHideDuration={6000}
+        onClose={() => setOpenError({ status: false, message: '' })}
+        message={openError.message}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      />
     </VoucherDashboardWrapper>
   )
 }

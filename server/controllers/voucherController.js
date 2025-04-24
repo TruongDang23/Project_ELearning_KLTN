@@ -2,6 +2,111 @@
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from '../config/connMySql.js'
 
+const getAllVouchers = catchAsync(async (req, res, next) => {
+  const mysqlTransaction = connectMysql.promise();
+
+  try {
+    await mysqlTransaction.query("START TRANSACTION");
+
+    // Lấy thông tin voucher
+    const [vouchers] = await mysqlTransaction.query(`
+      SELECT 
+        v.voucher_code,
+        v.description,
+        v.discount_type,
+        v.discount_value,
+        v.voucher_for,
+        v.usage_limit,
+        v.usage_count,
+        v.start_date,
+        v.end_date,
+        v.is_all_users,
+        v.is_all_courses,
+        v.create_at,
+        v.update_at
+      FROM vouchers AS v
+      WHERE v.is_deleted = 0
+    `);
+
+    // Lấy thông tin người dùng liên kết với voucher
+    const [voucherUsers] = await mysqlTransaction.query(`
+      SELECT 
+        vu.voucher_code,
+        vu.userID,
+        u.fullname,
+        u.avatar
+      FROM vouchers_user AS vu
+      INNER JOIN user AS u ON vu.userID = u.userID
+    `);
+
+    // Lấy thông tin khóa học liên kết với voucher
+    const [voucherCourses] = await mysqlTransaction.query(`
+      SELECT 
+        vc.voucher_code,
+        vc.courseID,
+        c.title
+      FROM vouchers_course AS vc
+      INNER JOIN course AS c ON vc.courseID = c.courseID
+    `);
+
+    // Lấy thông tin lịch sử sử dụng voucher
+    const [usedVouchers] = await mysqlTransaction.query(`
+      SELECT 
+        uv.voucher_code,
+        uv.userID,
+        u.fullname,
+        u.avatar,
+        uv.use_at
+      FROM used_vouchers AS uv
+      INNER JOIN user AS u ON uv.userID = u.userID
+    `);
+
+    await mysqlTransaction.query("COMMIT");
+
+    // Kết hợp dữ liệu
+    const listVouchers = vouchers.map((voucher) => {
+      const users = voucherUsers
+        .filter((vu) => vu.voucher_code === voucher.voucher_code)
+        .map((vu) => ({
+          userID: vu.userID,
+          fullname: vu.fullname,
+          avatar: vu.avatar,
+        }));
+
+      const courses = voucherCourses
+        .filter((vc) => vc.voucher_code === voucher.voucher_code)
+        .map((vc) => ({
+          courseID: vc.courseID,
+          title: vc.title,
+        }));
+
+      const used = usedVouchers
+        .filter((uv) => uv.voucher_code === voucher.voucher_code)
+        .map((uv) => ({
+          userID: uv.userID,
+          fullname: uv.fullname,
+          avatar: uv.avatar,
+          use_at: uv.use_at,
+        }));
+
+      return {
+        ...voucher,
+        users,
+        courses,
+        used,
+      };
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: listVouchers,
+    });
+  } catch (error) {
+    await mysqlTransaction.query("ROLLBACK");
+    next({ status: 500, message: "Failed to get vouchers", error });
+  }
+});
+
 const createVoucherObject = async(mysqlTransaction, voucher) => {
   const query = `INSERT INTO vouchers 
     (voucher_code, description, discount_value, voucher_for, 
@@ -426,4 +531,4 @@ const getMatchedVouchers = catchAsync(async (req, res, next) => {
   }
 })
 
-export default { createVoucher, getVoucher, updateVoucher, deleteVoucher, useVoucher, getMatchedVouchers, getListVouchers }
+export default { getAllVouchers, createVoucher, getVoucher, updateVoucher, deleteVoucher, useVoucher, getMatchedVouchers, getListVouchers }
