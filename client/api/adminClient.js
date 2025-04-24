@@ -6,6 +6,7 @@ import { InstructorClient } from './instructorClient'
 import { StudentClient } from './studentClient'
 import { MasterDataClient } from './masterDataClient'
 import { DashboardClient } from './dashboardClient'
+import { VoucherClient } from './voucherClient'
 
 export class AdminClient extends ApiClient {
   constructor() {
@@ -16,6 +17,7 @@ export class AdminClient extends ApiClient {
     this.student = new StudentClient()
     this.master = new MasterDataClient()
     this.dashboard = new DashboardClient()
+    this.voucher = new VoucherClient()
   }
 
   async updateAvatar(id, formData) {
@@ -195,5 +197,25 @@ export class AdminClient extends ApiClient {
 
   async chatAI(content, sessionID) {
     return await this.model.chatAI(content, sessionID)
+  }
+
+  async createVoucher(voucherData) {
+    return await this.voucher.create(voucherData)
+  }
+
+  async updateVoucher(voucherCode, voucherData) {
+    return await this.voucher.update(voucherCode, voucherData)
+  }
+
+  async deleteVoucher(voucherCode) {
+    return await this.voucher.delete(voucherCode)
+  }
+
+  async getVoucherInformation(voucherCode) {
+    return await this.voucher.getInformation(voucherCode)
+  }
+
+  async getListVoucher() {
+    return await this.voucher.getListInformation()
   }
 }

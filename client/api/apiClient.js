@@ -27,9 +27,6 @@ export class ApiClient {
   async update(id, newdata) {
     try {
       const response = await axios.put(`${this.domain}/${id}`, {
-        headers: {
-          //authentication
-        },
         data: newdata
       })
       return response

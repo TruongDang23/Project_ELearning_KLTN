@@ -3,13 +3,15 @@ import { ApiClient } from './apiClient'
 import { CourseClient } from './courseClient'
 import { ModelClient } from './modelClient'
 import { NotifyClient } from './notifyClient'
+import { VoucherClient } from './voucherClient'
 
 export class StudentClient extends ApiClient {
   constructor() {
     super("student")
     this.course = new CourseClient()
     this.model = new ModelClient()
-    this.notify = new NotifyClient
+    this.notify = new NotifyClient()
+    this.voucher = new VoucherClient()
   }
 
   async updateAvatar(id, formData) {
@@ -126,4 +128,13 @@ export class StudentClient extends ApiClient {
   async submitAssignment(language, sourceCode, testcases) {
     return await this.course.submitAssignment(language, sourceCode, testcases)
   }
+
+  async getMatchedVouchers(courseID) {
+    return await this.voucher.getMatchedVouchers(courseID)
+  }
+
+  async useVoucher(voucherCode) {
+    return await this.voucher.useVoucher(voucherCode)
+  }
+
 }
