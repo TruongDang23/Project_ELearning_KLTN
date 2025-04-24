@@ -20,6 +20,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Link from '@mui/material/Link'
 import BallotIcon from '@mui/icons-material/Ballot'
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
@@ -33,6 +34,7 @@ import CourseDashboard from './CourseDashboard'
 import LogoAdmin from '../../../assets/LogoAdmin.png'
 import GeneralDashboard from './GeneralDashboard'
 import StatisticsDashboard from './StatisticsDashboard'
+import VoucherDashboard from './VoucherDashboard'
 import MasterDataDashboard from './MasterData'
 
 const drawerWidth = 240
@@ -220,6 +222,10 @@ function DashboardAdmin() {
               {
                 text: 'Statistics',
                 icon: <QueryStatsIcon sx={{ fontSize: 35 }} />
+              },
+              {
+                text: 'Vouchers',
+                icon: <ConfirmationNumberIcon sx={{ fontSize: 35 }} />
               }
             // eslint-disable-next-line no-unused-vars
             ].map((item, index) => (
@@ -276,6 +282,7 @@ function DashboardAdmin() {
           {content === 'Account' && <AccountDashboard />}
           {content === 'Courses' && <CourseDashboard />}
           {content === 'Statistics' && <StatisticsDashboard />}
+          {content === 'Vouchers' && <VoucherDashboard />}
         </Box>
       </Box>
     </>
