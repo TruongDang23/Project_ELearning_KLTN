@@ -20,6 +20,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Link from '@mui/material/Link'
 import BallotIcon from '@mui/icons-material/Ballot'
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
@@ -224,7 +225,7 @@ function DashboardAdmin() {
               },
               {
                 text: 'Vouchers',
-                icon: <BallotIcon sx={{ fontSize: 35 }} />
+                icon: <ConfirmationNumberIcon sx={{ fontSize: 35 }} />
               }
             // eslint-disable-next-line no-unused-vars
             ].map((item, index) => (

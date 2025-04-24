@@ -12,6 +12,7 @@ import { student } from 'api'
 function SideBar({ inforCourseData }) {
   const [openPub, setopenPub] = useState(false)
   const [statusBuy, setStatus] = useState('')
+  const [voucherCode, setVoucherCode] = useState('')
   const cancel_url = window.location.href
   const return_url = `${window.location.origin}/student/my-learning#`
   const toggleBuy = (status) => {
@@ -20,27 +21,37 @@ function SideBar({ inforCourseData }) {
   }
 
   const { courseID } = useParams()
-  const handleBuyCourse = async() => {
+  const handleBuyCourse = async () => {
     if (inforCourseData.price == 0) {
       //If course is free => call API buyCourse to insert directly into database table
       const res = await student.buyCourse(courseID)
       if (res.data.message === 'enrolled') {
         toggleBuy('enrolled')
-      }
-      else if (res.data.message === 'created') {
+      } else if (res.data.message === 'created') {
         toggleBuy('created')
       }
-    }
-    else {
+    } else {
       //If course is not free => Open link payment
       const res = await student.payment(courseID, cancel_url, return_url)
       if (res.data.message === 'enrolled') {
         toggleBuy('enrolled')
-      }
-      else {
-        window.open(res.data.message.checkoutUrl, "_blank", "noopener,noreferrer")
+      } else {
+        window.open(
+          res.data.message.checkoutUrl,
+          '_blank',
+          'noopener,noreferrer'
+        )
       }
     }
+  }
+
+  const handleVoucherChange = (e) => {
+    setVoucherCode(e.target.value)
+  }
+
+  const handleApplyVoucher = () => {
+    // Placeholder for voucher application logic
+    console.log('Applying voucher:', voucherCode)
   }
 
   return (
@@ -78,23 +89,39 @@ function SideBar({ inforCourseData }) {
           </ul>
         </div>
         <div className="sidebar-buttons">
-          <button className="sidebar-button button-buy" onClick={handleBuyCourse}>
-          Buy now
+          {inforCourseData.price > 0 && (
+            <div className="voucher-input-container">
+              <input
+                type="text"
+                placeholder="Enter Coupon"
+                value={voucherCode}
+                onChange={handleVoucherChange}
+                className="voucher-input"
+              />
+              <button
+                className="voucher-apply-button"
+                onClick={handleApplyVoucher}
+              >
+                Apply
+              </button>
+            </div>
+          )}
+          <button
+            className="sidebar-button button-buy"
+            onClick={handleBuyCourse}
+          >
+            Buy now
           </button>
           <Link to={`/course/details/${inforCourseData.courseID}`}>
             <button className="sidebar-button button-goto">Go to course</button>
           </Link>
         </div>
-
       </SideBarWrapper>
-      {openPub && (
-        <BuyCourse
-          handleClose={toggleBuy} status={statusBuy}
-        />
-      )}
+      {openPub && <BuyCourse handleClose={toggleBuy} status={statusBuy} />}
     </>
   )
 }
+
 const SideBarWrapper = styled.aside`
   align-self: start;
   padding: 20px;
@@ -183,6 +210,56 @@ const SideBarWrapper = styled.aside`
       color: white;
       &:hover {
         background-color: #c87f0a;
+      }
+    }
+
+    .voucher-input-container {
+      display: flex;
+      gap: 10px;
+      animation: fadeInUp 0.9s ease-in-out;
+
+      .voucher-input {
+        flex: 1;
+        padding: 10px;
+        font-size: 1.6rem;
+        color: #1c2526;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        outline: none;
+        transition: border-color 0.3s ease, transform 0.3s ease;
+
+        &::placeholder {
+          color: #999;
+        }
+
+        &:hover {
+          border-color: #a1a1a1;
+          transform: translateY(-2px);
+        }
+
+        &:focus {
+          border-color: #1971c2;
+          border-width: 2px;
+        }
+      }
+
+      .voucher-apply-button {
+        padding: 10px 20px;
+        font-size: 1.6rem;
+        font-weight: 600;
+        background-color: #fff;
+        color: #1971c2;
+        outline: none;
+        border: none;
+        box-shadow: inset 0 0 0 2px #1971c2;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+        }
       }
     }
   }
