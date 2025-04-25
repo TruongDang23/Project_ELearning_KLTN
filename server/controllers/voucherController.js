@@ -1,7 +1,7 @@
 /* eslint-disable no-async-promise-executor */
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from '../config/connMySql.js'
-import { uuid } from 'uuidv4'
+import { v4 as uuid } from 'uuid'
 
 const createVoucherObject = async(mysqlTransaction, voucher) => {
   const query = `INSERT INTO vouchers 
@@ -438,9 +438,9 @@ const getVoucherByCode = async(voucher_code) => {
 }
 
 const createWelcomeVoucher = async(mysqlTransaction, userID) => {
-  const uuid = uuid()
+  const id = uuid()
   let voucher = {
-    voucher_code: uuid,
+    voucher_code: id,
     description: 'Discount 80% for new users',
     discount_value: 80,
     voucher_for: 'student',

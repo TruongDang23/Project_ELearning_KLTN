@@ -285,6 +285,7 @@ const loginWithGoogle = catchAsync(async (req, res, next) => {
       //Insert into MongoDB
       await createUserMongo(mongoTransaction, user)
 
+      await createWelcomeVoucher(mysqlTransaction, user.userID)
       await mysqlTransaction.query('COMMIT')
       await mongoTransaction.commitTransaction()
       createSendToken(userID, 200, res)
