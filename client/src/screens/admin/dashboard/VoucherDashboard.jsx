@@ -15,7 +15,6 @@ import {
   DialogActions,
   TextField,
   IconButton,
-  Snackbar,
   Checkbox,
   FormControlLabel,
   FormControl,
@@ -25,8 +24,9 @@ import {
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { admin } from 'api/index'
 import { v4 as uuidv4 } from 'uuid'
+import { admin } from 'api/index'
+import { Snackbar } from '~/components/general'
 
 function VoucherDashboard() {
   const [vouchers, setVouchers] = useState([])
@@ -50,35 +50,84 @@ function VoucherDashboard() {
     courses: ''
   })
   const [voucherToDelete, setVoucherToDelete] = useState(null)
+  const [openSuccess, setOpenSuccess] = useState({
+    status: false,
+    message: ''
+  })
   const [openError, setOpenError] = useState({
     status: false,
     message: ''
   })
+  const [validationErrors, setValidationErrors] = useState({
+    discount_value: '',
+    usage_limit: '',
+    start_date: '',
+    end_date: ''
+  })
 
-  // Fetch vouchers from API
-  useEffect(() => {
-    const fetchVouchers = async () => {
-      try {
-        const response = await admin.getListVoucher()
-        const result = response.data
-        if (result.status === 'success') {
-          // Map API data to include is_deleted flag
-          const formattedVouchers = result.data.map((voucher) => ({
-            ...voucher,
-            is_deleted: 0
-          }))
-          setVouchers(formattedVouchers)
-        } else {
-          setOpenError({ status: true, message: 'Failed to load vouchers' })
-        }
-      } catch (error) {
-        setOpenError({
-          status: true,
-          message: 'Error fetching vouchers: ' + error.message
-        })
+  // Validation function
+  const validateVoucher = (voucher) => {
+    const errors = {
+      discount_value: '',
+      usage_limit: '',
+      start_date: '',
+      end_date: ''
+    }
+    let isValid = true
+
+    // Validate discount_value
+    const discountValue = parseInt(voucher.discount_value)
+    if (isNaN(discountValue) || discountValue <= 0) {
+      errors.discount_value = 'Discount value must be a positive integer'
+      isValid = false
+    }
+
+    // Validate usage_limit
+    const usageLimit = parseInt(voucher.usage_limit)
+    if (isNaN(usageLimit) || usageLimit <= 0) {
+      errors.usage_limit = 'Usage limit must be a positive integer'
+      isValid = false
+    }
+
+    // Validate dates
+    if (voucher.start_date && voucher.end_date) {
+      const startDate = new Date(voucher.start_date)
+      const endDate = new Date(voucher.end_date)
+      if (startDate > endDate) {
+        errors.start_date = 'Start date must be before or equal to end date'
+        errors.end_date = 'End date must be after or equal to start date'
+        isValid = false
       }
     }
-    fetchVouchers()
+
+    setValidationErrors(errors)
+    return isValid
+  }
+
+  // Fetch vouchers from API
+  const loadAllVouchers = async () => {
+    try {
+      const response = await admin.getListVoucher()
+      const result = response.data
+      if (response.status === 200 || response.status === 'success') {
+        const formattedVouchers = result.data.map((voucher) => ({
+          ...voucher,
+          is_deleted: 0
+        }))
+        setVouchers(formattedVouchers)
+      } else {
+        setOpenError({ status: true, message: 'Failed to load vouchers' })
+      }
+    } catch (error) {
+      setOpenError({
+        status: true,
+        message: 'Error fetching vouchers: ' + error.message
+      })
+    }
+  }
+
+  useEffect(() => {
+    loadAllVouchers()
   }, [])
 
   const handleOpenDetail = (voucher) => {
@@ -97,17 +146,29 @@ function VoucherDashboard() {
       users: voucher.users.map((u) => u.userID).join(', '),
       courses: voucher.courses.join(', ')
     })
+    setValidationErrors({
+      discount_value: '',
+      usage_limit: '',
+      start_date: '',
+      end_date: ''
+    })
     setOpenEditDialog(true)
   }
 
   const handleCloseEdit = () => {
     setOpenEditDialog(false)
     setEditVoucher({})
+    setValidationErrors({
+      discount_value: '',
+      usage_limit: '',
+      start_date: '',
+      end_date: ''
+    })
   }
 
   const handleOpenAdd = () => {
     setNewVoucher({
-      voucher_code: uuidv4(), // Tạo UUID mới mỗi khi mở form thêm voucher
+      voucher_code: uuidv4(),
       description: '',
       discount_value: 0,
       voucher_for: '',
@@ -116,7 +177,14 @@ function VoucherDashboard() {
       end_date: '',
       is_all_users: false,
       is_all_courses: false,
-      users: []
+      users: '',
+      courses: ''
+    })
+    setValidationErrors({
+      discount_value: '',
+      usage_limit: '',
+      start_date: '',
+      end_date: ''
     })
     setOpenAddDialog(true)
   }
@@ -136,6 +204,12 @@ function VoucherDashboard() {
       users: '',
       courses: ''
     })
+    setValidationErrors({
+      discount_value: '',
+      usage_limit: '',
+      start_date: '',
+      end_date: ''
+    })
   }
 
   const handleOpenDelete = (voucher) => {
@@ -148,24 +222,15 @@ function VoucherDashboard() {
     setVoucherToDelete(null)
   }
 
-  // const handleConfirmDelete = () => {
-  //   if (voucherToDelete) {
-  //     setVouchers((prev) =>
-  //       prev.map((voucher) =>
-  //         voucher.voucher_code === voucherToDelete.voucher_code
-  //           ? { ...voucher, is_deleted: 1 }
-  //           : voucher
-  //       )
-  //     )
-  //   }
-  //   handleCloseDelete()
-  // }
   const handleConfirmDelete = async () => {
     try {
       if (voucherToDelete) {
         const response = await admin.deleteVoucher(voucherToDelete.voucher_code)
-        const result = await response.json()
-        if (result.status === 'success') {
+        if (response.status === 204) {
+          setOpenSuccess({
+            status: true,
+            message: `Voucher "${voucherToDelete.voucher_code}" deleted successfully`
+          })
           setVouchers((prev) =>
             prev.filter(
               (voucher) => voucher.voucher_code !== voucherToDelete.voucher_code
@@ -190,6 +255,11 @@ function VoucherDashboard() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }))
+    // Re-validate on change
+    validateVoucher({
+      ...editVoucher,
+      [name]: type === 'checkbox' ? checked : value
+    })
   }
 
   const handleNewChange = (e) => {
@@ -198,38 +268,18 @@ function VoucherDashboard() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }))
+    // Re-validate on change
+    validateVoucher({
+      ...newVoucher,
+      [name]: type === 'checkbox' ? checked : value
+    })
   }
 
-  // const handleSaveEdit = () => {
-  //   const usersArray = editVoucher.users
-  //     ? editVoucher.users
-  //         .split(',')
-  //         .map((id) => id.trim())
-  //         .filter((id) => id)
-  //     : []
-  //   const coursesArray = editVoucher.courses
-  //     ? editVoucher.courses
-  //         .split(',')
-  //         .map((id) => id.trim())
-  //         .filter((id) => id)
-  //     : []
-  //   setVouchers((prev) =>
-  //     prev.map((voucher) =>
-  //       voucher.voucher_code === editVoucher.voucher_code
-  //         ? {
-  //             ...editVoucher,
-  //             users: usersArray.map((id) => ({ userID: id })),
-  //             courses: coursesArray,
-  //             discount_value: parseInt(editVoucher.discount_value),
-  //             usage_limit: parseInt(editVoucher.usage_limit),
-  //             update_at: new Date().toISOString()
-  //           }
-  //         : voucher
-  //     )
-  //   )
-  //   handleCloseEdit()
-  // }
   const handleSaveEdit = async () => {
+    if (!validateVoucher(editVoucher)) {
+      setOpenError({ status: true, message: 'Please fix validation errors' })
+      return
+    }
     try {
       const usersArray = editVoucher.users
         ? editVoucher.users
@@ -238,32 +288,46 @@ function VoucherDashboard() {
             .filter((id) => id)
         : []
       const coursesArray = editVoucher.courses
-        ? editVoucher.courses
-            .split(',')
-            .map((id) => id.trim())
-            .filter((id) => id)
+        ? editVoucher.courses.split(',').map((id) => id.trim())
         : []
+      const formattedStartDate = editVoucher.start_date
+        ? new Date(editVoucher.start_date).toISOString().split('T')[0]
+        : ''
+      const formattedEndDate = editVoucher.end_date
+        ? new Date(editVoucher.end_date).toISOString().split('T')[0]
+        : ''
 
-      const response = await admin.updateVoucher({
+      const response = await admin.updateVoucher(editVoucher.voucher_code, {
         ...editVoucher,
         discount_value: parseInt(editVoucher.discount_value),
         usage_limit: parseInt(editVoucher.usage_limit),
+        start_date: formattedStartDate,
+        end_date: formattedEndDate,
         users: editVoucher.voucher_for === 'student' ? usersArray : [],
         courses: editVoucher.voucher_for === 'course' ? coursesArray : []
       })
 
-      const result = await response.json()
-      if (result.status === 'success') {
-        setVouchers((prev) =>
-          prev.map((voucher) =>
-            voucher.voucher_code === editVoucher.voucher_code
-              ? { ...result.data, is_deleted: 0 }
-              : voucher
-          )
-        )
+      if (response.status === 200 || response.status === 'success') {
+        setOpenSuccess({
+          status: true,
+          message: `Voucher updated successfully`
+        })
+        setTimeout(() => {
+          setOpenSuccess({
+            status: false,
+            message: ''
+          })
+        }, 3000)
+        loadAllVouchers()
         handleCloseEdit()
       } else {
-        setOpenError({ status: true, message: 'Failed to save voucher' })
+        setOpenError({ status: true, message: 'Failed to update voucher' })
+        setTimeout(() => {
+          setOpenError({
+            status: false,
+            message: ''
+          })
+        }, 3000)
       }
     } catch (error) {
       setOpenError({
@@ -273,38 +337,11 @@ function VoucherDashboard() {
     }
   }
 
-  // const handleAddVoucher = () => {
-  //   const usersArray = newVoucher.users
-  //     ? newVoucher.users
-  //         .split(',')
-  //         .map((id) => id.trim())
-  //         .filter((id) => id)
-  //     : []
-  //   const coursesArray = newVoucher.courses
-  //     ? newVoucher.courses
-  //         .split(',')
-  //         .map((id) => id.trim())
-  //         .filter((id) => id)
-  //     : []
-  //   setVouchers((prev) => [
-  //     ...prev,
-  //     {
-  //       ...newVoucher,
-  //       voucher_code: newVoucher.voucher_code || `V${Date.now()}`,
-  //       discount_value: parseInt(newVoucher.discount_value),
-  //       usage_limit: parseInt(newVoucher.usage_limit),
-  //       usage_count: 0,
-  //       create_at: new Date().toISOString(),
-  //       update_at: new Date().toISOString(),
-  //       is_deleted: 0,
-  //       users: usersArray.map((id) => ({ userID: id })),
-  //       courses: coursesArray,
-  //       used: []
-  //     }
-  //   ])
-  //   handleCloseAdd()
-  // }
   const handleAddVoucher = async () => {
+    if (!validateVoucher(newVoucher)) {
+      setOpenError({ status: true, message: 'Please fix validation errors' })
+      return
+    }
     try {
       const usersArray = newVoucher.users
         ? newVoucher.users
@@ -318,6 +355,7 @@ function VoucherDashboard() {
             .map((id) => id.trim())
             .filter((id) => id)
         : []
+
       const response = await admin.createVoucher({
         ...newVoucher,
         discount_value: parseInt(newVoucher.discount_value),
@@ -325,12 +363,27 @@ function VoucherDashboard() {
         users: newVoucher.voucher_for === 'student' ? usersArray : [],
         courses: newVoucher.voucher_for === 'course' ? coursesArray : []
       })
-      const result = await response.json()
-      if (result.status === 'success') {
-        setVouchers((prev) => [...prev, { ...result.data, is_deleted: 0 }])
+      if (response.status === 201) {
+        setOpenSuccess({
+          status: true,
+          message: `Add new voucher successfully`
+        })
+        setTimeout(() => {
+          setOpenSuccess({
+            status: false,
+            message: ''
+          })
+        }, 3000)
+        loadAllVouchers()
         handleCloseAdd()
       } else {
         setOpenError({ status: true, message: 'Failed to add voucher' })
+        setTimeout(() => {
+          setOpenError({
+            status: false,
+            message: ''
+          })
+        }, 3000)
       }
     } catch (error) {
       setOpenError({
@@ -605,6 +658,8 @@ function VoucherDashboard() {
             value={editVoucher.description || ''}
             onChange={handleEditChange}
             sx={textFieldStyles}
+            error={!!validationErrors.description}
+            helperText={validationErrors.description}
           />
           <TextField
             margin="dense"
@@ -615,7 +670,9 @@ function VoucherDashboard() {
             value={editVoucher.discount_value || 0}
             onChange={handleEditChange}
             sx={textFieldStyles}
-            inputProps={{ step: 1, min: 0, max: 100 }}
+            inputProps={{ step: 1, min: 1 }}
+            error={!!validationErrors.discount_value}
+            helperText={validationErrors.discount_value}
           />
           <FormControl fullWidth margin="dense" sx={textFieldStyles}>
             <InputLabel>Voucher For</InputLabel>
@@ -638,7 +695,9 @@ function VoucherDashboard() {
             value={editVoucher.usage_limit || 0}
             onChange={handleEditChange}
             sx={textFieldStyles}
-            inputProps={{ step: 1, min: 0, max: 100 }}
+            inputProps={{ step: 1, min: 1 }}
+            error={!!validationErrors.usage_limit}
+            helperText={validationErrors.usage_limit}
           />
           <TextField
             margin="dense"
@@ -650,6 +709,8 @@ function VoucherDashboard() {
             value={editVoucher.start_date?.split('T')[0] || ''}
             onChange={handleEditChange}
             sx={textFieldStyles}
+            error={!!validationErrors.start_date}
+            helperText={validationErrors.start_date}
           />
           <TextField
             margin="dense"
@@ -661,6 +722,8 @@ function VoucherDashboard() {
             value={editVoucher.end_date?.split('T')[0] || ''}
             onChange={handleEditChange}
             sx={textFieldStyles}
+            error={!!validationErrors.end_date}
+            helperText={validationErrors.end_date}
           />
           <FormControlLabel
             control={
@@ -720,9 +783,7 @@ function VoucherDashboard() {
             className="btn-save"
             disabled={
               !editVoucher.description ||
-              !editVoucher.discount_value ||
               !editVoucher.voucher_for ||
-              !editVoucher.usage_limit ||
               !editVoucher.start_date ||
               !editVoucher.end_date ||
               (!editVoucher.is_all_users &&
@@ -730,7 +791,8 @@ function VoucherDashboard() {
                 !editVoucher.users) ||
               (!editVoucher.is_all_courses &&
                 editVoucher.voucher_for === 'course' &&
-                !editVoucher.courses)
+                !editVoucher.courses) ||
+              Object.values(validationErrors).some((error) => error)
             }
           >
             Save
@@ -754,6 +816,7 @@ function VoucherDashboard() {
             value={newVoucher.voucher_code}
             onChange={handleNewChange}
             sx={textFieldStyles}
+            disabled
           />
           <TextField
             margin="dense"
@@ -765,6 +828,8 @@ function VoucherDashboard() {
             value={newVoucher.description}
             onChange={handleNewChange}
             sx={textFieldStyles}
+            error={!!validationErrors.description}
+            helperText={validationErrors.description}
           />
           <TextField
             margin="dense"
@@ -775,7 +840,9 @@ function VoucherDashboard() {
             value={newVoucher.discount_value}
             onChange={handleNewChange}
             sx={textFieldStyles}
-            inputProps={{ step: 1, min: 0, max: 100 }}
+            inputProps={{ step: 1, min: 1 }}
+            error={!!validationErrors.discount_value}
+            helperText={validationErrors.discount_value}
           />
           <FormControl fullWidth margin="dense" sx={textFieldStyles}>
             <InputLabel>Voucher For</InputLabel>
@@ -797,7 +864,9 @@ function VoucherDashboard() {
             value={newVoucher.usage_limit}
             onChange={handleNewChange}
             sx={textFieldStyles}
-            inputProps={{ step: 1, min: 0, max: 100 }}
+            inputProps={{ step: 1, min: 1 }}
+            error={!!validationErrors.usage_limit}
+            helperText={validationErrors.usage_limit}
           />
           <TextField
             margin="dense"
@@ -809,6 +878,8 @@ function VoucherDashboard() {
             value={newVoucher.start_date}
             onChange={handleNewChange}
             sx={textFieldStyles}
+            error={!!validationErrors.start_date}
+            helperText={validationErrors.start_date}
           />
           <TextField
             margin="dense"
@@ -820,6 +891,8 @@ function VoucherDashboard() {
             value={newVoucher.end_date}
             onChange={handleNewChange}
             sx={textFieldStyles}
+            error={!!validationErrors.end_date}
+            helperText={validationErrors.end_date}
           />
           <FormControlLabel
             control={
@@ -878,9 +951,7 @@ function VoucherDashboard() {
             className="btn-save"
             disabled={
               !newVoucher.description ||
-              !newVoucher.discount_value ||
               !newVoucher.voucher_for ||
-              !newVoucher.usage_limit ||
               !newVoucher.start_date ||
               !newVoucher.end_date ||
               (!newVoucher.is_all_users &&
@@ -888,7 +959,8 @@ function VoucherDashboard() {
                 !newVoucher.users) ||
               (!newVoucher.is_all_courses &&
                 newVoucher.voucher_for === 'course' &&
-                !newVoucher.courses)
+                !newVoucher.courses) ||
+              Object.values(validationErrors).some((error) => error)
             }
           >
             Add
@@ -923,13 +995,22 @@ function VoucherDashboard() {
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={openError.status}
-        autoHideDuration={6000}
-        onClose={() => setOpenError({ status: false, message: '' })}
-        message={openError.message}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      />
+      {openSuccess.status && (
+        <Snackbar
+          vertical="bottom"
+          horizontal="right"
+          severity="success"
+          message={openSuccess.message}
+        />
+      )}
+      {openError.status && (
+        <Snackbar
+          vertical="bottom"
+          horizontal="right"
+          severity="error"
+          message={openError.message}
+        />
+      )}
     </VoucherDashboardWrapper>
   )
 }
