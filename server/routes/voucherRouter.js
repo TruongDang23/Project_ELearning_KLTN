@@ -5,7 +5,7 @@ const voucherRouter = express.Router()
 
 voucherRouter
   .route('/')
-  // .all(authController.protect, authController.restrictTo('admin'))
+  .all(authController.protect, authController.restrictTo('admin'))
   .get(voucherController.getAllVouchers)
   .post(voucherController.createVoucher)
 
