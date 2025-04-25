@@ -10,6 +10,7 @@ import { getCurrentDateTime } from '../utils/dateTimeHandler.js'
 import mongoose from 'mongoose'
 import { getUserByEmail, countUserOfRole } from '../controllers/userController.js'
 import Email from './emailController.js'
+import { createWelcomeVoucher } from './voucherController.js'
 
 const hashPassword = (password) => {
   // Create a SHA-512 hash
@@ -193,6 +194,7 @@ const signup = catchAsync(async (req, res, next) => {
     //Insert into MongoDB
     await createUserMongo(mongoTransaction, user)
 
+    await createWelcomeVoucher(mysqlTransaction, user.userID)
     await mysqlTransaction.query('COMMIT')
     await mongoTransaction.commitTransaction()
     res.status(201).send('Signup Successfully')

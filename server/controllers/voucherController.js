@@ -1,6 +1,7 @@
 /* eslint-disable no-async-promise-executor */
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from '../config/connMySql.js'
+import { uuid } from 'uuidv4'
 
 const createVoucherObject = async(mysqlTransaction, voucher) => {
   const query = `INSERT INTO vouchers 
@@ -435,6 +436,30 @@ const getVoucherByCode = async(voucher_code) => {
     throw new Error(`Failed to get voucher by code: ${error}`)
   }
 }
+
+const createWelcomeVoucher = async(mysqlTransaction, userID) => {
+  const uuid = uuid()
+  let voucher = {
+    voucher_code: uuid,
+    description: 'Discount 80% for new users',
+    discount_value: 80,
+    voucher_for: 'student',
+    usage_limit: 1,
+    start_date: new Date(),
+    end_date: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), // Cộng 7 ngày
+    is_all_users: false,
+    is_all_courses: false
+  }
+
+  try {
+    await createVoucherObject(mysqlTransaction, voucher)
+
+    await createVoucherUser(mysqlTransaction, voucher.voucher_code, [userID])
+  } catch (error) {
+    throw new Error(`Failed to create welcome voucher: ${error}`)
+  }
+}
+
 export default { createVoucher, getVoucher, updateVoucher, deleteVoucher, useVoucher, getMatchedVouchers, getListVouchers }
 
-export { useVoucher, getVoucherByCode }
+export { useVoucher, getVoucherByCode, createWelcomeVoucher }
