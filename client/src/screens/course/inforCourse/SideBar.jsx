@@ -32,7 +32,7 @@ function SideBar({ inforCourseData }) {
       }
     } else {
       //If course is not free => Open link payment
-      const res = await student.payment(courseID, cancel_url, return_url)
+      const res = await student.payment(courseID, cancel_url, return_url, voucherCode)
       if (res.data.message === 'enrolled') {
         toggleBuy('enrolled')
       } else {

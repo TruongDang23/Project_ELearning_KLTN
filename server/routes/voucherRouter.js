@@ -37,11 +37,4 @@ voucherRouter
     voucherController.getMatchedVouchers
   )
 
-voucherRouter
-  .route('/use-voucher/:voucher_code')
-  .post(
-    authController.protect,
-    authController.restrictTo('student'),
-    voucherController.useVoucher
-  )
 export default voucherRouter

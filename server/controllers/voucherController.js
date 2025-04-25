@@ -217,7 +217,6 @@ const getListVouchers = catchAsync(async (req, res, next) => {
   const mysqlTransaction = connectMysql.promise()
 
   let voucher, voucher_users, voucher_courses, used_voucher
-  let result = {}
 
   await mysqlTransaction.query("START TRANSACTION")
   try {
@@ -365,26 +364,23 @@ const deleteVoucher = catchAsync(async (req, res, next) => {
   })
 })
 
-const useVoucher = catchAsync(async (req, res, next) => {
-  const voucher_code = req.params.voucher_code
-  if (!voucher_code) {
-    res.status(400).send('Voucher code is required')
-    return
-  }
-  const userID = req.userID
+const useVoucher = async(voucher_code, userID) => {
   const mysqlTransaction = connectMysql.promise()
   await mysqlTransaction.query("START TRANSACTION")
   try {
     await mysqlTransaction.query(`UPDATE vouchers SET usage_count = usage_count + 1 WHERE voucher_code = ?`, [voucher_code]),
     await mysqlTransaction.query(`INSERT INTO used_vouchers (voucher_code, userID) VALUES (?, ?)`, [voucher_code, userID])
     await mysqlTransaction.query("COMMIT")
-    res.status(200).send('Voucher used successfully')
+    return ({
+      status: 200,
+      message: 'Voucher used successfully'
+    })
   }
   catch (error) {
     await mysqlTransaction.query("ROLLBACK")
-    next({ status: 500, message: 'Failed to use voucher' })
+    throw new Error(" Failed to use voucher: ${error}`")
   }
-})
+}
 
 const getMatchedVouchers = catchAsync(async (req, res, next) => {
   const courseID = req.params.courseID
@@ -404,6 +400,8 @@ const getMatchedVouchers = catchAsync(async (req, res, next) => {
       getVouchersForCourse(mysqlTransaction, courseID)
     ])
 
+    await mysqlTransaction.query("COMMIT")
+
     matching_vouchers = [
       ...vouchers_for_all,
       ...vouchers_for_user,
@@ -414,9 +412,8 @@ const getMatchedVouchers = catchAsync(async (req, res, next) => {
     // This will keep the first occurrence of each voucher_code
     matching_vouchers = Array.from(
       new Map(matching_vouchers.map(v => [v.voucher_code, v])).values()
-    )
+    ).sort((a, b) => b.discount_value - a.discount_value) // Sort by discount_value in descending order
 
-    await mysqlTransaction.query("COMMIT")
     res.status(200).send({
       data: matching_vouchers
     })
@@ -426,4 +423,18 @@ const getMatchedVouchers = catchAsync(async (req, res, next) => {
   }
 })
 
+const getVoucherByCode = async(voucher_code) => {
+  const mysqlTransaction = connectMysql.promise()
+  if (!voucher_code) {
+    throw new Error('Voucher code is required')
+  }
+  try {
+    const [result] = await mysqlTransaction.query(`SELECT discount_type, discount_value FROM vouchers WHERE voucher_code = ?`, [voucher_code])
+    return result[0]
+  } catch (error) {
+    throw new Error(`Failed to get voucher by code: ${error}`)
+  }
+}
 export default { createVoucher, getVoucher, updateVoucher, deleteVoucher, useVoucher, getMatchedVouchers, getListVouchers }
+
+export { useVoucher, getVoucherByCode }
