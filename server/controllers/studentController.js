@@ -11,6 +11,7 @@ import { createPayment } from './paymentController.js'
 import { getFullInfoMySQL as getFullInfoMySQLCourse } from './courseController.js'
 import { getUserByID } from './userController.js'
 import Email from './emailController.js'
+import { getVoucherByCode } from './voucherController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -459,12 +460,15 @@ const buyCourse = catchAsync(async (req, res, next) => {
   }
 })
 
+// Request to payOS for create payment link
 const payment = catchAsync(async (req, res, next) => {
   // Implement here
   const { courseID } = req.params
-  const { cancel_url, return_url } = req.body
+  const { cancel_url, return_url, voucher_code } = req.body
   const userID = req.userID
   const enrolled = await isEnrolled(courseID, req.userID)
+  // eslint-disable-next-line no-undef
+  const baseURL = process.env.NODE_ENV === 'production' ? process.env.WEB_DOMAIN_PRD : process.env.WEB_DOMAIN_DEV
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
     res.send({ message: 'enrolled' })
   }
@@ -472,20 +476,32 @@ const payment = catchAsync(async (req, res, next) => {
     const orderID = Math.floor(Math.random() * 9007199254740991) //Get random orderCode, orderCode is unique
     const mysqlTransaction = connectMysql.promise()
     const courseInfo = await getFullInfoMySQLCourse(mysqlTransaction, courseID)
+    let price = courseInfo[0].price // Default price is defined in datbase
+
+    if (voucher_code) { // If using voucher code => update price
+      const voucherInfo = await getVoucherByCode(voucher_code)
+      if (voucherInfo.discount_type === 'percent') {
+        price = Math.floor((courseInfo[0].price * voucherInfo.discount_value) / 100) //integer
+      }
+      else if (voucherInfo.discount_type === 'fixed') {
+        price = Number(courseInfo[0].price) - Number(voucherInfo.discount_value) //integer
+      }
+    }
+
     try {
       const requestPayment = {
         orderCode: orderID,
-        amount: Number(courseInfo[0].price),
+        amount: price,
         description: `${userID} thanh toan ${courseID}`,
         items: [
           {
             name: courseInfo[0].title,
             quantity: 1,
-            price: Number(courseInfo[0].price)
+            price: price
           }
         ],
-        cancelUrl: cancel_url ? 'http://localhost:5173' : cancel_url,
-        returnUrl: return_url ? 'http://localhost:5173' : return_url
+        cancelUrl: cancel_url ? baseURL : cancel_url,
+        returnUrl: return_url ? baseURL : return_url
       }
       let link = await createPayment(requestPayment)
       res.status(200).send({ message: link })
@@ -496,6 +512,7 @@ const payment = catchAsync(async (req, res, next) => {
   }
 })
 
+// Response from payOS after payment
 const payoshook = catchAsync(async (req, res, next) => {
   const response = req.body
   const connection = connectMysql.promise()
@@ -504,8 +521,8 @@ const payoshook = catchAsync(async (req, res, next) => {
   const regexUserID = /\bS\d{3}\b/
   const regexCourseID = /\bC\d{3}\b/
 
-  const userID = str.match(regexUserID)?.[0] || null;
-  const courseID = str.match(regexCourseID)?.[0] || null;
+  const userID = str.match(regexUserID)?.[0] || null
+  const courseID = str.match(regexCourseID)?.[0] || null
 
   if (response.success == true) {
     try {

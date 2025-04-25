@@ -1,23 +1,20 @@
 /* eslint-disable react/no-unescaped-entities */
 import styled from "styled-components";
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"
 import {
   Box,
   Button,
   CircularProgress,
   Alert,
   Snackbar
-} from "@mui/material";
-import axios from "axios";
-import { useParams, useSearchParams } from "react-router-dom";
+} from "@mui/material"
+import { useParams, useSearchParams } from "react-router-dom"
 import { student } from 'api'
 
 function Output({ editorRef, language, testcases, setProgress }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("")
-  const token = sessionStorage.getItem('token')
-  const userAuth = sessionStorage.getItem('userAuth')
   const num_topics = JSON.parse(sessionStorage.getItem('assignment')).topics.length
   const params = useParams()
   const [searchParam] = useSearchParams()
@@ -63,15 +60,6 @@ function Output({ editorRef, language, testcases, setProgress }) {
     {
       setIsLoading(true)
       const res = await student.submitAssignment(language, sourceCode, testcases)
-      // const res = await axios.post('http://localhost:3000/c/acceptAssignment',
-      //   { language, sourceCode, testcases },
-      //   {
-      //     headers: {
-      //       'Token': token, // Thêm token và user vào header để đưa xuống Backend xác thực
-      //       'user': userAuth
-      //     }
-      //   }
-      // )
       if (res.data === true)
       {
         let result = 'Accepted'

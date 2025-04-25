@@ -79,10 +79,11 @@ export class StudentClient extends ApiClient {
     }
   }
 
-  async payment(courseID, cancel_url, return_url) {
+  async payment(courseID, cancel_url, return_url, voucher_code) {
     try {
       const response = await axios.post(`${this.domain}/pay/${courseID}`,
         {
+          voucher_code,
           cancel_url,
           return_url
         })
@@ -132,9 +133,4 @@ export class StudentClient extends ApiClient {
   async getMatchedVouchers(courseID) {
     return await this.voucher.getMatchedVouchers(courseID)
   }
-
-  async useVoucher(voucherCode) {
-    return await this.voucher.useVoucher(voucherCode)
-  }
-
 }
