@@ -5,29 +5,16 @@ const voucherRouter = express.Router()
 
 voucherRouter
   .route('/')
-  .all(
-    authController.protect,
-    authController.restrictTo('admin')
-  )
-  .post(
-    voucherController.createVoucher
-  )
+  .all(authController.protect, authController.restrictTo('admin'))
+  .get(voucherController.getAllVouchers)
+  .post(voucherController.createVoucher)
 
 voucherRouter
   .route('/:voucher_code')
-  .all(
-    authController.protect,
-    authController.restrictTo('admin')
-  )
-  .put(
-    voucherController.updateVoucher
-  )
-  .get(
-    voucherController.getVoucher
-  )
-  .delete(
-    voucherController.deleteVoucher
-  )
+  .all(authController.protect, authController.restrictTo('admin'))
+  .put(voucherController.updateVoucher)
+  .get(voucherController.getVoucher)
+  .delete(voucherController.deleteVoucher)
 
 voucherRouter
   .route('/match-voucher/:courseID')
