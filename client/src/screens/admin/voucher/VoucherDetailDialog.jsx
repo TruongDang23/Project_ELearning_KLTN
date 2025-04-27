@@ -367,8 +367,90 @@ const VoucherDetailDialog = ({ open, onClose, voucher }) => {
                   {voucher.is_all_courses ? 'ALL COURSES' : 'SPECIFIC COURSES'}
                 </span>
               </h4>
-              {/* Course targets listing - similar structure to user targeting */}
-              {/* Course targeting UI implementation */}
+              {voucher.is_all_courses ? (
+                <p style={{ color: '#777', fontStyle: 'italic' }}>
+                  This voucher is applicable to all courses.
+                </p>
+              ) : (
+                <div>
+                  {voucher.courses?.length > 0 ? (
+                    <div
+                      style={{
+                        maxHeight: '150px',
+                        overflowY: 'auto',
+                        padding: '8px 0'
+                      }}
+                    >
+                      {voucher.courses.map((course, index) => {
+                        // Xử lý course có thể là string hoặc object
+                        const courseId =
+                          typeof course === 'object' ? course.courseID : course
+                        const courseTitle =
+                          typeof course === 'object'
+                            ? course.title
+                            : `Course ${course}`
+                        const courseImage =
+                          typeof course === 'object'
+                            ? course.image_introduce
+                            : null
+
+                        return (
+                          <Tooltip
+                            key={index}
+                            title={
+                              <div style={{ padding: '8px' }}>
+                                <p
+                                  style={{
+                                    margin: '0',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  {courseTitle}
+                                </p>
+                                <p style={{ margin: '4px 0 0 0' }}>
+                                  ID: {courseId}
+                                </p>
+                              </div>
+                            }
+                            arrow
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '4px 8px',
+                                margin: '4px 0',
+                                borderRadius: '4px',
+                                backgroundColor: '#f9f9f9',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: '32px',
+                                  height: '24px',
+                                  marginRight: '8px',
+                                  backgroundImage: `url(${
+                                    courseImage || 'default-course.png'
+                                  })`,
+                                  backgroundSize: 'cover',
+                                  backgroundPosition: 'center',
+                                  borderRadius: '3px'
+                                }}
+                              />
+                              <span>{courseTitle}</span>
+                            </div>
+                          </Tooltip>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p style={{ color: '#777', fontStyle: 'italic' }}>
+                      No specific courses set.
+                    </p>
+                  )}
+                </div>
+              )}
             </Paper>
           </div>
 

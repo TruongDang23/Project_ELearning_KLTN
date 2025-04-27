@@ -99,8 +99,10 @@ function VoucherTest() {
     setSelectedCourses(courseObjects)
     setEditVoucher({
       ...voucher,
-      users: voucher.users.map((u) => u.userID).join(', '),
-      courses: voucher.courses.join(', ')
+      // users: voucher.users.map((u) => u.userID).join(', '),
+      // courses: voucher.courses.join(', ')
+      users: userObjects,
+      courses: courseObjects
     })
     setOpenEditDialog(true)
   }

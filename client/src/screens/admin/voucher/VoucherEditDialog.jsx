@@ -37,7 +37,7 @@ const VoucherEditDialog = ({
   setSelectedStudents,
   selectedCourses,
   setSelectedCourses,
-  setvoucher
+  setEditVoucher
 }) => {
   if (!voucher) return null
 
@@ -335,11 +335,10 @@ const VoucherEditDialog = ({
                 }
                 onChange={(event, newValue) => {
                   setSelectedStudents(newValue)
-                  setvoucher((prev) => ({
+                  setEditVoucher((prev) => ({
                     ...prev,
                     users: newValue
                   }))
-                  console.log('Update students:', newValue)
                 }}
                 renderOption={(props, option) => (
                   <li {...props}>
@@ -383,7 +382,7 @@ const VoucherEditDialog = ({
               />
             )}
 
-            {voucher.is_all_users && (
+            {voucher.is_all_users ? (
               <p
                 style={{
                   color: '#777',
@@ -393,9 +392,11 @@ const VoucherEditDialog = ({
               >
                 This voucher will be available to all users.
               </p>
+            ) : (
+              <></>
             )}
 
-            {voucher.voucher_for === 'course' && (
+            {voucher.voucher_for === 'course' ? (
               <p
                 style={{
                   color: '#777',
@@ -405,6 +406,8 @@ const VoucherEditDialog = ({
               >
                 Not applicable for course vouchers.
               </p>
+            ) : (
+              <></>
             )}
           </Paper>
 
@@ -477,7 +480,7 @@ const VoucherEditDialog = ({
                 }
                 onChange={(event, newValue) => {
                   setSelectedCourses(newValue)
-                  setvoucher((prev) => ({
+                  setEditVoucher((prev) => ({
                     ...prev,
                     courses: newValue
                   }))
@@ -523,7 +526,7 @@ const VoucherEditDialog = ({
               />
             )}
 
-            {voucher.is_all_courses && (
+            {voucher.is_all_courses ? (
               <p
                 style={{
                   color: '#777',
@@ -533,9 +536,11 @@ const VoucherEditDialog = ({
               >
                 This voucher will be applicable to all courses.
               </p>
+            ) : (
+              <></>
             )}
 
-            {voucher.voucher_for === 'student' && (
+            {voucher.voucher_for === 'student' ? (
               <p
                 style={{
                   color: '#777',
@@ -545,13 +550,14 @@ const VoucherEditDialog = ({
               >
                 Not applicable for student vouchers.
               </p>
+            ) : (
+              <></>
             )}
           </Paper>
         </div>
         {/* Hiển thị thông báo lỗi targeting */}
         {validationErrors.targeting && (
           <Paper
-            elevation={0}
             sx={{
               padding: '0.8rem 1.2rem',
               background: '#fff1f0',
@@ -572,7 +578,6 @@ const VoucherEditDialog = ({
         {/* Hiển thị thông báo lỗi voucher_for nếu có */}
         {validationErrors.voucher_for && (
           <Paper
-            elevation={0}
             sx={{
               padding: '0.8rem 1.2rem',
               background: '#fff1f0',
