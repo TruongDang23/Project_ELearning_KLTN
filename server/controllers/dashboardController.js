@@ -143,10 +143,11 @@ const getRatingStatistics = catchAsync(async (req, res, next) => {
 
 const getPaymentSummary = catchAsync(async (req, res, next) => {
   const connection = connectMysql.promise()
-  await connection.query('START TRANSACTION;')
   try {
     const [totalTransactions, dateRevenue, monthRevenue] = await Promise.all([
-      connection.query(`SELECT COUNT(*) AS count FROM log_payments`),
+      connection.query(`SELECT COUNT(*) AS count FROM log_payments
+                        WHERE MONTH(transaction_time) = MONTH(CURDATE())
+                        AND YEAR(transaction_time) = YEAR(CURDATE())`),
 
       connection.query(`SELECT SUM(amount) AS total FROM log_payments
                         WHERE DATE(transaction_time) = CURDATE()`),
@@ -155,7 +156,6 @@ const getPaymentSummary = catchAsync(async (req, res, next) => {
                         WHERE MONTH(transaction_time) = MONTH(CURDATE())
                         AND YEAR(transaction_time) = YEAR(CURDATE())`)
     ])
-    await connection.query('COMMIT;')
     const data = {
       total_transactions: totalTransactions[0][0]?.count || 0,
       date_revenue: parseInt(dateRevenue[0][0]?.total) || 0,
@@ -165,7 +165,72 @@ const getPaymentSummary = catchAsync(async (req, res, next) => {
     res.status(200).json(data)
   }
   catch (error) {
-    await connection.query('ROLLBACK;')
+    next(error)
+  }
+})
+
+const getListPayment = catchAsync(async (req, res, next) => {
+  const connection = connectMysql.promise()
+  const query = `
+    SELECT * FROM log_payments
+    ORDER BY transaction_time DESC
+  `
+  try {
+    const [rows] = await connection.query(query)
+    res.status(200).json(rows)
+  } catch (error) {
+    next(error)
+  }
+})
+
+const getPaymentStatistics = catchAsync(async (req, res, next) => {
+  const startDate = req.query.startDate || '2000-01-01'
+  const endDate = req.query.endDate || '2000-01-31'
+  const connection = connectMysql.promise()
+  const queryDetailMonthRevenue = `
+    SELECT
+      sum(amount) AS total_amount,
+        DATE(transaction_time) AS date
+    FROM projectelearning.log_payments
+    WHERE DATE(transaction_time) >= ?
+    AND DATE(transaction_time) <= ?
+    GROUP BY DATE(transaction_time)
+    ORDER BY DATE(transaction_time)
+  `
+  const queryTop20UsersPaid = `
+    SELECT
+      sum(amount) AS total_amount,
+        paid_by AS userID
+    FROM projectelearning.log_payments
+    WHERE DATE(transaction_time) >= ?
+    AND DATE(transaction_time) <= ?
+    GROUP BY paid_by
+    ORDER BY total_amount DESC
+    LIMIT 20;`
+
+  const queryTop20CoursePaid = `
+    SELECT
+      count(*) AS total_bought,
+        paid_for AS course
+    FROM projectelearning.log_payments
+    WHERE DATE(transaction_time) >= ?
+    AND DATE(transaction_time) <= ?
+    GROUP BY paid_for
+    ORDER BY total_bought DESC
+    LIMIT 20;`
+
+  try {
+    const [monthRevenue, top20UserPaid, top20CoursePaid] = await Promise.all([
+      connection.query(queryDetailMonthRevenue, [startDate, endDate]),
+      connection.query(queryTop20UsersPaid, [startDate, endDate]),
+      connection.query(queryTop20CoursePaid, [startDate, endDate])
+    ])
+    res.status(200).send({
+      monthRevenue: monthRevenue[0],
+      top20UserPaid: top20UserPaid[0],
+      top20CoursePaid: top20CoursePaid[0]
+    })
+  } catch (error) {
     next(error)
   }
 })
@@ -176,5 +241,7 @@ export default {
   getUserStatistics,
   getCourseByCategory,
   getRatingStatistics,
-  getPaymentSummary
+  getPaymentSummary,
+  getListPayment,
+  getPaymentStatistics
 }
