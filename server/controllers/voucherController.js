@@ -386,6 +386,18 @@ const getListVouchers = catchAsync(async (req, res, next) => {
 
     await mysqlTransaction.query("COMMIT")
 
+    if (voucher_courses[0].length > 0) {
+      const courseIDs = voucher_courses[0].map(row => row.course)
+      const courses = await Course.find({ courseID: { $in: courseIDs } }).select('image_introduce courseID')
+      voucher_courses[0] = voucher_courses[0].map(course => {
+        const data = courses.find(c => c.courseID === course.course)
+        return {
+          ...course,
+          image_introduce: data ? data.image_introduce : ''
+        }
+      })
+    }
+
     const list_voucher = voucher.map((voucher) => {
       const users = voucher_users
         .filter((vu) => vu.voucher_code === voucher.voucher_code)

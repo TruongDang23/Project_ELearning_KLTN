@@ -1,5 +1,6 @@
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from '../config/connMySql.js'
+import Course from '../models/courseInfo.js'
 
 const loadDataDashboard = catchAsync(async (req, res, next) => {
   const connection = connectMysql.promise()
@@ -189,35 +190,54 @@ const getPaymentStatistics = catchAsync(async (req, res, next) => {
   const connection = connectMysql.promise()
   const queryDetailMonthRevenue = `
     SELECT
-      sum(amount) AS total_amount,
-        DATE(transaction_time) AS date
+      SUM(amount) AS total_amount,
+      LPAD(DAY(transaction_time), 2, '0') AS day
     FROM projectelearning.log_payments
     WHERE DATE(transaction_time) >= ?
     AND DATE(transaction_time) <= ?
-    GROUP BY DATE(transaction_time)
-    ORDER BY DATE(transaction_time)
+    GROUP BY day
+    ORDER BY day
   `
   const queryTop20UsersPaid = `
-    SELECT
-      sum(amount) AS total_amount,
+    WITH a as (
+      SELECT
+        sum(amount) AS total_amount,
         paid_by AS userID
-    FROM projectelearning.log_payments
-    WHERE DATE(transaction_time) >= ?
-    AND DATE(transaction_time) <= ?
-    GROUP BY paid_by
-    ORDER BY total_amount DESC
-    LIMIT 20;`
+      FROM projectelearning.log_payments
+      WHERE DATE(transaction_time) >= ?
+      AND DATE(transaction_time) <= ?
+      GROUP BY paid_by
+      ORDER BY total_amount DESC
+      LIMIT 20
+    )
+    SELECT 
+      a.total_amount,
+        a.userID,
+        u.fullname,
+        u.avatar
+    FROM a
+    INNER JOIN user as u
+    ON a.userID = u.userID`
 
   const queryTop20CoursePaid = `
-    SELECT
-      count(*) AS total_bought,
+    WITH a as (
+      SELECT
+        count(*) AS total_bought,
         paid_for AS course
-    FROM projectelearning.log_payments
-    WHERE DATE(transaction_time) >= ?
-    AND DATE(transaction_time) <= ?
-    GROUP BY paid_for
-    ORDER BY total_bought DESC
-    LIMIT 20;`
+      FROM projectelearning.log_payments
+      WHERE DATE(transaction_time) >= ?
+      AND DATE(transaction_time) <= ?
+      GROUP BY paid_for
+      ORDER BY total_bought DESC
+      LIMIT 20
+    )
+    SELECT 
+      a.total_bought,
+        a.course,
+        c.title
+    FROM a 
+    INNER JOIN course AS c
+    ON a.course = c.courseID`
 
   try {
     const [monthRevenue, top20UserPaid, top20CoursePaid] = await Promise.all([
@@ -225,6 +245,19 @@ const getPaymentStatistics = catchAsync(async (req, res, next) => {
       connection.query(queryTop20UsersPaid, [startDate, endDate]),
       connection.query(queryTop20CoursePaid, [startDate, endDate])
     ])
+
+    if (top20CoursePaid[0].length > 0) {
+      const courseIDs = top20CoursePaid[0].map(row => row.course)
+      const courses = await Course.find({ courseID: { $in: courseIDs } }).select('image_introduce courseID')
+      top20CoursePaid[0] = top20CoursePaid[0].map(course => {
+        const data = courses.find(c => c.courseID === course.course)
+        return {
+          ...course,
+          image_introduce: data ? data.image_introduce : ''
+        }
+      })
+    }
+
     res.status(200).send({
       monthRevenue: monthRevenue[0],
       top20UserPaid: top20UserPaid[0],
