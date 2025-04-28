@@ -34,4 +34,27 @@ dashboardRouter
   .all(authController.restrictTo('admin'))
   .get(dashboardController.getRatingStatistics)
 
+dashboardRouter
+  .route('/summary-payment')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin'),
+    dashboardController.getPaymentSummary
+  )
+
+dashboardRouter
+  .route('/list-payment')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin'),
+    dashboardController.getListPayment
+  )
+
+dashboardRouter
+  .route('/statistic-payment')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin'),
+    dashboardController.getPaymentStatistics
+  )
 export default dashboardRouter
