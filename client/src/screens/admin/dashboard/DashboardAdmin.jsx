@@ -36,7 +36,6 @@ import GeneralDashboard from './GeneralDashboard'
 import StatisticsDashboard from './StatisticsDashboard'
 import VoucherDashboard from './VoucherDashboard'
 import MasterDataDashboard from './MasterData'
-import VoucherTest from './VoucherTest'
 
 const drawerWidth = 240
 
@@ -283,8 +282,7 @@ function DashboardAdmin() {
           {content === 'Account' && <AccountDashboard />}
           {content === 'Courses' && <CourseDashboard />}
           {content === 'Statistics' && <StatisticsDashboard />}
-          {/* {content === 'Vouchers' && <VoucherDashboard />} */}
-          {content === 'Vouchers' && <VoucherTest />}
+          {content === 'Vouchers' && <VoucherDashboard />}
         </Box>
       </Box>
     </>
