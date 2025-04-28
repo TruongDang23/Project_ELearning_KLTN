@@ -141,10 +141,40 @@ const getRatingStatistics = catchAsync(async (req, res, next) => {
   }
 })
 
+const getPaymentSummary = catchAsync(async (req, res, next) => {
+  const connection = connectMysql.promise()
+  await connection.query('START TRANSACTION;')
+  try {
+    const [totalTransactions, dateRevenue, monthRevenue] = await Promise.all([
+      connection.query(`SELECT COUNT(*) AS count FROM log_payments`),
+
+      connection.query(`SELECT SUM(amount) AS total FROM log_payments
+                        WHERE DATE(transaction_time) = CURDATE()`),
+
+      connection.query(`SELECT SUM(amount) AS total FROM log_payments
+                        WHERE MONTH(transaction_time) = MONTH(CURDATE())
+                        AND YEAR(transaction_time) = YEAR(CURDATE())`)
+    ])
+    await connection.query('COMMIT;')
+    const data = {
+      total_transactions: totalTransactions[0][0]?.count || 0,
+      date_revenue: parseInt(dateRevenue[0][0]?.total) || 0,
+      month_revenue: parseInt(monthRevenue[0][0]?.total) || 0
+    }
+
+    res.status(200).json(data)
+  }
+  catch (error) {
+    await connection.query('ROLLBACK;')
+    next(error)
+  }
+})
+
 export default {
   loadDataDashboard,
   getCourseStatistics,
   getUserStatistics,
   getCourseByCategory,
-  getRatingStatistics
+  getRatingStatistics,
+  getPaymentSummary
 }

@@ -34,4 +34,8 @@ dashboardRouter
   .all(authController.restrictTo('admin'))
   .get(dashboardController.getRatingStatistics)
 
+dashboardRouter
+  .route('/test-statistic-payment')
+  .get(dashboardController.getPaymentSummary)
+
 export default dashboardRouter
