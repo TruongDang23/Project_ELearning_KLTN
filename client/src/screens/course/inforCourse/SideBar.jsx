@@ -6,13 +6,52 @@ import LocalAtmIcon from '@mui/icons-material/LocalAtm'
 import { Link } from 'react-router-dom'
 import { useParams } from 'react-router-dom'
 import { BuyCourse } from '~/components/popup'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { student } from 'api'
+import { Autocomplete, TextField, CircularProgress } from '@mui/material'
+
+const SAMPLE_VOUCHERS = [
+  {
+    voucher_code: 'WELCOME50',
+    description: 'Welcome discount for new users',
+    discount_value: 50,
+    start_date: new Date(),
+    end_date: new Date(new Date().setMonth(new Date().getMonth() + 1)) // 1 month from now
+  },
+  {
+    voucher_code: 'SUMMER25',
+    description: 'Summer sale discount on all courses',
+    discount_value: 25,
+    start_date: new Date(),
+    end_date: new Date(new Date().setDate(new Date().getDate() + 30)) // 30 days from now
+  },
+  {
+    voucher_code: 'FLASH75',
+    description: 'Flash sale - valid for 24 hours only',
+    discount_value: 75,
+    start_date: new Date(),
+    end_date: new Date(new Date().setDate(new Date().getDate() + 1)) // 1 day from now
+  },
+  {
+    voucher_code: 'SPECIAL60',
+    description: 'Special discount for selected courses',
+    discount_value: 60,
+    start_date: new Date(),
+    end_date: new Date(new Date().setDate(new Date().getDate() + 7)) // 7 days from now
+  }
+]
 
 function SideBar({ inforCourseData }) {
   const [openPub, setopenPub] = useState(false)
   const [statusBuy, setStatus] = useState('')
   const [voucherCode, setVoucherCode] = useState('')
+  const [availableVouchers, setAvailableVouchers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [selectedVoucher, setSelectedVoucher] = useState(null)
+  const [discountedPrice, setDiscountedPrice] = useState(null)
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success')
   const cancel_url = window.location.href
   const return_url = `${window.location.origin}/student/my-learning#`
   const toggleBuy = (status) => {
@@ -21,6 +60,22 @@ function SideBar({ inforCourseData }) {
   }
 
   const { courseID } = useParams()
+
+  useEffect(() => {
+    if (inforCourseData.price > 0) {
+      fetchSampleVouchers()
+    }
+  }, [inforCourseData.price])
+
+  const fetchSampleVouchers = () => {
+    setLoading(true)
+    // Simulate API delay
+    setTimeout(() => {
+      setAvailableVouchers(SAMPLE_VOUCHERS)
+      setLoading(false)
+    }, 800)
+  }
+
   const handleBuyCourse = async () => {
     if (inforCourseData.price == 0) {
       //If course is free => call API buyCourse to insert directly into database table
@@ -32,7 +87,12 @@ function SideBar({ inforCourseData }) {
       }
     } else {
       //If course is not free => Open link payment
-      const res = await student.payment(courseID, cancel_url, return_url, voucherCode)
+      const res = await student.payment(
+        courseID,
+        cancel_url,
+        return_url,
+        voucherCode
+      )
       if (res.data.message === 'enrolled') {
         toggleBuy('enrolled')
       } else {
@@ -45,13 +105,60 @@ function SideBar({ inforCourseData }) {
     }
   }
 
-  const handleVoucherChange = (e) => {
-    setVoucherCode(e.target.value)
+  const handleVoucherChange = (event, newValue) => {
+    setSelectedVoucher(newValue)
+
+    if (newValue) {
+      setVoucherCode(newValue.voucher_code)
+    } else {
+      setVoucherCode('')
+      setDiscountedPrice(null)
+    }
   }
 
   const handleApplyVoucher = () => {
-    // Placeholder for voucher application logic
-    console.log('Applying voucher:', voucherCode)
+    if (!voucherCode) return
+
+    // Either find from selected or from available vouchers by code
+    const foundVoucher =
+      selectedVoucher ||
+      availableVouchers.find(
+        (v) => v.voucher_code.toLowerCase() === voucherCode.toLowerCase()
+      )
+
+    if (foundVoucher) {
+      // Calculate discounted price
+      const discount =
+        (inforCourseData.price * foundVoucher.discount_value) / 100
+      const newPrice = Math.max(0, inforCourseData.price - discount).toFixed(2)
+      setDiscountedPrice(newPrice)
+
+      setSnackbarMessage(`Voucher applied! Your new price is $${newPrice}`)
+      setSnackbarSeverity('success')
+    } else {
+      setSnackbarMessage('Invalid voucher code. Please try another one.')
+      setSnackbarSeverity('error')
+    }
+
+    setOpenSnackbar(true)
+  }
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
+  }
+
+  // Custom input handler to support manually typed voucher codes
+  const handleInputChange = (event) => {
+    const value = event.target.value
+    setVoucherCode(value)
+
+    // If user is typing something different from selected voucher, clear selection
+    if (selectedVoucher && value !== selectedVoucher.voucher_code) {
+      setSelectedVoucher(null)
+    }
   }
 
   return (
@@ -91,16 +198,86 @@ function SideBar({ inforCourseData }) {
         <div className="sidebar-buttons">
           {inforCourseData.price > 0 && (
             <div className="voucher-input-container">
-              <input
-                type="text"
-                placeholder="Enter Coupon"
-                value={voucherCode}
+              <Autocomplete
+                id="voucher-autocomplete"
+                options={availableVouchers}
+                loading={loading}
+                getOptionLabel={(option) =>
+                  `${option.voucher_code} (${option.discount_value}% off)`
+                }
+                value={selectedVoucher}
                 onChange={handleVoucherChange}
-                className="voucher-input"
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Enter voucher code"
+                    variant="outlined"
+                    fullWidth
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {loading ? (
+                            <CircularProgress color="inherit" size={20} />
+                          ) : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      )
+                    }}
+                    className="voucher-input"
+                  />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ fontWeight: 'bold', color: '#1971c2' }}>
+                        {option.voucher_code}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '1.2rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          width: '100%'
+                        }}
+                      >
+                        <span>{option.discount_value}% off</span>
+                        <span style={{ color: '#777' }}>
+                          Expires:{' '}
+                          {new Date(option.end_date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {option.description && (
+                        <div
+                          style={{
+                            fontSize: '1.2rem',
+                            color: '#666',
+                            marginTop: '2px'
+                          }}
+                        >
+                          {option.description}
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                )}
+                sx={{
+                  width: '100%',
+                  '& .MuiInputBase-root': {
+                    fontSize: '1.6rem',
+                    borderRadius: '5px',
+                    backgroundColor: '#fff'
+                  }
+                }}
+                freeSolo
+                selectOnFocus
+                clearOnBlur
+                handleHomeEndKeys
               />
               <button
                 className="voucher-apply-button"
                 onClick={handleApplyVoucher}
+                disabled={!voucherCode}
               >
                 Apply
               </button>
@@ -215,12 +392,14 @@ const SideBarWrapper = styled.aside`
 
     .voucher-input-container {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 10px;
       animation: fadeInUp 0.9s ease-in-out;
 
       .voucher-input {
         flex: 1;
-        padding: 10px;
+        /* padding: 10px; */
         font-size: 1.6rem;
         color: #1c2526;
         background-color: #fff;
@@ -245,9 +424,9 @@ const SideBarWrapper = styled.aside`
       }
 
       .voucher-apply-button {
-        padding: 10px 20px;
+        padding: 20px 20px;
         font-size: 1.6rem;
-        font-weight: 600;
+        font-weight: 700;
         background-color: #fff;
         color: #1971c2;
         outline: none;
