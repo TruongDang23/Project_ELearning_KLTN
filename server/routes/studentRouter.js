@@ -85,5 +85,4 @@ studentRouter
 studentRouter
   .route('/payos-hook')
   .post(studentController.payoshook)
-
 export default studentRouter
