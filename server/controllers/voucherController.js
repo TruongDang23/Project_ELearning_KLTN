@@ -73,7 +73,7 @@ const getAllVouchers = catchAsync(async (req, res, next) => {
 
     // Lấy danh sách các courseID để truy vấn từ MongoDB
     const courseIDs = voucherCourses
-      .filter((vc, index, self) => 
+      .filter((vc, index, self) =>
         index === self.findIndex((t) => t.courseID === vc.courseID))
       .map(vc => vc.courseID);
 
@@ -89,7 +89,7 @@ const getAllVouchers = catchAsync(async (req, res, next) => {
         .map((vu) => ({
           userID: vu.userID,
           fullname: vu.fullname,
-          avatar: vu.avatar,
+          avatar: vu.avatar
         }));
 
       const courses = voucherCourses
@@ -97,7 +97,7 @@ const getAllVouchers = catchAsync(async (req, res, next) => {
         .map((vc) => {
           // Tìm thông tin image_introduce từ MongoDB
           const mongoData = mongoCourses.find(mc => mc.courseID === vc.courseID);
-          
+
           return {
             courseID: vc.courseID,
             title: vc.title,
@@ -115,20 +115,20 @@ const getAllVouchers = catchAsync(async (req, res, next) => {
           userID: uv.userID,
           fullname: uv.fullname,
           avatar: uv.avatar,
-          use_at: uv.use_at,
+          use_at: uv.use_at
         }));
 
       return {
         ...voucher,
         users,
         courses,
-        used,
+        used
       };
     });
 
     res.status(200).json({
       status: "success",
-      data: listVouchers,
+      data: listVouchers
     });
   } catch (error) {
     await mysqlTransaction.query("ROLLBACK");
@@ -196,7 +196,7 @@ const createVoucherUser = async(mysqlTransaction, voucher_code, list_users) => {
 
 const updateVoucherObject = async(mysqlTransaction, voucher) => {
   const query = `UPDATE vouchers SET
-        description = ?, discount_value = ?, 
+        description = ?, discount_value = ?, voucher_for = ?
         usage_limit = ?, start_date = ?, end_date = ?, 
         is_all_users = ?, is_all_courses = ?
         WHERE voucher_code = ?`
@@ -204,6 +204,7 @@ const updateVoucherObject = async(mysqlTransaction, voucher) => {
   const [result] = await mysqlTransaction.query(query, [
     voucher.description,
     voucher.discount_value,
+    voucher.voucher_for,
     voucher.usage_limit,
     voucher.start_date,
     voucher.end_date,
@@ -454,18 +455,18 @@ const updateVoucher = catchAsync(async (req, res, next) => {
     voucher.voucher_code = voucher_code
     //Update voucher object
     await updateVoucherObject(mysqlTransaction, voucher)
+    //Clear old data of voucher_user
+    await mysqlTransaction.query(`DELETE FROM vouchers_user WHERE voucher_code = ?`, [voucher.voucher_code])
+    //Clear old data of voucher_course
+    await mysqlTransaction.query(`DELETE FROM vouchers_course WHERE voucher_code = ?`, [voucher.voucher_code])
 
     if (voucher.voucher_for === 'student') {
-      //Clear old data of voucher_user
-      await mysqlTransaction.query(`DELETE FROM vouchers_user WHERE voucher_code = ?`, [voucher.voucher_code])
       //Insert new data of voucher_user
-      if (voucher.is_all_users === false) //Case voucher cho một vài người dùng
+      if (voucher.is_all_users === false && voucher.users.length > 0) //Case voucher cho một vài người dùng.
         await createVoucherUser(mysqlTransaction, voucher.voucher_code, voucher.users)
     } else if (voucher.voucher_for === 'course') {
-      //Clear old data of voucher_course
-      await mysqlTransaction.query(`DELETE FROM vouchers_course WHERE voucher_code = ?`, [voucher.voucher_code])
       //Insert new data of voucher_course
-      if (voucher.is_all_courses === false) //Case voucher cho một vài khóa khóa học
+      if (voucher.is_all_courses === false && voucher.courses.length > 0) //Case voucher cho một vài khóa khóa học
         await createVoucherCourse(mysqlTransaction, voucher.voucher_code, voucher.courses)
     }
 
