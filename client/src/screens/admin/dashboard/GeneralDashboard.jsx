@@ -15,7 +15,8 @@ function GeneralDashboard() {
     courses: 0,
     students: 0,
     categories: 0,
-    reviews: 0
+    reviews: 0,
+    income: 0
   })
   const [openError, setOpenError] = useState({
     status: false,
@@ -25,9 +26,9 @@ function GeneralDashboard() {
   const loadDataDashboard = async () => {
     try {
       const response = await admin.loadDataDashboard()
-      const { instructors, courses, students, categories, reviews } =
+      const { instructors, courses, students, categories, reviews, income } =
         response.data
-      setData({ instructors, courses, students, categories, reviews })
+      setData({ instructors, courses, students, categories, reviews, income })
     } catch (error) {
       setOpenError({
         status: true,
@@ -101,7 +102,7 @@ function GeneralDashboard() {
           </div>
           <div className="general-content">
             <h4>Income</h4>
-            <p>1000$</p>
+            <p>{data.income}</p>
           </div>
         </div>
         <div className="general-card">

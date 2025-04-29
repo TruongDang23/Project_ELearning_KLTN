@@ -21,6 +21,7 @@ import ListItemText from '@mui/material/ListItemText'
 import Link from '@mui/material/Link'
 import BallotIcon from '@mui/icons-material/Ballot'
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber'
+import IntegrationInstructionsIcon from '@mui/icons-material/IntegrationInstructions'
 
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
@@ -36,6 +37,7 @@ import GeneralDashboard from './GeneralDashboard'
 import StatisticsDashboard from './StatisticsDashboard'
 import VoucherDashboard from './VoucherDashboard'
 import MasterDataDashboard from './MasterData'
+import EmbeddedDashboard from './EmbeddedDashboard'
 
 const drawerWidth = 240
 
@@ -226,6 +228,10 @@ function DashboardAdmin() {
               {
                 text: 'Vouchers',
                 icon: <ConfirmationNumberIcon sx={{ fontSize: 35 }} />
+              },
+              {
+                text: 'Courses Embedding',
+                icon: <IntegrationInstructionsIcon sx={{ fontSize: 35 }} />
               }
               // eslint-disable-next-line no-unused-vars
             ].map((item, index) => (
@@ -283,6 +289,7 @@ function DashboardAdmin() {
           {content === 'Courses' && <CourseDashboard />}
           {content === 'Statistics' && <StatisticsDashboard />}
           {content === 'Vouchers' && <VoucherDashboard />}
+          {content === 'Courses Embedding' && <EmbeddedDashboard />}
         </Box>
       </Box>
     </>

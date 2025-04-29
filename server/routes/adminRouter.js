@@ -74,4 +74,12 @@ adminRouter
     authController.restrictTo('admin', 'instructor', 'student'),
     userController.newQnA
   )
+
+adminRouter
+  .route('/embedded-course')
+  .post(
+    authController.protect,
+    authController.restrictTo('admin'),
+    adminController.embeddedCourse
+  )
 export default adminRouter

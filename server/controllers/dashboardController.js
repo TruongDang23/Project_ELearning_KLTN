@@ -1,6 +1,8 @@
 import catchAsync from '../utils/catchAsync.js'
 import connectMysql from '../config/connMySql.js'
 import Course from '../models/courseInfo.js'
+import EmbeddedList from '../models/embedded_course.js'
+import { formatVND } from '../utils/format.js'
 
 const loadDataDashboard = catchAsync(async (req, res, next) => {
   const connection = connectMysql.promise()
@@ -38,6 +40,8 @@ const loadDataDashboard = catchAsync(async (req, res, next) => {
     WHERE activity_status = 'locked'
   `
 
+  let queryTotalAmount = `SELECT SUM(amount) AS total FROM log_payments`
+
   try {
     const [rowsPublished] = await connection.query(queryPublished)
     const [rowsMonitoring] = await connection.query(queryMonitoring)
@@ -49,6 +53,7 @@ const loadDataDashboard = catchAsync(async (req, res, next) => {
     const [rowsReviews] = await connection.query(queryReviews)
     const [rowsActiveAccounts] = await connection.query(queryActiveAccounts)
     const [rowsBlockedAccounts] = await connection.query(queryBlockedAccounts)
+    const [rowsTotalAmount] = await connection.query(queryTotalAmount)
 
     const data = {
       published: rowsPublished[0]?.count || 0,
@@ -60,7 +65,8 @@ const loadDataDashboard = catchAsync(async (req, res, next) => {
       categories: rowsCategories[0]?.count || 0,
       reviews: rowsReviews[0]?.count || 0,
       activeAccounts: rowsActiveAccounts[0]?.count || 0,
-      blockedAccounts: rowsBlockedAccounts[0]?.count || 0
+      blockedAccounts: rowsBlockedAccounts[0]?.count || 0,
+      income: rowsTotalAmount[0] ? formatVND(rowsTotalAmount[0].total) : 0
     }
 
     res.status(200).send(data)
@@ -268,6 +274,15 @@ const getPaymentStatistics = catchAsync(async (req, res, next) => {
   }
 })
 
+const getListEmbedded = catchAsync(async (req, res, next) => {
+  try {
+    const data = await EmbeddedList.find().select({ url: 1, type: 1, is_embedded: 1, _id: 0 })
+    res.status(200).json(data)
+  } catch (error) {
+    next(error)
+  }
+})
+
 export default {
   loadDataDashboard,
   getCourseStatistics,
@@ -276,5 +291,6 @@ export default {
   getRatingStatistics,
   getPaymentSummary,
   getListPayment,
-  getPaymentStatistics
+  getPaymentStatistics,
+  getListEmbedded
 }

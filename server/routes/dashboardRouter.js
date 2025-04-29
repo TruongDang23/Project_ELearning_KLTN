@@ -57,4 +57,12 @@ dashboardRouter
     authController.restrictTo('admin'),
     dashboardController.getPaymentStatistics
   )
+
+dashboardRouter
+  .route('/list-embedded-course')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin'),
+    dashboardController.getListEmbedded
+  )
 export default dashboardRouter
