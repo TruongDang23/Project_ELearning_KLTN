@@ -218,4 +218,35 @@ export class AdminClient extends ApiClient {
   async getListVoucher() {
     return await this.voucher.getListInformation()
   }
+
+  async getListEmbeddedCourse() {
+    return await this.dashboard.getListEmbeddedCourse()
+  }
+
+  async embedded() {
+    try {
+      const response = await axios.post(`${this.domain}/embedded-course`)
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
+  async addFileEmbedded(formData) {
+    try {
+      const response = await axios.post(
+        `${this.domain}/upload-course-knowledge`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      )
+      return response
+    } catch (error) {
+      return error
+    }
+  }
 }

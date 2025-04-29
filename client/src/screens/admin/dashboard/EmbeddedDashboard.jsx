@@ -1,297 +1,106 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@mui/material'
 import { Snackbar } from '~/components/general'
-// Import custom hooks
-import useVoucherData from '../voucher/useVoucher'
-import useVoucherValidation from '../voucher/useVoucherValidation'
-// Import components
-import VoucherTable from '../voucher/VoucherTable'
-import VoucherDetailDialog from '../voucher/VoucherDetailDialog'
-import VoucherEditDialog from '../voucher/VoucherEditDialog'
-import VoucherAddDialog from '../voucher/VoucherAddDialog'
-import VoucherDeleteDialog from '../voucher/VoucherDeleteDialog'
-// Import styles
+import EmbeddingTable from './embedding/EmbeddingTable'
 import { VoucherDashboardWrapper } from '../voucher/VoucherStyles'
+import { admin } from 'api'
+import { useRef } from 'react'
+import UploadFileIcon from '@mui/icons-material/UploadFile'
 
 function EmbeddedDashboard() {
-  // States for UI control
-  const [openDetailDialog, setOpenDetailDialog] = useState(false)
-  const [openEditDialog, setOpenEditDialog] = useState(false)
-  const [openAddDialog, setOpenAddDialog] = useState(false)
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
-  const [selectedVoucher, setSelectedVoucher] = useState(null)
-  const [editVoucher, setEditVoucher] = useState({})
-  const [voucherToDelete, setVoucherToDelete] = useState(null)
-  const [selectedStudents, setSelectedStudents] = useState([])
-  const [selectedCourses, setSelectedCourses] = useState([])
-  const [newVoucher, setNewVoucher] = useState({
-    voucher_code: '',
-    description: '',
-    discount_value: 0,
-    voucher_for: '',
-    usage_limit: 0,
-    start_date: '',
-    end_date: '',
-    is_all_users: false,
-    is_all_courses: false,
-    users: '',
-    courses: ''
-  })
+  const [isloading, setIsLoading] = useState(false)
+  const [datas, setData] = useState([])
+  const [openSuccess, setOpenSuccess] = useState({ status: false, message: '' })
+  const [openError, setOpenError] = useState({ status: false, message: '' })
+  const fileInputRef = useRef(null)
 
-  // Use custom hooks
-  const {
-    vouchers,
-    allStudents,
-    allCourses,
-    openSuccess,
-    openError,
-    setOpenSuccess,
-    setOpenError,
-    createVoucher,
-    updateVoucher,
-    deleteVoucher,
-    generateNewVoucherCode
-  } = useVoucherData()
-
-  const { validationErrors, validateVoucher } = useVoucherValidation()
-
-  // Handlers for dialog operations
-  const handleOpenDetail = (voucher) => {
-    setSelectedVoucher(voucher)
-    setOpenDetailDialog(true)
-  }
-
-  const handleCloseDetail = () => {
-    setOpenDetailDialog(false)
-    setSelectedVoucher(null)
-  }
-
-  const handleOpenEdit = (voucher) => {
-    const userObjects = voucher.users.map((user) => {
-      return (
-        allStudents.find((student) => student.userID === user.userID) || user
-      )
-    })
-
-    let courseObjects = []
-    if (voucher.courses && voucher.courses.length > 0) {
-      const isCourseObject = typeof voucher.courses[0] === 'object'
-      courseObjects = voucher.courses.map((course) => {
-        const courseId = isCourseObject ? course.courseID : course
-        const foundCourse = allCourses.find((c) => c.courseID === courseId)
-        return (
-          foundCourse || {
-            courseID: courseId,
-            title: `Course ${courseId}`,
-            teacher: 'Unknown',
-            method: 'Unknown',
-            program: 'Unknown',
-            image_introduce: 'default-course.png'
-          }
-        )
-      })
-    }
-
-    setSelectedStudents(userObjects)
-    setSelectedCourses(courseObjects)
-    setEditVoucher({
-      ...voucher,
-      // users: voucher.users.map((u) => u.userID).join(', '),
-      // courses: voucher.courses.join(', ')
-      users: userObjects,
-      courses: courseObjects
-    })
-    setOpenEditDialog(true)
-  }
-
-  const handleCloseEdit = () => {
-    setOpenEditDialog(false)
-    setEditVoucher({})
-  }
-
-  const handleOpenAdd = () => {
-    setNewVoucher({
-      voucher_code: generateNewVoucherCode(),
-      description: '',
-      discount_value: 0,
-      voucher_for: '',
-      usage_limit: 0,
-      start_date: '',
-      end_date: '',
-      is_all_users: false,
-      is_all_courses: false,
-      users: '',
-      courses: ''
-    })
-    setSelectedStudents([])
-    setSelectedCourses([])
-    setOpenAddDialog(true)
-  }
-
-  const handleCloseAdd = () => {
-    setOpenAddDialog(false)
-    setNewVoucher({
-      voucher_code: '',
-      description: '',
-      discount_value: 0,
-      voucher_for: '',
-      usage_limit: 0,
-      start_date: '',
-      end_date: '',
-      is_all_users: false,
-      is_all_courses: false,
-      users: '',
-      courses: ''
-    })
-  }
-
-  const handleOpenDelete = (voucher) => {
-    setVoucherToDelete(voucher)
-    setOpenDeleteDialog(true)
-  }
-
-  const handleCloseDelete = () => {
-    setOpenDeleteDialog(false)
-    setVoucherToDelete(null)
-  }
-
-  // Handlers for form changes
-  const handleEditChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setEditVoucher((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
-    validateVoucher({
-      ...editVoucher,
-      [name]: type === 'checkbox' ? checked : value
-    })
-  }
-
-  const handleNewChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setNewVoucher((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
-    validateVoucher({
-      ...newVoucher,
-      [name]: type === 'checkbox' ? checked : value
-    })
-  }
-
-  // Action handlers
-  const handleSaveEdit = async () => {
-    if (!validateVoucher(editVoucher)) {
-      setOpenError({ status: true, message: 'Please fix validation errors' })
-      return
-    }
-    const success = await updateVoucher(editVoucher.voucher_code, editVoucher)
-    if (success) {
-      handleCloseEdit()
+  const fetchData = async () => {
+    const response = await admin.getListEmbeddedCourse()
+    if (response.status === 200) {
+      setData(response.data)
+    } else {
+      setOpenError({ status: true, message: 'Failed to fetch data' })
+      setTimeout(() => {
+        setOpenError({ status: false, message: '' })
+      }, 3000)
     }
   }
 
-  const handleAddVoucher = async () => {
-    if (!validateVoucher(newVoucher)) {
-      setOpenError({ status: true, message: 'Please fix validation errors' })
-      return
-    }
-    const success = await createVoucher(newVoucher)
-    if (success) {
-      handleCloseAdd()
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const handleEmbedded = async() => {
+    setIsLoading(true)
+    const response = await admin.embedded()
+    if (response.status === 200) {
+      setOpenSuccess({ status: true, message: 'Embedded course successfully' })
+      setIsLoading(false)
+      fetchData()
+      setTimeout(() => {
+        setOpenSuccess({ status: false, message: '' })
+      }, 3000)
+    } else {
+      setOpenError({ status: true, message: 'Failed to embedded course' })
+      setIsLoading(false)
+      setTimeout(() => {
+        setOpenError({ status: false, message: '' })
+      }, 3000)
     }
   }
 
-  const handleConfirmDelete = async () => {
-    if (voucherToDelete) {
-      const success = await deleteVoucher(voucherToDelete.voucher_code)
-      if (success) {
-        handleCloseDelete()
+  const handleFileChange = async(event) => {
+    const file = event.target.files[0]
+    if (file) {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await admin.addFileEmbedded(formData)
+      if (response.status === 201) {
+        setOpenSuccess({ status: true, message: 'Add file successfully' })
+        fetchData()
+        setTimeout(() => {
+          setOpenSuccess({ status: false, message: '' })
+        }, 3000)
+      } else {
+        setOpenError({ status: true, message: 'Failed to add course knowledge' })
+        setIsLoading(false)
+        setTimeout(() => {
+          setOpenError({ status: false, message: '' })
+        }, 3000)
       }
     }
   }
 
-  // Add this to your component
-  const handleStudentSelectionChange = (event, newValue) => {
-    setSelectedStudents(newValue)
-    // Update editVoucher to match selected students
-    setEditVoucher((prev) => ({
-      ...prev,
-      users: newValue
-    }))
-  }
-
-  const handleCourseSelectionChange = (event, newValue) => {
-    setSelectedCourses(newValue)
-    // Update editVoucher to match selected courses
-    setEditVoucher((prev) => ({
-      ...prev,
-      courses: newValue
-    }))
+  const handleButtonClick = () => {
+    fileInputRef.current.click()
   }
 
   return (
     <VoucherDashboardWrapper>
       <h3>Courses Embedding</h3>
-      <Button
-        variant="contained"
-        onClick={handleOpenAdd}
-        style={{ marginBottom: '2rem', backgroundColor: 'rgb(52, 71, 103)' }}
-      >
-        Add Course
-      </Button>
 
-      <VoucherTable
-        vouchers={vouchers}
-        onViewDetails={handleOpenDetail}
-        onEdit={handleOpenEdit}
-        onDelete={handleOpenDelete}
-      />
-
-      <VoucherDetailDialog
-        open={openDetailDialog}
-        onClose={handleCloseDetail}
-        voucher={selectedVoucher}
-      />
-
-      <VoucherEditDialog
-        open={openEditDialog}
-        onClose={handleCloseEdit}
-        voucher={editVoucher}
-        handleChange={handleEditChange}
-        handleSave={handleSaveEdit}
-        validationErrors={validationErrors}
-        allStudents={allStudents}
-        allCourses={allCourses}
-        selectedStudents={selectedStudents}
-        setSelectedStudents={setSelectedStudents}
-        selectedCourses={selectedCourses}
-        setSelectedCourses={setSelectedCourses}
-        setEditVoucher={setEditVoucher}
-      />
-
-      <VoucherAddDialog
-        open={openAddDialog}
-        onClose={handleCloseAdd}
-        voucher={newVoucher}
-        handleChange={handleNewChange}
-        handleAdd={handleAddVoucher}
-        validationErrors={validationErrors}
-        allStudents={allStudents}
-        allCourses={allCourses}
-        selectedStudents={selectedStudents}
-        setSelectedStudents={setSelectedStudents}
-        selectedCourses={selectedCourses}
-        setSelectedCourses={setSelectedCourses}
-        setNewVoucher={setNewVoucher}
-      />
-
-      <VoucherDeleteDialog
-        open={openDeleteDialog}
-        onClose={handleCloseDelete}
-        voucher={voucherToDelete}
-        onConfirmDelete={handleConfirmDelete}
+      <div>
+        <input
+          type="file"
+          accept=".pdf,.doc,.docx"
+          style={{ display: 'none' }}
+          ref={fileInputRef}
+          onChange={handleFileChange}
+        />
+        <Button
+          startIcon={<UploadFileIcon />}
+          variant="contained"
+          onClick={handleButtonClick}
+          style={{ marginBottom: '2rem', backgroundColor: 'rgb(52, 71, 103)' }}
+        >
+        Add File
+        </Button>
+      </div>
+      <EmbeddingTable
+        onEmbedded={handleEmbedded}
+        isLoading={isloading}
+        datas={datas}
       />
 
       {openSuccess.status && (

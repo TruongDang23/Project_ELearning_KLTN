@@ -276,7 +276,9 @@ const getPaymentStatistics = catchAsync(async (req, res, next) => {
 
 const getListEmbedded = catchAsync(async (req, res, next) => {
   try {
-    const data = await EmbeddedList.find().select({ url: 1, type: 1, is_embedded: 1, _id: 0 })
+    const data = await EmbeddedList.find()
+      .sort({ _id: -1 })
+      .select({ url: 1, type: 1, is_embedded: 1, _id: 0 })
     res.status(200).json(data)
   } catch (error) {
     next(error)
