@@ -4,8 +4,10 @@ import mongoose from 'mongoose'
 import User from '../models/user.js'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
-import { attachFile } from './googleCloudController.js'
 import { switchCourseStatus } from './courseController.js'
+import axios from 'axios'
+import { attachFile } from './googleCloudController.js'
+import EmbeddedList from '../models/embedded_course.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -180,29 +182,6 @@ const update = catchAsync(async (req, res, next) => {
   res.status(200).send('Update Successfully')
 })
 
-const updateAvatar = catchAsync(async (req, res, next) => {
-  if (!req.files || req.files.length === 0) {
-    return next({ status: 400, message: 'No file uploaded!' })
-  }
-
-  const file = req.files[0]; // Lấy file đầu tiên (nếu có nhiều file)
-
-  // Gọi hàm để upload file lên GCS
-  // eslint-disable-next-line no-undef
-  const bucketName = process.env.GCS_USER_BUCKET
-  const userID = req.params.id // Sử dụng ID từ URL
-  const destName = file.originalname
-
-  try {
-    const fileUrl = await attachFile(bucketName, userID, file, destName);
-
-    res.status(201).send(fileUrl)
-  } catch (err) {
-    return next({ status: 500, message: 'Failed to upload avatar' })
-  }
-})
-
-
 // Xét duyệt khóa học dựa vào courseID
 const approveCourse = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
@@ -284,6 +263,46 @@ const lockUser = catchAsync(async (req, res, next) => {
   }
 })
 
+const embeddedCourse = catchAsync(async (req, res, next) => {
+  try {
+    //"https://n8n.techskillup.online/webhook/summary-lecture"
+    // eslint-disable-next-line no-undef
+    const response = await axios.post(`${process.env.API_N8N}/webhook/embedding-data`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    res.status(200).send(response.data.output)
+  } catch (error) {
+    next(error)
+  }
+})
+
+const addFileToEmbedded = catchAsync(async (req, res, next) => {
+  if (!req.files || req.files.length === 0) {
+    return next({ status: 400, message: 'No file uploaded!' })
+  }
+
+  const file = req.files[0] // Lấy file đầu tiên (nếu có nhiều file)
+
+  // Gọi hàm để upload file lên GCS
+  // eslint-disable-next-line no-undef
+  const bucketName = process.env.GCS_EMBEDDED_BUCKET
+  const destName = file.originalname
+
+  try {
+    const fileUrl = await attachFile(bucketName, 'knowledge', file, destName)
+
+    await EmbeddedList.create({
+      url: fileUrl,
+      type: 'file',
+      is_embedded: false
+    })
+    res.status(201).send(fileUrl)
+  } catch (err) {
+    return next({ status: 500, message: 'Failed to upload file' })
+  }
+})
 export default {
   getByID,
   update,
@@ -291,5 +310,7 @@ export default {
   rejectCourse,
   terminateCourse,
   lockUser,
-  republishCourse
+  republishCourse,
+  embeddedCourse,
+  addFileToEmbedded
 }

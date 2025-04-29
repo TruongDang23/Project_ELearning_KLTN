@@ -74,4 +74,21 @@ adminRouter
     authController.restrictTo('admin', 'instructor', 'student'),
     userController.newQnA
   )
+
+adminRouter
+  .route('/upload-course-knowledge')
+  .post(
+    authController.protect,
+    authController.restrictTo('admin'),
+    uploadTemp.any(),
+    adminController.addFileToEmbedded
+  )
+
+adminRouter
+  .route('/embedded-course')
+  .post(
+    authController.protect,
+    authController.restrictTo('admin'),
+    adminController.embeddedCourse
+  )
 export default adminRouter

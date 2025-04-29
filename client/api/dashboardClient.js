@@ -60,4 +60,13 @@ export class DashboardClient extends ApiClient {
       return error
     }
   }
+
+  async getListEmbeddedCourse() {
+    try {
+      const response = await axios.get(`${this.domain}//list-embedded-course`)
+      return response
+    } catch (error) {
+      return error
+    }
+  }
 }
