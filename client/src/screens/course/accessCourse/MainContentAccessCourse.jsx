@@ -30,6 +30,15 @@ function MainContentAccessCourse({
     setIsFaceTrackingEnabled(!isFaceTrackingEnabled)
   }
 
+  let answer
+  accessCourseData.chapters.forEach((chapter) => {
+    chapter.lectures.forEach((lecture) => {
+      if (lecture.id == id) {
+        answer = lecture.interactive
+      }
+    })
+  })
+
   let quizz
   let assignment
 
