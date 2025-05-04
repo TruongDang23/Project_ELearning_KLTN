@@ -69,4 +69,36 @@ export class DashboardClient extends ApiClient {
       return error
     }
   }
+
+  async getRevenueSummary() {
+    try {
+      const response = await axios.get(`${this.domain}/summary-payment`)
+      return response
+    } catch (error) {
+      return error
+    }
+  }
+
+  async getRevenueStatisticsPayment(startDate, endDate) {
+    try {
+      const response = await axios.get(`${this.domain}/statistic-payment`, {
+        params: {
+          startDate,
+          endDate
+        }
+      })
+      return response
+    } catch (error) {
+      return error
+    }
+  }
+
+  async getTransactions() {
+    try {
+      const response = await axios.get(`${this.domain}/list-payment`)
+      return response
+    } catch (error) {
+      return error
+    }
+  }
 }
