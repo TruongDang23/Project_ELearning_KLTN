@@ -72,6 +72,10 @@ function RevenueDashboard() {
     setPage(0)
   }
 
+  const preventKeyboardInput = (e) => {
+    e.preventDefault()
+  }
+
   // Load summary data (cards)
   const loadSummaryData = async () => {
     try {
@@ -255,8 +259,14 @@ function RevenueDashboard() {
             type="date"
             value={startDate.toISOString().split('T')[0]}
             onChange={(e) => setStartDate(new Date(e.target.value))}
+            onKeyDown={preventKeyboardInput}
             InputLabelProps={{
               shrink: true
+            }}
+            InputProps={{
+              inputProps: {
+                max: endDate.toISOString().split('T')[0] // Giới hạn ngày chọn
+              }
             }}
           />
           <TextField
@@ -264,8 +274,14 @@ function RevenueDashboard() {
             type="date"
             value={endDate.toISOString().split('T')[0]}
             onChange={(e) => setEndDate(new Date(e.target.value))}
+            onKeyDown={preventKeyboardInput}
             InputLabelProps={{
               shrink: true
+            }}
+            InputProps={{
+              inputProps: {
+                min: startDate.toISOString().split('T')[0] // Giới hạn ngày chọn
+              }
             }}
           />
         </div>
