@@ -28,6 +28,7 @@ import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount'
 import OndemandVideoIcon from '@mui/icons-material/OndemandVideo'
 import AutoAwesomeMosaicIcon from '@mui/icons-material/AutoAwesomeMosaic'
 import QueryStatsIcon from '@mui/icons-material/QueryStats'
+import LocalAtmIcon from '@mui/icons-material/LocalAtm'
 
 import InforDashboard from './InforDashboard'
 import AccountDashboard from './AccountDashboard'
@@ -38,6 +39,7 @@ import StatisticsDashboard from './StatisticsDashboard'
 import VoucherDashboard from './VoucherDashboard'
 import MasterDataDashboard from './MasterData'
 import EmbeddedDashboard from './EmbeddedDashboard'
+import RevenueDashboard from './RevenueDashboard'
 
 const drawerWidth = 240
 
@@ -232,6 +234,10 @@ function DashboardAdmin() {
               {
                 text: 'Courses Embedding',
                 icon: <IntegrationInstructionsIcon sx={{ fontSize: 35 }} />
+              },
+              {
+                text: 'Revenue',
+                icon: <LocalAtmIcon sx={{ fontSize: 35 }} />
               }
               // eslint-disable-next-line no-unused-vars
             ].map((item, index) => (
@@ -290,6 +296,7 @@ function DashboardAdmin() {
           {content === 'Statistics' && <StatisticsDashboard />}
           {content === 'Vouchers' && <VoucherDashboard />}
           {content === 'Courses Embedding' && <EmbeddedDashboard />}
+          {content === 'Revenue' && <RevenueDashboard />}
         </Box>
       </Box>
     </>

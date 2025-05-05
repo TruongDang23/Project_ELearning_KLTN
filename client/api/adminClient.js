@@ -219,6 +219,18 @@ export class AdminClient extends ApiClient {
     return await this.voucher.getListInformation()
   }
 
+  async getRevenueSummary() {
+    return await this.dashboard.getRevenueSummary()
+  }
+
+  async getRevenueStatisticsPayment(startDate, endDate) {
+    return await this.dashboard.getRevenueStatisticsPayment(startDate, endDate)
+  }
+
+  async getTransactions() {
+    return await this.dashboard.getTransactions()
+  }
+
   async getListEmbeddedCourse() {
     return await this.dashboard.getListEmbeddedCourse()
   }
@@ -227,8 +239,7 @@ export class AdminClient extends ApiClient {
     try {
       const response = await axios.post(`${this.domain}/embedded-course`)
       return response
-    }
-    catch (error) {
+    } catch (error) {
       return error
     }
   }
