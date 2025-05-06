@@ -8,7 +8,13 @@ const globalFlag = create((set) => ({
   setOpenPopupSummary: () => set((state) => ({ openPopupSummary: !state.openPopupSummary })),
 
   summaryText: "",
-  setSummaryText: (text) => set(() => ({ summaryText: text }))
+  setSummaryText: (text) => set(() => ({ summaryText: text })),
+
+  openInteractiveVideo: false,
+  setOpenInteractiveVideo: (value) => set(() => ({ openInteractiveVideo: value })),
+
+  interactQuestions: {},
+  setInteractQuestions: (questions) => set(() => ({ interactQuestions: questions }))
 }))
 
 export { globalFlag }

@@ -11,13 +11,15 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import styled from 'styled-components'
+import { globalFlag } from '~/context/GlobalFlag'
 
 function VideoPlayer({
   video,
   setProgress,
   isFaceTrackingEnabled,
   toggleFaceTracking,
-  isFocused
+  isFocused,
+  interactiveQuestion
 }) {
   const playerRef = useRef(null)
   const [playing, setPlaying] = useState(false)
@@ -30,15 +32,22 @@ function VideoPlayer({
   const [volumeMenuOpen, setVolumeMenuOpen] = useState(false)
   const [videoEnded, setVideoEnded] = useState(false)
   const [controlsVisible, setControlsVisible] = useState(false)
-  const [isPause, setPause] = useState(true)
-  const [showConfirmation, setShowconfirmation] = useState(false)
   const [minute, setMinutes] = useState(0)
   const [showFocusWarning, setShowFocusWarning] = useState(false)
-  const focusTimeoutRef = useRef(null)
+  const [index, setIndex] = useState(0)
+  const setOpenPopup = globalFlag((state) => state.setOpenInteractiveVideo)
+  const setQuestion = globalFlag((state) => state.setInteractQuestions)
 
   useEffect(() => {
     document.documentElement.style.setProperty('--value', `${played * 100}%`)
   }, [played])
+
+  useEffect(() => {
+    if (minute >= interactiveQuestion[index]?.time) {
+      setIndex((prevIndex) => prevIndex + 1)
+      handlePopupInteractQuestion(interactiveQuestion[index])
+    }
+  }, [minute])
 
   useEffect(() => {
     if (!isFaceTrackingEnabled) {
@@ -71,19 +80,10 @@ function VideoPlayer({
     setProgress
   ])
 
-  const handleConfirmation = () => {
-    setPlaying(!playing)
-    setPause(!isPause)
-    setShowconfirmation(!showConfirmation)
-    if (!isPause) {
-      setProgress((prevProgress) => ({
-        ...prevProgress,
-        percent: (
-          (playerRef.current.getCurrentTime() * 100) /
-          duration
-        ).toFixed(1)
-      }))
-    }
+  const handlePopupInteractQuestion = (question) => {
+    handlePlayPause()
+    setOpenPopup(true)
+    setQuestion(question)
   }
 
   const handlePlayPause = () => {
@@ -130,7 +130,7 @@ function VideoPlayer({
 
   const handleProgress = (state) => {
     setPlayed(state.played)
-    const seconds = (state.playedSeconds / 10) | 0 //Chia lấy phần nguyên. Cứ hết 60s thì hiển thị confirmation messagemessage
+    const seconds = (state.playedSeconds / 1) | 0 // Mỗi giây đều đếm để kiểm tra danh sách câu hỏi
     setMinutes(seconds)
   }
 
@@ -268,13 +268,6 @@ function VideoPlayer({
         <div className="video-ended-message">
           <p>Video ended. </p>
           <button onClick={() => setVideoEnded(false)}>Replay</button>
-        </div>
-      )}
-
-      {showConfirmation && (
-        <div className="video-ended-message">
-          <p>Bạn có muốn tiếp tục xem video không?</p>
-          <button onClick={() => handleConfirmation()}>Xem tiếp</button>
         </div>
       )}
     </VideoPlayerWrapper>
