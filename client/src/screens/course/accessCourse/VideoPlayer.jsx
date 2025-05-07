@@ -36,6 +36,7 @@ function VideoPlayer({
   const [showFocusWarning, setShowFocusWarning] = useState(false)
   const [index, setIndex] = useState(0)
   const setOpenPopup = globalFlag((state) => state.setOpenInteractiveVideo)
+  const openPopup = globalFlag((state) => state.openInteractiveVideo)
   const setQuestion = globalFlag((state) => state.setInteractQuestions)
 
   useEffect(() => {
@@ -48,6 +49,11 @@ function VideoPlayer({
       handlePopupInteractQuestion(interactiveQuestion[index])
     }
   }, [minute])
+
+  useEffect(() => {
+    if (!openPopup && !playing) //Nếu đã trả lời câu hỏi tương tác thì video tự động phát tiếp tục
+      handlePlayPause()
+  }, [openPopup])
 
   useEffect(() => {
     if (!isFaceTrackingEnabled) {
