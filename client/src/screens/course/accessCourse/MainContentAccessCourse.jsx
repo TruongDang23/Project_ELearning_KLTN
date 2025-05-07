@@ -18,6 +18,7 @@ function MainContentAccessCourse({
   const type = params.get('type')
   const source = params.get('source')
   const id = params.get('id')
+  let interactiveQuestions, quizz, assignment
   const navigate = useNavigate()
 
   // Hàm xử lý khi trạng thái focus thay đổi
@@ -30,8 +31,15 @@ function MainContentAccessCourse({
     setIsFaceTrackingEnabled(!isFaceTrackingEnabled)
   }
 
-  let quizz
-  let assignment
+  accessCourseData.chapters.forEach((chapter) => {
+    chapter.lectures.forEach((lecture) => {
+      if (lecture.id == id) {
+        interactiveQuestions = lecture.interactive
+      }
+    })
+  })
+
+  interactiveQuestions.sort((a, b) => a.time - b.time)
 
   if (type === 'quizz') {
     for (const chapter of accessCourseData.chapters) {
@@ -59,6 +67,7 @@ function MainContentAccessCourse({
           isFaceTrackingEnabled={isFaceTrackingEnabled}
           toggleFaceTracking={toggleFaceTracking}
           isFocused={isFocused}
+          interactiveQuestion={interactiveQuestions}
         />
       ) : type === 'file' ? (
         <PdfViewer pdfUrl={source} setProgress={setProgress} />

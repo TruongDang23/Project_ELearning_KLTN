@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
 
 const courseSchema = new mongoose.Schema({
-  courseID: { 
+  courseID: {
     type: String,
-    required: [true, 'Course ID is required']  
+    required: [true, 'Course ID is required']
   },
   image_introduce: { type: String },
 
@@ -22,6 +22,18 @@ const courseSchema = new mongoose.Schema({
           description: { type: String },
           type: { type: String },
           source: { type: String },
+          interactive: [
+            {
+              time: { type: String },
+              question: { type: String },
+              answers: [
+                {
+                  answer: { type: String },
+                  is_correct: { type: Boolean }
+                }
+              ]
+            }
+          ],
           QnA: [
             {
               questionerID: { type: String },
