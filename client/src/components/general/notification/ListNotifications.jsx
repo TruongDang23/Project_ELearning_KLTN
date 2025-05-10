@@ -27,7 +27,9 @@ function ListNotifications() {
       <div className="notifications">
         <div className="notification-list">
           {notifications.length === 0 ? (
-            <p>Không có thông báo nào.</p>
+            <p>
+              There are no notifications yet. Please check back later.
+            </p>
           ) : (
             notifications.map((notify) => (
               <NotifyPreview
@@ -96,6 +98,12 @@ const NotificationWrapper = styled.section`
     &:hover {
       box-shadow: 0 10px 20px rgba(44, 130, 201, 0.4);
       transition: all ease 0.3s;
+    }
+
+    p{
+      margin: 0 auto;
+      padding-top: 0.85rem;
+      font-size: 1.6rem;
     }
   }
   .notification-item {
