@@ -197,104 +197,111 @@ function SideBar({ inforCourseData }) {
           </ul>
         </div>
         <div className="sidebar-buttons">
-          {inforCourseData.price > 0 && (
-            <div className="voucher-input-container">
-              <Autocomplete
-                id="voucher-autocomplete"
-                options={availableVouchers}
-                loading={loading}
-                getOptionLabel={(option) =>
-                  `${option.voucher_code} (${option.discount_value}% off)`
-                }
-                value={selectedVoucher}
-                onChange={handleVoucherChange}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="Enter voucher code"
-                    variant="outlined"
-                    fullWidth
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {loading ? (
-                            <CircularProgress color="inherit" size={20} />
-                          ) : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      )
-                    }}
-                    className="voucher-input"
-                  />
-                )}
-                renderOption={(props, option) => (
-                  <li {...props}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ fontWeight: 'bold', color: '#1971c2' }}>
-                        {option.voucher_code}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '1.2rem',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          width: '100%'
-                        }}
-                      >
-                        <span>{option.discount_value}% off</span>
-                        <span style={{ color: '#777' }}>
-                          Expires:{' '}
-                          {new Date(option.end_date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      {option.description && (
-                        <div
-                          style={{
-                            fontSize: '1.2rem',
-                            color: '#666',
-                            marginTop: '2px'
+          { inforCourseData.is_accessible == true ?
+            (
+              <Link to={`/course/details/${inforCourseData.courseID}`}>
+                <button className="sidebar-button button-goto">Go to course</button>
+              </Link>
+            )
+            :
+            (
+              <>
+                {inforCourseData.price > 0 && (
+                  <div className="voucher-input-container">
+                    <Autocomplete
+                      id="voucher-autocomplete"
+                      options={availableVouchers}
+                      loading={loading}
+                      getOptionLabel={(option) =>
+                        `${option.voucher_code} (${option.discount_value}% off)`
+                      }
+                      value={selectedVoucher}
+                      onChange={handleVoucherChange}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder="Enter voucher code"
+                          variant="outlined"
+                          fullWidth
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {loading ? (
+                                  <CircularProgress color="inherit" size={20} />
+                                ) : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            )
                           }}
-                        >
-                          {option.description}
-                        </div>
+                          className="voucher-input"
+                        />
                       )}
-                    </div>
-                  </li>
-                )}
-                sx={{
-                  width: '100%',
-                  '& .MuiInputBase-root': {
-                    fontSize: '1.6rem',
-                    borderRadius: '5px',
-                    backgroundColor: '#fff'
-                  }
-                }}
-                freeSolo
-                selectOnFocus
-                clearOnBlur
-                handleHomeEndKeys
-              />
-              <button
-                className="voucher-apply-button"
-                onClick={handleApplyVoucher}
-                disabled={!voucherCode}
-              >
+                      renderOption={(props, option) => (
+                        <li {...props}>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ fontWeight: 'bold', color: '#1971c2' }}>
+                              {option.voucher_code}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '1.2rem',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                width: '100%'
+                              }}
+                            >
+                              <span>{option.discount_value}% off</span>
+                              <span style={{ color: '#777' }}>
+                          Expires:{' '}
+                                {new Date(option.end_date).toLocaleDateString()}
+                              </span>
+                            </div>
+                            {option.description && (
+                              <div
+                                style={{
+                                  fontSize: '1.2rem',
+                                  color: '#666',
+                                  marginTop: '2px'
+                                }}
+                              >
+                                {option.description}
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      )}
+                      sx={{
+                        width: '100%',
+                        '& .MuiInputBase-root': {
+                          fontSize: '1.6rem',
+                          borderRadius: '5px',
+                          backgroundColor: '#fff'
+                        }
+                      }}
+                      freeSolo
+                      selectOnFocus
+                      clearOnBlur
+                      handleHomeEndKeys
+                    />
+                    <button
+                      className="voucher-apply-button"
+                      onClick={handleApplyVoucher}
+                      disabled={!voucherCode}
+                    >
                 Apply
-              </button>
-            </div>
-          )}
-          <button
-            className="sidebar-button button-buy"
-            onClick={handleBuyCourse}
-          >
+                    </button>
+                  </div>
+                )}
+                <button
+                  className="sidebar-button button-buy"
+                  onClick={handleBuyCourse}
+                >
             Buy now
-          </button>
-          { inforCourseData.is_accessible == true && (
-            <Link to={`/course/details/${inforCourseData.courseID}`}>
-              <button className="sidebar-button button-goto">Go to course</button>
-            </Link>
-          )}
+                </button>
+              </>
+            )}
+
         </div>
       </SideBarWrapper>
       {openPub && <BuyCourse handleClose={toggleBuy} status={statusBuy} />}

@@ -13,6 +13,7 @@ import fs from 'fs'
 import Email from './emailController.js'
 import axios from 'axios'
 import { isCourseAccessible } from '../utils/precheckAccess.js'
+import { decodeToken } from './authController.js'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -928,9 +929,15 @@ const getListInforPublishForModel = (connection) => {
 const getCourseById = catchAsync(async (req, res, next) => {
   // Implement here
   const courseID = req.params.id
-  const userID = req.userID
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
+  const access_token = req.cookies.access_token
+  let userID = null
+  try {
+    userID = decodeToken(access_token)
+  } catch (error) {
+    userID = undefined
+  }
 
   // Start Transaction
   await mysqlTransaction.query("START TRANSACTION")
