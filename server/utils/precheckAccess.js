@@ -51,6 +51,7 @@ const isEnrolledCourse = async (courseID, userID) => {
   })
 }
 
+// Middleware check access course
 const checkAccessCourse = (req, res, next) => {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve) => {
@@ -65,6 +66,23 @@ const checkAccessCourse = (req, res, next) => {
     } else {
       next({ status: 401, message: `You don't have permission to access this course ${courseID}!` })
     }
+  })
+}
+
+// Global function to check access course
+const isCourseAccessible = async (courseID, userID) => {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve) => {
+    if (!userID) //Case Anonymous user
+      return resolve(false)
+
+    const isAdminUser = await isAdmin(userID)
+    const isInstructorUser = await isInstructorOfCourse(courseID, userID)
+    const isEnrolledUser = await isEnrolledCourse(courseID, userID)
+    if (isAdminUser || isInstructorUser || isEnrolledUser) {
+      return resolve(true)
+    }
+    return resolve(false) // Case student user but not enrolled
   })
 }
 
@@ -90,4 +108,4 @@ const isEnrolled = async (courseID, userID) => {
   })
 }
 
-export { checkAccessCourse, isEnrolled }
+export { checkAccessCourse, isEnrolled, isCourseAccessible }

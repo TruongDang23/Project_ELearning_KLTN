@@ -12,6 +12,7 @@ import { convertToAssignmentObject, convertToCourseObject, convertToQuizObject }
 import fs from 'fs'
 import Email from './emailController.js'
 import axios from 'axios'
+import { isCourseAccessible } from '../utils/precheckAccess.js'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -927,6 +928,7 @@ const getListInforPublishForModel = (connection) => {
 const getCourseById = catchAsync(async (req, res, next) => {
   // Implement here
   const courseID = req.params.id
+  const userID = req.userID
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
 
@@ -934,15 +936,16 @@ const getCourseById = catchAsync(async (req, res, next) => {
   await mysqlTransaction.query("START TRANSACTION")
   mongoTransaction.startTransaction()
 
-  let info_mysql, info_mongo, reviews, videos
+  let info_mysql, info_mongo, reviews, videos, is_accessible
 
   try {
     // Run both functions asynchronously
-    [info_mysql, info_mongo, reviews, videos] = await Promise.all([
+    [info_mysql, info_mongo, reviews, videos, is_accessible] = await Promise.all([
       getFullInfoMySQL(mysqlTransaction, courseID), // Fetch MySQL data
       getFullInfoMongo(courseID), // Fetch MongoDB data
       getReview(courseID),
-      getTotalVideo(courseID)
+      getTotalVideo(courseID),
+      isCourseAccessible(courseID, userID)
     ])
     // Commit Transactions
     await mysqlTransaction.query("COMMIT")
@@ -961,6 +964,7 @@ const getCourseById = catchAsync(async (req, res, next) => {
   const mergeData = info_mysql.map(course => {
     return {
       ...course,
+      is_accessible: is_accessible,
       videos: videos,
       review: reviews,
       image_introduce: info_mongo[0].image_introduce,

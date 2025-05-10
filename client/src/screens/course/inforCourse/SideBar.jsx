@@ -59,6 +59,7 @@ function SideBar({ inforCourseData }) {
     setopenPub(!openPub)
   }
 
+  console.log('is accessible: ', inforCourseData.is_accessible)
   const { courseID } = useParams()
 
   useEffect(() => {
@@ -289,9 +290,11 @@ function SideBar({ inforCourseData }) {
           >
             Buy now
           </button>
-          <Link to={`/course/details/${inforCourseData.courseID}`}>
-            <button className="sidebar-button button-goto">Go to course</button>
-          </Link>
+          { inforCourseData.is_accessible == true && (
+            <Link to={`/course/details/${inforCourseData.courseID}`}>
+              <button className="sidebar-button button-goto">Go to course</button>
+            </Link>
+          )}
         </div>
       </SideBarWrapper>
       {openPub && <BuyCourse handleClose={toggleBuy} status={statusBuy} />}
