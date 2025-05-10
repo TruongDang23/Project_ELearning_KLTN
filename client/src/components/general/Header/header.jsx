@@ -132,9 +132,6 @@ function Header() {
                   />
                 </a>
               </div>
-              {/* <a href="/" className="link">
-              Teach on EL-Space
-            </a> */}
 
               {userID[0] === 'S' && (
                 <a
@@ -145,11 +142,6 @@ function Header() {
                   My learning
                 </a>
               )}
-              <a>
-                <StyledBadge badgeContent={4} color="primary">
-                  <ShoppingCartOutlinedIcon />
-                </StyledBadge>
-              </a>
               <a href="#" onClick={() => goTo('/notification')}>
                 <StyledBadge badgeContent={unread} color="primary">
                   <NotificationsOutlinedIcon />

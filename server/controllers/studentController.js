@@ -265,7 +265,7 @@ const getByID = catchAsync(async (req, res, next) => {
   const mergeData = info_mysql.map(inf => {
     return {
       ...inf,
-      date_of_birth: formatDate(inf.date_of_birth),
+      date_of_birth: inf.date_of_birth ? formatDate(inf.date_of_birth) : formatDate(new Date()),
 
       //Câu query không có lấy activity_status. Tuy nhiên login thành công <=> activity_status = active
       activity_status: 'active',
