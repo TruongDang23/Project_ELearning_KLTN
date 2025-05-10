@@ -11,7 +11,6 @@ import mongoose from 'mongoose'
 import { getUserByEmail, countUserOfRole } from '../controllers/userController.js'
 import Email from './emailController.js'
 import { createWelcomeVoucher } from './voucherController.js'
-import exp from 'constants'
 
 const hashPassword = (password) => {
   // Create a SHA-512 hash

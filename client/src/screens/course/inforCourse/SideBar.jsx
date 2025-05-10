@@ -59,7 +59,6 @@ function SideBar({ inforCourseData }) {
     setopenPub(!openPub)
   }
 
-  console.log('is accessible: ', inforCourseData.is_accessible)
   const { courseID } = useParams()
 
   useEffect(() => {

@@ -42,8 +42,8 @@ courseRouter
     courseController.accessCourse
   )
   .put(
-    authController.restrictTo('instructor'),
-    courseController.updateCourse
+    authController.restrictTo('instructor')
+    // courseController.updateCourse
   )
 
 courseRouter

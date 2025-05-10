@@ -1433,11 +1433,6 @@ const uploadCourse = catchAsync(async (req, res, next) => {
   }
 })
 
-// cập nhật thông tin khóa học
-const updateCourse = catchAsync(async (req, res, next) => {
-  // Implement here
-})
-
 const getQnA = catchAsync(async (req, res, next) => {
   const { id, lectureID } = req.params
   const lectureQA = await loadOriginQnA(id, lectureID)
@@ -1512,7 +1507,6 @@ export default {
   searchCourse,
   accessCourse,
   createCourse,
-  updateCourse,
   uploadFileGCS,
   getQnA,
   uploadCourse,

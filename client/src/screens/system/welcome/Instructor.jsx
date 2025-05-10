@@ -1,11 +1,9 @@
 import styled from 'styled-components'
 import featureInstructor from '../assets/wel-instructor.png'
-import { Link } from 'react-router-dom'
 
 function Instructor() {
   return (
     <InstructorWrapper className="container">
-      {/* Become a instructor */}
       <h2>Become an Instructor</h2>
       <div className="instructor-content">
         <div className="instructor-img">
@@ -13,12 +11,12 @@ function Instructor() {
         </div>
         <div className="instructor-info">
           <p>
-            Instructors from around the world teach millions of learners on
-            Udemi. We provide the tools and skills to teach what you love.
+            Join <b>EL-Space</b> to share your IT expertise and inspire learners across Vietnam. 
+            We provide a supportive platform, modern teaching tools, and a passionate learning community.
           </p>
-          <Link to="/signup">
-            <button className="btn">Start teaching today</button>
-          </Link>
+          <p className="contact">
+            📧 <a href="mailto:elspace.hcmute.edu@gmail.com">elspace.hcmute.edu@gmail.com</a>
+          </p>
         </div>
       </div>
     </InstructorWrapper>
@@ -27,6 +25,7 @@ function Instructor() {
 
 const InstructorWrapper = styled.section`
   padding-bottom: 10rem;
+
   h2 {
     font-size: 3.6rem;
     font-weight: 700;
@@ -34,6 +33,7 @@ const InstructorWrapper = styled.section`
     margin-bottom: 4rem;
     color: #1971c2;
   }
+
   .instructor-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -44,6 +44,7 @@ const InstructorWrapper = styled.section`
 
     .instructor-img {
       padding-left: 20rem;
+
       img {
         width: 100%;
         height: auto;
@@ -53,14 +54,29 @@ const InstructorWrapper = styled.section`
         box-shadow: 0 10px 20px rgba(44, 130, 201, 0.2);
       }
     }
+
     .instructor-info {
       padding-right: 10rem;
+      text-align: justify;
 
       p {
         font-size: 2rem;
         line-height: 1.6;
-        margin-bottom: 2rem;
+        margin-bottom: 1.6rem;
       }
+
+      .contact {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+        text-align: left;
+
+        a {
+          color: #1971c2;
+          text-decoration: none;
+          font-weight: 600;
+        }
+      }
+
       .btn {
         padding: 1rem 2rem;
         font-size: 1.6rem;
@@ -74,11 +90,11 @@ const InstructorWrapper = styled.section`
         &:hover {
           background-color: #1971c2;
           color: #fff;
-          transition: all 0.3s;
         }
       }
     }
   }
+
   @media (max-width: 1400px) {
     .instructor-content {
       .instructor-img {
@@ -89,6 +105,7 @@ const InstructorWrapper = styled.section`
       }
     }
   }
+
   @media (max-width: 768px) {
     .instructor-content {
       grid-template-columns: 1fr;
@@ -97,18 +114,25 @@ const InstructorWrapper = styled.section`
       }
       .instructor-info {
         padding-right: 0;
+        text-align: justify;
       }
     }
   }
+
   @media (max-width: 576px) {
     h2 {
       font-size: 2.4rem;
     }
+
     .instructor-content {
       .instructor-info {
         .btn {
           padding: 0.8rem 1.6rem;
           font-size: 1.4rem;
+        }
+
+        .contact {
+          font-size: 1.6rem;
         }
       }
     }
