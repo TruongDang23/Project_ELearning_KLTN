@@ -5,6 +5,7 @@ import User from '../models/user.js'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import { getListInforPublish, switchCourseStatus } from './courseController.js'
+import { checkEmailExists } from '../utils/validationData.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -237,6 +238,11 @@ const update = catchAsync(async (req, res, next) => {
   // Start Transaction
   await mysqlTransaction.query("START TRANSACTION")
   mongoTransaction.startTransaction()
+
+  const isMailExist = await checkEmailExists(newInfo.mail)
+  // If email already exists, return an error
+  if (isMailExist)
+    return next({ status: 400, message: 'Email already exists' })
 
   try {
     // Run both functions asynchronously

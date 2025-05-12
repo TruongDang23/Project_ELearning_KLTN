@@ -11,6 +11,7 @@ import mongoose from 'mongoose'
 import { getUserByEmail, countUserOfRole } from '../controllers/userController.js'
 import Email from './emailController.js'
 import { createWelcomeVoucher } from './voucherController.js'
+import { checkUserNameExists } from '../utils/validationData.js'
 
 const hashPassword = (password) => {
   // Create a SHA-512 hash
@@ -186,6 +187,12 @@ const signup = catchAsync(async (req, res, next) => {
   //Start Transaction
   await mysqlTransaction.query('START TRANSACTION')
   mongoTransaction.startTransaction()
+
+  //Check if username already exists
+  const isUserNameExist = await checkUserNameExists(user.username)
+  // If username already exists, return an error
+  if (isUserNameExist)
+    return next({ status: 400, message: 'Username already exists' })
 
   try {
     //Insert into Mysql

@@ -9,6 +9,7 @@ function ContactInfo({ userProfile }) {
     avatar,
     fullname,
     date_of_birth,
+    mail,
     street,
     province,
     country,
@@ -46,6 +47,9 @@ function ContactInfo({ userProfile }) {
               </p>
               <p>
                 <span>Address:</span> {street}, {province}, {country}
+              </p>
+              <p>
+                <span>Email:</span> {mail}
               </p>
             </div>
             <div className="contact-info__content-social">
