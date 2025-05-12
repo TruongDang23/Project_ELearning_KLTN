@@ -14,7 +14,7 @@ import { getVoucherByCode } from './voucherController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
-    let query = 'SELECT userID, avatar, fullname, date_of_birth, street, province, country, language\
+    let query = 'SELECT userID, avatar, fullname, mail, date_of_birth, street, province, country, language\
                  from user where userID = ?'
     try {
       const [rowsInfo] = await connection.query(query,
@@ -54,6 +54,7 @@ const updateInfoMySQL = (connection, inf) => {
                 SET avatar = ?,
                     fullname = ?,
                     date_of_birth = ?,
+                    mail = ?,
                     street = ?,
                     province = ?,
                     country = ?,
@@ -65,6 +66,7 @@ const updateInfoMySQL = (connection, inf) => {
           inf.avatar,
           inf.fullname,
           inf.date_of_birth,
+          inf.mail,
           inf.street,
           inf.province,
           inf.country,
