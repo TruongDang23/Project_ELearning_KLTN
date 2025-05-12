@@ -52,6 +52,7 @@ function SideBar({ inforCourseData }) {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarSeverity, setSnackbarSeverity] = useState('success')
+  const userID = localStorage.getItem('userID')
   const cancel_url = window.location.href
   const return_url = `${window.location.origin}/student/my-learning#`
   const toggleBuy = (status) => {
@@ -292,12 +293,15 @@ function SideBar({ inforCourseData }) {
                     </button>
                   </div>
                 )}
-                <button
-                  className="sidebar-button button-buy"
-                  onClick={handleBuyCourse}
-                >
+                { userID && (
+                  <button
+                    className="sidebar-button button-buy"
+                    onClick={handleBuyCourse}
+                  >
             Buy now
-                </button>
+                  </button>
+                )}
+
               </>
             )}
 

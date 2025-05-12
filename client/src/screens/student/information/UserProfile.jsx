@@ -176,6 +176,7 @@ function UserProfile({ profile, setProfile }) {
             <Input
               type="text"
               value={profile.street}
+              placeholder='Street'
               onChange={(e) => {
                 setProfile((prevProfile) => ({
                   ...prevProfile,
@@ -188,6 +189,7 @@ function UserProfile({ profile, setProfile }) {
             <Input
               type="text"
               value={profile.province}
+              placeholder='Province'
               onChange={(e) => {
                 setProfile((prevProfile) => ({
                   ...prevProfile,
@@ -200,6 +202,7 @@ function UserProfile({ profile, setProfile }) {
             <Input
               type="text"
               value={profile.country}
+              placeholder='Country'
               onChange={(e) => {
                 setProfile((prevProfile) => ({
                   ...prevProfile,
