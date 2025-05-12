@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 
 import BorderColorIcon from '@mui/icons-material/BorderColor'
-import Link from '@mui/material/Link'
 import { useNavigate } from 'react-router-dom'
 
 function ContactInfo({ userProfile }) {

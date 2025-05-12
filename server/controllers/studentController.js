@@ -298,7 +298,7 @@ const update = catchAsync(async (req, res, next) => {
   await mysqlTransaction.query("START TRANSACTION")
   mongoTransaction.startTransaction()
 
-  const isMailExist = await checkEmailExists(newInfo.mail)
+  const isMailExist = await checkEmailExists(newInfo.mail, newInfo.userID)
   // If email already exists, return an error
   if (isMailExist)
     return next({ status: 400, message: 'Email already exists' })

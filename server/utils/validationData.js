@@ -2,10 +2,10 @@ import connectMysql from '../config/connMySql.js'
 
 const connection = connectMysql.promise()
 
-async function checkEmailExists(email) {
+async function checkEmailExists(userID, email) {
   const [rows] = await connection.query(
-    'SELECT 1 FROM user WHERE mail = ? LIMIT 1',
-    [email]
+    'SELECT 1 FROM user WHERE mail = ? AND userID <> ? LIMIT 1',
+    [email, userID]
   )
   return rows.length > 0
 }

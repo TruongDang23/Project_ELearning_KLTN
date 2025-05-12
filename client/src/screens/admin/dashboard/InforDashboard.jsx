@@ -10,7 +10,6 @@ function InforDashboard() {
         <h3>Information</h3>
         <div className="infor-button">
           <button className="btn-edit" onClick={() => navigate('/Admin/information')}>Edit</button>
-          <button className="btn-view" onClick={() => navigate('/Admin/profile')}>View</button>
         </div>
       </div>
     </InforDashboardWrapper>

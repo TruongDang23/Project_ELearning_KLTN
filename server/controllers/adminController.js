@@ -12,7 +12,7 @@ import { checkEmailExists } from '../utils/validationData.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
-    let query = 'SELECT userID, avatar, fullname, date_of_birth, street, province, country, language\
+    let query = 'SELECT userID, avatar, fullname, mail, date_of_birth, street, province, country, language\
                  from user where userID = ?'
     try {
       const [rowsInfo] = await connection.query(query,
@@ -163,7 +163,7 @@ const update = catchAsync(async (req, res, next) => {
   await mysqlTransaction.query("START TRANSACTION")
   mongoTransaction.startTransaction()
 
-  const isMailExist = await checkEmailExists(newInfo.mail)
+  const isMailExist = await checkEmailExists(newInfo.mail, newInfo.userID)
   // If email already exists, return an error
   if (isMailExist)
     return next({ status: 400, message: 'Email already exists' })
