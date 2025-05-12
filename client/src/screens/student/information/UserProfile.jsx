@@ -37,6 +37,15 @@ function UserProfile({ profile, setProfile }) {
     })
   }
 
+  const handleGmailChange = (newEmail) => {
+    setProfile((prevProfile) => {
+      return {
+        ...prevProfile,
+        mail: newEmail
+      }
+    })
+  }
+
   const handleFileChange = (event) => {
     const file = event.target.files[0]
     formData.current.set(`${userID}-avatar`, file)
@@ -63,14 +72,16 @@ function UserProfile({ profile, setProfile }) {
       //Upload avatar to GCS
       const res_avatar = await student.updateAvatar(userID, formData.current)
       if (res_avatar.status === 201) {
-        setProfile((prevProfile) => ({
-          ...prevProfile,
-          avatar: res_avatar.data
-        }))
+        profile.avatar = res_avatar.data
+        //Update avatar in header
+        userStore.getState().updateInfor({ avatar: res_avatar.data })
         //Update information
         const res = await student.update(userID, profile)
         if (res.status === 200) {
           setOpenSuccess(true)
+          setTimeout(() => {
+            setOpenSuccess(false)
+          }, 3000)
         }
         else {
           setOpenError({
@@ -101,6 +112,9 @@ function UserProfile({ profile, setProfile }) {
       const res = await student.update(userID, profile)
       if (res.status === 200) {
         setOpenSuccess(true)
+        setTimeout(() => {
+          setOpenSuccess(false)
+        }, 3000)
       }
       else {
         setOpenError({
@@ -265,6 +279,16 @@ function UserProfile({ profile, setProfile }) {
             placeholder="Link to social profile"
             value={profile.social_network[3]}
             onChange={(e) => handleSocialNetworkChange(3, e.target.value)}
+            isReadOnly={isReadOnly}
+            readOnly={isReadOnly}
+          />
+
+          <h3>Email:</h3>
+          <Input
+            type="text"
+            placeholder="example.abc@gmail.com"
+            value={profile.mail}
+            onChange={(e) => handleGmailChange(e.target.value)}
             isReadOnly={isReadOnly}
             readOnly={isReadOnly}
           />
