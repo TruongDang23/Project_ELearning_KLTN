@@ -79,6 +79,9 @@ function UserProfile({ profile, setUserProfile }) {
         const res = await admin.update(userID, profile)
         if (res.status === 200) {
           setOpenSuccess(true)
+          setTimeout(() => {
+            setOpenSuccess(false)
+          }, 3000)
         }
         else {
           setOpenError({

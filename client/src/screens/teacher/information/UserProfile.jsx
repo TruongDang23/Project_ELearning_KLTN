@@ -80,6 +80,9 @@ function UserProfile({ profile, setProfile }) {
         const res = await instructor.update(userID, profile)
         if (res.status === 200) {
           setOpenSuccess(true)
+          setTimeout(() => {
+            setOpenSuccess(false)
+          }, 3000)
         }
         else {
           setOpenError({
@@ -110,6 +113,9 @@ function UserProfile({ profile, setProfile }) {
       const res = await instructor.update(userID, profile)
       if (res.status === 200) {
         setOpenSuccess(true)
+        setTimeout(() => {
+          setOpenSuccess(false)
+        }, 3000)
       }
       else {
         setOpenError({
