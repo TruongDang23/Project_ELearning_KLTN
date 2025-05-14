@@ -10,8 +10,10 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { notifyStore } from '~/context/NotifyStore'
 import useNavigation from '~/utils/navigate'
-import { socket } from 'api'
+import { anonymous, socket } from 'api'
 import { useMediaQuery } from '@mui/material'
+import { globalFlag } from '~/context/GlobalFlag'
+import { userStore } from '~/context/UserStore'
 
 function Header() {
   const navigate = useNavigate()
@@ -19,6 +21,8 @@ function Header() {
   const [search, setSearch] = useSearchParams()
   const userID = localStorage.getItem('userID')
   const [title, setTitle] = useState(search.get('q') || '')
+  const reloadVoiceFlow = globalFlag((state) => state.setReloadVoiceflow)
+  const { resetInfor } = userStore()
   const { goTo } = useNavigation()
   const handleSearch = (event) => {
     if (event.key === 'Enter') {
@@ -43,21 +47,26 @@ function Header() {
   // eslint-disable-next-line no-unused-vars
   const [reload, setReload] = useState(false)
   const isMobile = useMediaQuery('(max-width:768px)')
-  const mobileLinks = [
-    { text: 'Home', path: '/' },
-    {
-      text: userID ? 'My Learning' : 'Login',
-      path: userID ? '/student/my-learning' : '/login'
-    },
-    { text: 'Search', path: `/course/search?q=${title}` },
-    { text: 'Teach on EL-Space', path: '/login' },
-    { text: 'My Profile', path: userID ? `/student/profile` : '/login' },
-    { text: 'Logout', path: '/logout' }
-  ]
+
+  const handleLogout = async () => {
+    localStorage.clear()
+    await anonymous.logOut()
+    reloadVoiceFlow()
+    resetInfor()
+    setReload(true)
+    window.location.href = '/'
+  }
 
   {
     //Chưa login
     if (userID == null) {
+      const mobileLinks = [
+        { text: 'Home', path: '/' },
+        { text: 'Search', path: `/course/search?q=${title}` },
+        { text: 'Teach on EL-Space', path: '/login' },
+        { text: 'Login', path: '/login' },
+        { text: 'Sign up', path: '/signup' }
+      ]
       return (
         <Navbar>
           <a className="brand" href="/">
@@ -66,46 +75,84 @@ function Header() {
           {isMobile ? (
             <HamburgerMenu links={mobileLinks} />
           ) : (
-            <div className="navLinks">
-              <Categories />
-              <div className="searchBox">
-                <input
-                  type="text"
-                  placeholder="Search for anything"
-                  value={title ? title : ''}
-                  onChange={(e) => setTitle(e.target.value)}
-                  onKeyDown={handleSearch}
-                />
-                <a href={`/course/search?q=${title}`}>
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/512/54/54481.png"
-                    alt="Search Icon"
+            <>
+              <div className="navLinks">
+                <Categories />
+                <div className="searchBox">
+                  <input
+                    type="text"
+                    placeholder="Search for anything"
+                    value={title ? title : ''}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onKeyDown={handleSearch}
                   />
+                  <a href={`/course/search?q=${title}`}>
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/54/54481.png"
+                      alt="Search Icon"
+                    />
+                  </a>
+                </div>
+                <a href="/login" className="link">
+                  Teach on EL-Space
+                </a>
+                <a href="/login" className="link">
+                  My Learning
                 </a>
               </div>
-              <a href="/login" className="link">
-                Teach on EL-Space
-              </a>
-              <a href="/login" className="link">
-                My Learning
-              </a>
-            </div>
-          )}
-          <div className="authButtons">
-            <Link to="/login">
-              <button className="login">Log in</button>
-            </Link>
 
-            <Link to="/signup">
-              <button className="signup">Sign up</button>
-            </Link>
-          </div>
+              <div className="authButtons">
+                <Link to="/login">
+                  <button className="login">Log in</button>
+                </Link>
+
+                <Link to="/signup">
+                  <button className="signup">Sign up</button>
+                </Link>
+              </div>
+            </>
+          )}
         </Navbar>
       )
     }
 
     //Đã login
     else {
+      let mobileLinks = [
+        { text: 'Home', path: '/' },
+        { text: 'Search', path: `/course/search?q=${title}` },
+        { text: 'Notifications', path: '/notification' }
+      ]
+
+      if (userID[0] === 'S') {
+        // Student links
+        mobileLinks = [
+          ...mobileLinks,
+          { text: 'My Learning', path: '/student/my-learning' },
+          { text: 'My Profile', path: '/Student/profile' },
+          { text: 'Edit Profile', path: '/Student/information' }
+        ]
+      } else if (userID[0] === 'I') {
+        // Instructor links
+        mobileLinks = [
+          ...mobileLinks,
+          { text: 'Manage Courses', path: '/instructor/manageCourse' },
+          { text: 'Design Course', path: '/instructor/designCourse' },
+          { text: 'My Profile', path: '/Instructor/profile' },
+          { text: 'Edit Profile', path: '/Instructor/information' }
+        ]
+      } else if (userID[0] === 'A') {
+        // Admin links
+        mobileLinks = [
+          ...mobileLinks,
+          { text: 'Dashboard', path: '/Admin/dashboard' },
+          // { text: 'My Profile', path: '/Admin/profile' },
+          { text: 'Edit Profile', path: '/Admin/information' }
+        ]
+      }
+
+      // Add logout as the final option for all user types
+      mobileLinks.push({ text: 'Logout', path: '#', action: handleLogout })
       return (
         <Navbar>
           <a className="brand" href="/">
