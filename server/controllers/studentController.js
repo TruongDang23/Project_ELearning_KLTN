@@ -11,10 +11,11 @@ import { getFullInfoMySQL as getFullInfoMySQLCourse } from './courseController.j
 import { getUserByID } from './userController.js'
 import Email from './emailController.js'
 import { getVoucherByCode } from './voucherController.js'
+import { checkEmailExists } from '../utils/validationData.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
-    let query = 'SELECT userID, avatar, fullname, date_of_birth, street, province, country, language\
+    let query = 'SELECT userID, avatar, fullname, mail, date_of_birth, street, province, country, language\
                  from user where userID = ?'
     try {
       const [rowsInfo] = await connection.query(query,
@@ -54,6 +55,7 @@ const updateInfoMySQL = (connection, inf) => {
                 SET avatar = ?,
                     fullname = ?,
                     date_of_birth = ?,
+                    mail = ?,
                     street = ?,
                     province = ?,
                     country = ?,
@@ -65,6 +67,7 @@ const updateInfoMySQL = (connection, inf) => {
           inf.avatar,
           inf.fullname,
           inf.date_of_birth,
+          inf.mail,
           inf.street,
           inf.province,
           inf.country,
@@ -265,7 +268,7 @@ const getByID = catchAsync(async (req, res, next) => {
   const mergeData = info_mysql.map(inf => {
     return {
       ...inf,
-      date_of_birth: formatDate(inf.date_of_birth),
+      date_of_birth: inf.date_of_birth ? formatDate(inf.date_of_birth) : formatDate(new Date()),
 
       //Câu query không có lấy activity_status. Tuy nhiên login thành công <=> activity_status = active
       activity_status: 'active',
@@ -294,6 +297,11 @@ const update = catchAsync(async (req, res, next) => {
   // Start Transaction
   await mysqlTransaction.query("START TRANSACTION")
   mongoTransaction.startTransaction()
+
+  const isMailExist = await checkEmailExists(newInfo.mail, newInfo.userID)
+  // If email already exists, return an error
+  if (isMailExist)
+    return next({ status: 400, message: 'Email already exists' })
 
   try {
     // Run both functions asynchronously

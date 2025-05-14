@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom'
 import Logo from '../../../assets/Logo.png'
 import Badge from '@mui/material/Badge'
 import HamburgerMenu from './HamburgerMenu'
-import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined' // import AccountCircle from "@mui/icons-material/AccountCircle";
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
+import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined'
 import Categories from './categories'
 import AvatarAction from './avatar'
 import { useState, useEffect } from 'react'
@@ -132,9 +131,6 @@ function Header() {
                   />
                 </a>
               </div>
-              {/* <a href="/" className="link">
-              Teach on EL-Space
-            </a> */}
 
               {userID[0] === 'S' && (
                 <a
@@ -145,11 +141,6 @@ function Header() {
                   My learning
                 </a>
               )}
-              <a>
-                <StyledBadge badgeContent={4} color="primary">
-                  <ShoppingCartOutlinedIcon />
-                </StyledBadge>
-              </a>
               <a href="#" onClick={() => goTo('/notification')}>
                 <StyledBadge badgeContent={unread} color="primary">
                   <NotificationsOutlinedIcon />

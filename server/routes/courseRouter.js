@@ -6,7 +6,9 @@ import { uploadDisk, uploadTemp } from '../utils/multer.js'
 
 const courseRouter = express.Router()
 
-courseRouter.route('/:id/summary').get(courseController.getCourseById)
+courseRouter
+  .route('/:id/summary')
+  .get(courseController.getCourseById)
 
 courseRouter.route('/search').get(courseController.searchCourse)
 
@@ -40,8 +42,8 @@ courseRouter
     courseController.accessCourse
   )
   .put(
-    authController.restrictTo('instructor'),
-    courseController.updateCourse
+    authController.restrictTo('instructor')
+    // courseController.updateCourse
   )
 
 courseRouter

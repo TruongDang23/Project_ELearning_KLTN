@@ -11,6 +11,7 @@ import mongoose from 'mongoose'
 import { getUserByEmail, countUserOfRole } from '../controllers/userController.js'
 import Email from './emailController.js'
 import { createWelcomeVoucher } from './voucherController.js'
+import { checkUserNameExists } from '../utils/validationData.js'
 
 const hashPassword = (password) => {
   // Create a SHA-512 hash
@@ -187,6 +188,12 @@ const signup = catchAsync(async (req, res, next) => {
   await mysqlTransaction.query('START TRANSACTION')
   mongoTransaction.startTransaction()
 
+  //Check if username already exists
+  const isUserNameExist = await checkUserNameExists(user.username)
+  // If username already exists, return an error
+  if (isUserNameExist)
+    return next({ status: 400, message: 'Username already exists' })
+
   try {
     //Insert into Mysql
     await createUserMySQL(mysqlTransaction, user)
@@ -331,6 +338,23 @@ const protect = catchAsync(async (req, res, next) => {
   }
 })
 
+// This function is global. Use for decode token to identify user (Anonymous, Student, Instructor, Admin)
+const decodeToken = (token) => {
+  if (token) {
+    try {
+      const tokenDecode = jwt.verify(
+        token,
+        process.env.JWT_SECRET
+      )
+      return tokenDecode.id
+    } catch (error) {
+      throw new Error('Invalid token')
+    }
+  } else {
+    throw new Error('No token provided')
+  }
+}
+
 const restrictTo = (...roles) => {
   return (req, res, next) => {
     // roles ['admin', 'lead-guide']. role='user'
@@ -426,3 +450,4 @@ const forgotPassword = catchAsync(async (req, res, next) => {
 })
 
 export default { signup, login, protect, restrictTo, refreshToken, loginWithGoogle, logout, forgotPassword, getToken }
+export { decodeToken }

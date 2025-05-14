@@ -12,6 +12,8 @@ import { convertToAssignmentObject, convertToCourseObject, convertToQuizObject }
 import fs from 'fs'
 import Email from './emailController.js'
 import axios from 'axios'
+import { isCourseAccessible } from '../utils/precheckAccess.js'
+import { decodeToken } from './authController.js'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -929,20 +931,28 @@ const getCourseById = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
+  const access_token = req.cookies.access_token
+  let userID = null
+  try {
+    userID = decodeToken(access_token)
+  } catch (error) {
+    userID = undefined
+  }
 
   // Start Transaction
   await mysqlTransaction.query("START TRANSACTION")
   mongoTransaction.startTransaction()
 
-  let info_mysql, info_mongo, reviews, videos
+  let info_mysql, info_mongo, reviews, videos, is_accessible
 
   try {
     // Run both functions asynchronously
-    [info_mysql, info_mongo, reviews, videos] = await Promise.all([
+    [info_mysql, info_mongo, reviews, videos, is_accessible] = await Promise.all([
       getFullInfoMySQL(mysqlTransaction, courseID), // Fetch MySQL data
       getFullInfoMongo(courseID), // Fetch MongoDB data
       getReview(courseID),
-      getTotalVideo(courseID)
+      getTotalVideo(courseID),
+      isCourseAccessible(courseID, userID)
     ])
     // Commit Transactions
     await mysqlTransaction.query("COMMIT")
@@ -961,6 +971,7 @@ const getCourseById = catchAsync(async (req, res, next) => {
   const mergeData = info_mysql.map(course => {
     return {
       ...course,
+      is_accessible: is_accessible,
       videos: videos,
       review: reviews,
       image_introduce: info_mongo[0].image_introduce,
@@ -1422,11 +1433,6 @@ const uploadCourse = catchAsync(async (req, res, next) => {
   }
 })
 
-// cập nhật thông tin khóa học
-const updateCourse = catchAsync(async (req, res, next) => {
-  // Implement here
-})
-
 const getQnA = catchAsync(async (req, res, next) => {
   const { id, lectureID } = req.params
   const lectureQA = await loadOriginQnA(id, lectureID)
@@ -1501,7 +1507,6 @@ export default {
   searchCourse,
   accessCourse,
   createCourse,
-  updateCourse,
   uploadFileGCS,
   getQnA,
   uploadCourse,

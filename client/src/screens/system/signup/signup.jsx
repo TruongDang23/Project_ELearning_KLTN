@@ -16,7 +16,6 @@ function Signup() {
   const [username, setUsername] = useState("");
   const [pass, setPass] = useState("");
   const [repass, setRepass] = useState("");
-  const [role, setRole] = useState("");
   const [message, setMessage] = useState("");
   const [openSuccess, setOpenSuccess] = useState(false)
   const navigate = useNavigate()
@@ -24,6 +23,7 @@ function Signup() {
     status: false,
     message: ""
   })
+  const role = "Student" // Default role is Student when signup
   const hashPassword = (password) => {
     return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
   }
@@ -165,7 +165,7 @@ function Signup() {
               </div>
 
               <div className="role">
-                <label>
+                {/* <label>
                   <input
                     type="radio"
                     value="Student"
@@ -194,7 +194,7 @@ function Signup() {
                   />
                   <span className="custom-radio"></span>
                   Admin
-                </label>
+                </label> */}
               </div>
 
               {message && (

@@ -157,24 +157,6 @@ export default function AvatarAction({ setReload }) {
         <Divider />
         <MenuItem
           sx={{ fontSize: '16px', color: '#333' }}
-          onClick={handleClose}
-        >
-          <ListItemIcon>
-            <HelpOutlineIcon fontSize="large" />
-          </ListItemIcon>
-          Help
-        </MenuItem>
-        <MenuItem
-          sx={{ fontSize: '16px', color: '#333' }}
-          onClick={handleClose}
-        >
-          <ListItemIcon>
-            <Settings fontSize="large" />
-          </ListItemIcon>
-          Settings
-        </MenuItem>
-        <MenuItem
-          sx={{ fontSize: '16px', color: '#333' }}
           onClick={handleLogout}
         >
           <ListItemIcon>

@@ -30,14 +30,14 @@ function HeroSection() {
                 <TextBox>
                   <h1>{slide.title}</h1>
                   <p>{slide.description}</p>
-                  <ButtonGroup>
+                  {/* <ButtonGroup>
                     <Link to="courses" duration={500} offset={-10}>
                       <ButtonPrimary>Start learning →</ButtonPrimary>
                     </Link>
                     <Link to="learmore" duration={500} offset={-10}>
                       <ButtonOutline>Learn more ↓</ButtonOutline>
                     </Link>
-                  </ButtonGroup>
+                  </ButtonGroup> */}
                 </TextBox>
                 <ImageBox
                   onMouseEnter={() => setHovered(true)}

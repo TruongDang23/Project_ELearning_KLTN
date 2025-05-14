@@ -37,6 +37,15 @@ function UserProfile({ profile, setUserProfile }) {
     })
   }
 
+  const handleGmailChange = (newEmail) => {
+    setUserProfile((prevProfile) => {
+      return {
+        ...prevProfile,
+        mail: newEmail
+      }
+    })
+  }
+
   const handleFileChange = (event) => {
     const file = event.target.files[0]
     formData.current.set(`${userID}-avatar`, file)
@@ -63,15 +72,16 @@ function UserProfile({ profile, setUserProfile }) {
       //Upload avatar to GCS
       const res_avatar = await admin.updateAvatar(userID, formData.current)
       if (res_avatar.status === 201) {
-        setUserProfile((prevProfile) => ({
-          ...prevProfile,
-          avatar: res_avatar.data
-        }))
-
+        profile.avatar = res_avatar.data
+        //Update avatar in header
+        userStore.getState().updateInfor({ avatar: res_avatar.data })
         //Update information
         const res = await admin.update(userID, profile)
         if (res.status === 200) {
           setOpenSuccess(true)
+          setTimeout(() => {
+            setOpenSuccess(false)
+          }, 3000)
         }
         else {
           setOpenError({
@@ -254,6 +264,15 @@ function UserProfile({ profile, setUserProfile }) {
             value={ profile.social_network[3] }
             readOnly={ isReadOnly }
             onChange={(e) => handleSocialNetworkChange(3, e.target.value)}
+          />
+
+          <h3>Email:</h3>
+          <input
+            type="text"
+            placeholder='example.abc@gmail.com'
+            value={ profile.mail }
+            readOnly={ isReadOnly }
+            onChange={(e) => handleGmailChange(e.target.value)}
           />
 
           <h3>Activity status:</h3>

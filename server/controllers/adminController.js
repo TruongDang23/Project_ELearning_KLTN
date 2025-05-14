@@ -8,10 +8,11 @@ import { switchCourseStatus } from './courseController.js'
 import axios from 'axios'
 import { attachFile } from './googleCloudController.js'
 import EmbeddedList from '../models/embedded_course.js'
+import { checkEmailExists } from '../utils/validationData.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
-    let query = 'SELECT userID, avatar, fullname, date_of_birth, street, province, country, language\
+    let query = 'SELECT userID, avatar, fullname, mail, date_of_birth, street, province, country, language\
                  from user where userID = ?'
     try {
       const [rowsInfo] = await connection.query(query,
@@ -51,6 +52,7 @@ const updateInfoMySQL = (connection, inf) => {
                 SET avatar = ?,
                     fullname = ?,
                     date_of_birth = ?,
+                    mail = ?,
                     street = ?,
                     province = ?,
                     country = ?,
@@ -62,6 +64,7 @@ const updateInfoMySQL = (connection, inf) => {
           inf.avatar,
           inf.fullname,
           inf.date_of_birth,
+          inf.mail,
           inf.street,
           inf.province,
           inf.country,
@@ -159,6 +162,11 @@ const update = catchAsync(async (req, res, next) => {
   // Start Transaction
   await mysqlTransaction.query("START TRANSACTION")
   mongoTransaction.startTransaction()
+
+  const isMailExist = await checkEmailExists(newInfo.mail, newInfo.userID)
+  // If email already exists, return an error
+  if (isMailExist)
+    return next({ status: 400, message: 'Email already exists' })
 
   try {
     // Run both functions asynchronously

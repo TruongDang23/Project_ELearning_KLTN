@@ -4,18 +4,16 @@ function FooterNew() {
   return (
     <FooterWrapper>
       <div className="footer-infor">
-        <h3>Thông tin chung</h3>
+        <h3>General Information</h3>
         <p>
-          Đây là đồ án Xây dựng website E-learning cho các khóa học về Công Nghệ
-          Thông Tin. Ngoài ra có tích hợp các mô hình ML và AI giúp giải quyết
-          những vấn đề tồn đọng trong quá trình học online hiện nay. Hiện tại,
-          đồ án đang trong giai đoạn phát triển cho Tiểu luận chuyên ngành.
+          EL-Space is an innovative E-learning platform for Information Technology, developed as part of our graduation thesis.
+          <br/>It features AI Chat Assistance, Lecture Summarization, Eye Tracking, and more.
         </p>
       </div>
       <div className="footer-infor">
-        <h3>Sinh viên thực hiện</h3>
+        <h3>Students</h3>
         <p>
-          Đặng Quang Trường
+          Name: <b>Đặng Quang Trường</b>
           <br />
           Email: 21110705@student.hcmute.edu.vn
           <br />
@@ -23,15 +21,15 @@ function FooterNew() {
         </p>
         <br />
         <p>
-          Lê Thành Vinh
+          Name: <b>Lê Thành Vinh</b>
           <br />
-          Email:21110940@student.hcmute.edu.vn
+          Email: 21110940@student.hcmute.edu.vn
           <br />
           Phone: +84 911 685 322
         </p>
       </div>
       <div className="footer-social">
-        <h3>Liên kết</h3>
+        <h3>Social Networks</h3>
         <div className="footer-social-detail">
           <p>Trường:</p>
           <a

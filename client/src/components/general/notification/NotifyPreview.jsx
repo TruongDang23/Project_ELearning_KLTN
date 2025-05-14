@@ -19,7 +19,6 @@ function NotifyPreview({ notify, onClick }) {
         </div>
         <div className="notification-item__content">
           <h3 className="notification-item__title">{title}</h3>
-          {/* <p className="notification-item__message">{message}</p> */}
           <span className="notification-item__date">{timeAgo}</span>
         </div>
       </div>

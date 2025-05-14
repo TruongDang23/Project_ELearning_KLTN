@@ -68,7 +68,7 @@ export class ApiClient {
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config
     console.log('eror', error)
     // Kiểm tra lỗi 401 (Unauthorized)
     if (error.response?.status === 401 || ( error.response?.status === 403 && error.response?.data.error == 'No token provided!') ) {

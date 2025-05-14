@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 
 import BorderColorIcon from '@mui/icons-material/BorderColor'
-import Link from '@mui/material/Link'
 import { useNavigate } from 'react-router-dom'
 
 function ContactInfo({ userProfile }) {
@@ -9,6 +8,7 @@ function ContactInfo({ userProfile }) {
     avatar,
     fullname,
     date_of_birth,
+    mail,
     street,
     province,
     country,
@@ -46,6 +46,9 @@ function ContactInfo({ userProfile }) {
               </p>
               <p>
                 <span>Address:</span> {street}, {province}, {country}
+              </p>
+              <p>
+                <span>Email:</span> {mail}
               </p>
             </div>
             <div className="contact-info__content-social">
