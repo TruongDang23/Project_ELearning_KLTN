@@ -25,8 +25,12 @@ function HamburgerMenu({ links }) {
     setOpen(isOpen)
   }
 
-  const handleNavigation = (path) => {
-    navigate(path)
+  const handleNavigation = (link) => {
+    if (link.action) {
+      link.action()
+    } else {
+      navigate(link.path)
+    }
     setOpen(false)
   }
 
@@ -52,7 +56,7 @@ function HamburgerMenu({ links }) {
               <StyledListItem
                 button
                 key={index}
-                onClick={() => handleNavigation(link.path)}
+                onClick={() => handleNavigation(link)}
               >
                 <StyledListItemText primary={link.text} />
               </StyledListItem>
