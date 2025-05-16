@@ -169,7 +169,7 @@ const insertNewNotification = async(notify, listUserID) => {
       title,
       message,
       routing,
-      image_course)
+      image)
     VALUES (?, ?, ?, ?, ?)`
 
     let queryInsertNewReceive = `INSERT INTO receive_notify (
