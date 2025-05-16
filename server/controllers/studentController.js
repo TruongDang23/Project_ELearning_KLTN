@@ -364,7 +364,7 @@ const updateProgressCourse = catchAsync(async (req, res, next) => {
 
 const reviewCourse = catchAsync(async (req, res, next) => {
   // Implement here
-  const { courseID, userID, message, star, time } = req.body
+  const { courseID, userID, message, star, time } = req.body.data
   if (!courseID || !userID || !message || !star || !time) {
     next({ status: 400, message: "Missing required fiedls" })
   }

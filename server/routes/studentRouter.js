@@ -49,7 +49,7 @@ studentRouter
   )
 
 studentRouter
-  .route('/:courseID/ratings')
+  .route('/:id/ratings')
   .post(
     authController.protect,
     checkAccessCourse,
