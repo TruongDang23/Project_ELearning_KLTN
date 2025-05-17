@@ -55,7 +55,9 @@ export function Items({ courseItem, reload, setReload }) {
                 {courseItem.end_time}
               </strong>
             </p>
-            <p>Reason: {courseItem.reason}</p>
+            <p>
+              <strong>Reason:</strong> {courseItem.reason}
+            </p>
           </div>
 
           <div className="right_infor">
@@ -65,7 +67,6 @@ export function Items({ courseItem, reload, setReload }) {
             </p>
             <div className="button">
               <a
-                // to={`/course/infor/${courseItem.courseID}`}
                 onClick={() => handleGoToCourse(courseItem.courseID)}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -73,9 +74,9 @@ export function Items({ courseItem, reload, setReload }) {
               >
                 Go to course
               </a>
-              <button onClick={toggleAdjContent} className="btn-adjust">
+              {/* <button onClick={toggleAdjContent} className="btn-adjust">
                 Adjust Content
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
