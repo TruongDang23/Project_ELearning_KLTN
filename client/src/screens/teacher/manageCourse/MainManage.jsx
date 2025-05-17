@@ -35,7 +35,6 @@ function ManageCourse() {
 
   useEffect(() => {
     loadListCourse()
-    console.log('reload')
   }, [reload])
 
   return (

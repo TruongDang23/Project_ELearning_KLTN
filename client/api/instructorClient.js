@@ -50,6 +50,16 @@ export class InstructorClient extends ApiClient {
     }
   }
 
+  async cancelApproveCourse(courseID) {
+    try {
+      const response = await axios.put(`${this.domain}/cancelapprove/${courseID}`)
+      return response
+    }
+    catch (error) {
+      return error
+    }
+  }
+
   async createCourse(data, formData) {
     const res_files = await this.course.uploadFileMedia(formData)
     //Upload file lên GCS thành công

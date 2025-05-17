@@ -648,7 +648,8 @@ const getCreatedCourse = async(mysqlTransaction, userID) => {
                   userID
                   FROM course 
                   INNER JOIN created_course AS c ON course.courseID = c.courseID
-                  WHERE userID = ?`
+                  WHERE userID = ?
+                  ORDER BY course.courseID`
     try {
       const [rowCourses] = await mysqlTransaction.query(query, [userID])
       if (rowCourses.length > 0) {
@@ -693,7 +694,8 @@ const getPendingCourse = async(mysqlTransaction, userID) => {
                   userID
                   FROM course 
                   INNER JOIN send_mornitor AS s ON course.courseID = s.courseID
-                  WHERE userID = ?`
+                  WHERE userID = ?
+                  ORDER BY course.courseID`
     try {
       const [rowCourses] = await mysqlTransaction.query(query, [userID])
       if (rowCourses.length > 0) {
@@ -738,7 +740,8 @@ const getPublishedCourse = async(mysqlTransaction, userID) => {
                   userID
                   FROM course 
                   INNER JOIN published_course AS p ON course.courseID = p.courseID
-                  WHERE userID = ?`
+                  WHERE userID = ?
+                  ORDER BY course.courseID`
     try {
       const [rowCourses] = await mysqlTransaction.query(query, [userID])
       if (rowCourses.length > 0) {
@@ -784,7 +787,8 @@ const getTerminatedCourse = async(mysqlTransaction, userID) => {
                   userID
                   FROM course 
                   INNER JOIN terminated_course AS c ON course.courseID = c.courseID
-                  WHERE userID = ?`
+                  WHERE userID = ?
+                  ORDER BY course.courseID`
     try {
       const [rowCourses] = await mysqlTransaction.query(query, [userID])
       if (rowCourses.length > 0) {

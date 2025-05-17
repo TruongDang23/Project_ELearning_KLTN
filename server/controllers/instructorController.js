@@ -280,4 +280,18 @@ const sendApproveCourse = catchAsync(async (req, res, next) => {
   }
 })
 
-export default { getByID, getAll, update, sendApproveCourse }
+// Hủy gửi xét duyệt khóa học
+const cancelApproveCourse = catchAsync(async (req, res, next) => {
+  // Implement here
+  const { courseID } = req.params
+  const time = formatDateTime(new Date())
+  try {
+    await switchCourseStatus(courseID, "created", "send_mornitor", "created_course", time)
+    res.status(200).send()
+  }
+  catch {
+    next({ status: 500, message: 'Failed to send approval' })
+  }
+})
+
+export default { getByID, getAll, update, sendApproveCourse, cancelApproveCourse }

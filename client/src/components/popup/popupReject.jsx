@@ -1,7 +1,44 @@
 import styled from "styled-components"
 import CancelIcon from '@mui/icons-material/Cancel';
+import { admin } from 'api'
+import { useState } from "react"
+import { Snackbar } from "~/components/general"
 
 const PopupReject = ({ handleClose, course }) => {
+  const [openSuccess, setOpenSuccess] = useState({
+    status: false,
+    message: ""
+  })
+  const [openError, setOpenError] = useState({
+    status: false,
+    message: ""
+  })
+  const handleSave = async() => {
+    const res = await admin.rejectCourse(course)
+    if (res.status == 200) {
+      setOpenSuccess({
+        status: true,
+        message: "Action successfuly"
+      })
+      setTimeout(() => {
+        setOpenSuccess({
+          status: false
+        })
+       // setReload(!reload)
+      }, 3000)
+    }
+    else {
+      setOpenError({
+        status: true,
+        message: "An error occurred while trying to reject course"
+      })
+      setTimeout(() => {
+        setOpenError({
+          status: false
+        })
+      }, 3000)
+    }
+  }
   return (
     <WrapperPopup>
       <div className="popup-box">
@@ -13,6 +50,7 @@ const PopupReject = ({ handleClose, course }) => {
           </label>
           <div className="item-btns">
             <button className="item-btn" onClick={() => {
+              handleSave()
               handleClose()
             }}>Save</button>
           </div>

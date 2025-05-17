@@ -1,42 +1,11 @@
 import styled from "styled-components"
 import CancelIcon from '@mui/icons-material/Cancel'
-import { admin } from 'api'
-import { useState } from "react"
-import { Snackbar } from "~/components/general"
-
+import { instructor } from 'api'
 const PopupCancelMornitor = ({ handleClose, course, reload, setReload }) => {
-  const [openSuccess, setOpenSuccess] = useState({
-    status: false,
-    message: ""
-  })
-  const [openError, setOpenError] = useState({
-    status: false,
-    message: ""
-  })
   const handleSave = async() => {
-    const res = await admin.rejectCourse(course)
+    const res = await instructor.cancelApproveCourse(course)
     if (res.status == 200) {
-      setOpenSuccess({
-        status: true,
-        message: "Action successfuly"
-      })
-      setTimeout(() => {
-        setOpenSuccess({
-          status: false
-        })
-        setReload(!reload)
-      }, 3000)
-    }
-    else {
-      setOpenError({
-        status: true,
-        message: "An error occurred while trying to reject course"
-      })
-      setTimeout(() => {
-        setOpenError({
-          status: false
-        })
-      }, 3000)
+      setTimeout(() => setReload(!reload), 1000)
     }
   }
 
@@ -59,8 +28,6 @@ const PopupCancelMornitor = ({ handleClose, course, reload, setReload }) => {
           </div>
         </div>
       </WrapperPopup>
-      { openSuccess.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message={openSuccess.message}/> </> : <> </> }
-      { openError.status ? <> <Snackbar vertical="bottom" horizontal="right" severity="error" message={openError.message}/> </> : <> </> }
     </>
   )
 }
