@@ -39,6 +39,9 @@ export function Items({ courseItem, reload, setReload }) {
             <p>
               <strong>Program:</strong> {courseItem.program}
             </p>
+            <p>
+              <strong>Reason:</strong> {courseItem.reason}
+            </p>
           </div>
 
           <div className="right_infor">

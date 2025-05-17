@@ -442,7 +442,7 @@ const switchCourseStatus = async (courseID, to_status, delete_db, insert_db, tim
     let rows_ins = 0
 
     if (insert_db === 'terminated_course') {
-      const to_time = time[0]
+      const to_time = time[0] ? time[0] : new Date()
       const end_time = time[1] == "" ? null : time[1]
 
       insertCourse = "INSERT INTO ?? (courseID, to_time, end_time)\
@@ -595,7 +595,8 @@ const getTerminatedCourseAdmin = async(mysqlTransaction) => {
                   program,
                   u.fullname AS teacher,
                   s.to_time,
-                  s.end_time
+                  s.end_time,
+                  s.reason
                 FROM terminated_course AS s
                 LEFT JOIN course AS c 
                   ON s.courseID = c.courseID
@@ -782,6 +783,7 @@ const getTerminatedCourse = async(mysqlTransaction, userID) => {
                   category, 
                   to_time,
                   end_time,
+                  reason,
                   price,
                   currency,
                   userID

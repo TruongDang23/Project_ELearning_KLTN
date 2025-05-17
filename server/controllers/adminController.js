@@ -233,9 +233,15 @@ const terminateCourse = catchAsync(async (req, res, next) => {
   // Implement here
   const courseID = req.params.id
   const timeRange = req.body.time
+  const reason = req.body.reason
+
+  const mysqlTransaction = connectMysql.promise()
+  let updReason = "UPDATE terminated_course SET reason = ? WHERE courseID = ?"
   try {
     await switchCourseStatus(courseID, "terminated", "published_course", "terminated_course", timeRange)
-    res.status(200).send()
+    const [rows_upd] = await mysqlTransaction.query(updReason, [reason, courseID])
+    if (rows_upd.affectedRows > 0)
+      res.status(200).send()
   }
   catch {
     next({ status: 500, message: 'Failed to terminated course' })

@@ -64,10 +64,11 @@ export class AdminClient extends ApiClient {
     }
   }
 
-  async terminateCourse(id, dateRange) {
+  async terminateCourse(id, dateRange, reason) {
     try {
       const response = await axios.put(`${this.domain}/terminate/${id}`, {
-        time: dateRange
+        time: dateRange,
+        reason: reason
       })
       return response
     } catch (error) {
