@@ -227,18 +227,19 @@ const login = catchAsync(async (req, res, next) => {
     if (error) next(error)
     else {
       let query =
-        'SELECT userID from account WHERE username = ? AND password = ? AND LEFT(userID,1) = ? AND activity_status <> "locked"'
+        'SELECT userID, activity_status from account WHERE username = ? AND password = ? AND LEFT(userID,1) = ?'
       connection.query(
         query,
         [username, pass, roleOfUser],
         (error, results) => {
           connection.release()
           if (error) next(error)
-          if (results != null && results.length > 0) {
+          if (results != null && results.length > 0 && results[0].activity_status != 'locked') {
             createSendToken(results[0].userID, 200, res)
-          } else {
+          } else if (results[0]?.activity_status === 'locked')
+            return next({ status: 404, message: 'Your account has been locked by admin' })
+          else
             return next({ status: 404, message: 'User does not exit' })
-          }
         }
       )
     }

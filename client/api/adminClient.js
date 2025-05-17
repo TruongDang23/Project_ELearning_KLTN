@@ -104,6 +104,19 @@ export class AdminClient extends ApiClient {
     }
   }
 
+  async unLockAccount(id) {
+    try {
+      const response = await axios.put(`${this.domain}/unlocked/${id}`, {
+        headers: {
+          //authentication
+        }
+      })
+      return response
+    } catch (error) {
+      return error
+    }
+  }
+
   async loadMasterdata() {
     //object: languages, categories, levels
     try {

@@ -5,7 +5,7 @@ import { admin } from "api"
 const PopupUnLockAcc = ({ handleClose, account, reload, setReload }) => {
 
   const handleSave = async() => {
-    const res = await admin.lockAccount(account)
+    const res = await admin.unLockAccount(account)
     if (res.status == 200) {
       setTimeout(() => setReload(!reload), 100)
     }

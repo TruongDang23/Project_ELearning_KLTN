@@ -250,6 +250,35 @@ const lockUser = catchAsync(async (req, res, next) => {
 
   // Start Transaction
   await mysqlTransaction.query("START TRANSACTION")
+  let query = `UPDATE account SET activity_status = 'locked' WHERE userID = ?`
+  try {
+    const [rowsInfo] = await mysqlTransaction.query(query,
+      [
+        userID
+      ])
+
+    await mysqlTransaction.query("COMMIT")
+    if (rowsInfo.affectedRows !== 0) {
+      res.status(200).send()
+    }
+    else {
+      res.status(404).send('UserID not exist')
+    }
+  } catch (error) {
+    // Rollback Transactions in case of an error
+    await mysqlTransaction.query("ROLLBACK")
+    next(error) // Pass the error to the next middleware
+  }
+})
+
+// Mở khóa tài khoản
+const unLockUser = catchAsync(async (req, res, next) => {
+  // Implement here'
+  const userID = req.params.id
+  const mysqlTransaction = connectMysql.promise()
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
   let query = `UPDATE account SET activity_status = 'active' WHERE userID = ?`
   try {
     const [rowsInfo] = await mysqlTransaction.query(query,
@@ -318,6 +347,7 @@ export default {
   rejectCourse,
   terminateCourse,
   lockUser,
+  unLockUser,
   republishCourse,
   embeddedCourse,
   addFileToEmbedded

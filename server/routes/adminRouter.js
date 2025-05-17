@@ -67,6 +67,14 @@ adminRouter
   )
 
 adminRouter
+  .route('/unlocked/:id')
+  .put(
+    authController.protect,
+    authController.restrictTo('admin'),
+    adminController.unLockUser
+  )
+
+adminRouter
   .route('/:id/:lectureID/QA')
   .post(
     authController.protect,

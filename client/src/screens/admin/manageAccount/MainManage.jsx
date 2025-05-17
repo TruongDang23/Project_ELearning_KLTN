@@ -19,25 +19,29 @@ function ManageAccount() {
   const [active, setActive] = useState([])
   const [locked, setLocked] = useState([])
 
-  const loadListStudent = async () => {
-    const res = await admin.loadListStudent()
-    if (res.status == 200) {
-      setActive((prev) => [...prev, ...res.data.active])
-      setLocked((prev) => [...prev, ...res.data.locked])
+  const loadListAccount = async () => {
+    const responseStudent = await admin.loadListStudent()
+    let activeStudent, lockedStudent, activeInstructor, lockedInstructor
+    let activeMerge = [], lockedMerge = []
+    if (responseStudent.status === 200) {
+      activeStudent = responseStudent.data.active
+      lockedStudent = responseStudent.data.locked
     }
-  }
 
-  const loadListInstructor = async () => {
-    const res = await admin.loadListInstructor()
-    if (res.status == 200) {
-      setActive((prev) => [...prev, ...res.data.active])
-      setLocked((prev) => [...prev, ...res.data.locked])
+    const responseInstructor = await admin.loadListInstructor()
+    if (responseInstructor.status === 200) {
+      activeInstructor = responseInstructor.data.active
+      lockedInstructor = responseInstructor.data.locked
     }
+
+    activeMerge = [...activeStudent, ...activeInstructor]
+    lockedMerge = [...lockedStudent, ...lockedInstructor]
+    setActive(activeMerge)
+    setLocked(lockedMerge)
   }
 
   useEffect(() => {
-    loadListStudent()
-    loadListInstructor()
+    loadListAccount()
   }, [reload])
 
   return (
