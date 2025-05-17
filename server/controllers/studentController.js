@@ -216,7 +216,7 @@ const getAll = catchAsync(async (req, res, next) => {
 
 const getByID = catchAsync(async (req, res, next) => {
   // Implement here
-  const userID = req.userID
+  const userID = req.params.id
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
   let enrolled = []

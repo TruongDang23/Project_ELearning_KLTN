@@ -22,6 +22,7 @@ function AccountDashboard() {
       const response = await admin.loadDataDashboard()
       const { activeAccounts, blockedAccounts } = response.data
       setData({ activeAccounts, blockedAccounts })
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       setOpenError({
         status: true,

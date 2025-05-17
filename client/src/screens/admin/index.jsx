@@ -2,6 +2,7 @@ import Information from "./information/Information";
 import ManageCourse from "./manageCourse/MainManage";
 import DashboardAdmin from "./dashboard/DashboardAdmin";
 import ManageAccount from "./manageAccount/MainManage";
+import UserProfile from "./manageAccount/UserProfile";
 import { Route, Routes } from "react-router-dom";
 
 export function Admin() {
@@ -14,6 +15,7 @@ export function Admin() {
         <Route path="/admin/information" element={<Information />} />
         <Route path="/admin/manageCourse" element={<ManageCourse />} />
         <Route path="/admin/manageAccount" element={<ManageAccount/>} />
+        <Route path="/admin/manageAccount/profile/:userID" element={<UserProfile/>} />
       </Routes>
     </>
   );

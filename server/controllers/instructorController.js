@@ -112,7 +112,7 @@ const updateInfoMongoDB = async (session, inf) => {
 
 const getByID = catchAsync(async (req, res, next) => {
   // Implement here
-  const userID = req.userID
+  const userID = req.params.id
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
   let published
