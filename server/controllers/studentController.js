@@ -464,7 +464,7 @@ const payment = catchAsync(async (req, res, next) => {
   const userID = req.userID
   const enrolled = await isEnrolled(courseID, req.userID)
   // eslint-disable-next-line no-undef
-  const baseURL = process.env.NODE_ENV === 'production' ? process.env.WEB_DOMAIN_PRD : process.env.WEB_DOMAIN_DEV
+  const baseURL = process.env.WEB_DOMAIN
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
     res.send({ message: 'enrolled' })
   }

@@ -1,9 +1,17 @@
 import styled from "styled-components"
-import CancelIcon from '@mui/icons-material/Cancel';
+import CancelIcon from '@mui/icons-material/Cancel'
 import { admin } from 'api'
+import { useState } from "react"
+
 const PopupReject = ({ handleClose, course }) => {
+  const [reason, setReason] = useState('')
+
+  const handleInputReason = (e) => {
+    setReason(e.target.value)
+  }
+
   const handleSave = async() => {
-    const res = await admin.rejectCourse(course)
+    const res = await admin.rejectCourse(course, reason)
     if (res.status == 200)
       console.log()
       //setReload(!reload)
@@ -17,6 +25,13 @@ const PopupReject = ({ handleClose, course }) => {
             <CancelIcon sx={{ color: '#E20000', fontSize: '3.0rem', margin: 'auto' }}/>
             <h1>The course <strong>{course}</strong> will be rejected</h1>
           </label>
+          <h3>Reason:</h3>
+          <input
+            type="text"
+            placeholder='Reason...'
+            value={reason}
+            onChange={handleInputReason}
+          />
           <div className="item-btns">
             <button className="item-btn" onClick={() => {
               handleSave()
@@ -91,6 +106,20 @@ label{
       font-weight: bold;
     }
   }
+}
+
+  
+h3{
+  margin-bottom: 10px;
+}
+
+input{
+  margin-bottom: 10px;
+  font-size: 1.8rem;
+  padding: 5px;
+  border-radius: 10px;
+  border-width: 1px #ccc;
+  cursor: pointer;
 }
 `
 export default PopupReject;

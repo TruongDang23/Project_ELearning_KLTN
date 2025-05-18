@@ -4,11 +4,12 @@ import mongoose from 'mongoose'
 import User from '../models/user.js'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
-import { switchCourseStatus } from './courseController.js'
+import { switchCourseStatus, getFullInfoMySQL as getInforCourse } from './courseController.js'
 import axios from 'axios'
 import { attachFile } from './googleCloudController.js'
 import EmbeddedList from '../models/embedded_course.js'
 import { checkEmailExists } from '../utils/validationData.js'
+import Email from './emailController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -194,8 +195,13 @@ const update = catchAsync(async (req, res, next) => {
 const approveCourse = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
   const time = formatDateTime(new Date())
+  const mysqlTransaction = connectMysql.promise()
+  const emailController = new Email()
   try {
     await switchCourseStatus(courseID, "published", "send_mornitor", "published_course", time)
+    const courseData = await getInforCourse(mysqlTransaction, courseID)
+    if (courseData[0]?.mail)
+      await emailController.publishCourse(courseID, courseData[0].title, courseData[0].mail)
     res.status(200).send()
   }
   catch {
@@ -206,8 +212,13 @@ const approveCourse = catchAsync(async (req, res, next) => {
 const republishCourse = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
   const time = formatDateTime(new Date())
+  const mysqlTransaction = connectMysql.promise()
+  const emailController = new Email()
   try {
     await switchCourseStatus(courseID, "published", "terminated_course", "published_course", time)
+    const courseData = await getInforCourse(mysqlTransaction, courseID)
+    if (courseData[0]?.mail)
+      await emailController.publishCourse(courseID, courseData[0].title, courseData[0].mail)
     res.status(200).send()
   }
   catch {
@@ -218,9 +229,15 @@ const republishCourse = catchAsync(async (req, res, next) => {
 // Từ chối xét duyệt khóa học dựa vào courseID
 const rejectCourse = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
+  const reason = req.body.reason
   const time = formatDateTime(new Date())
+  const mysqlTransaction = connectMysql.promise()
+  const emailController = new Email()
   try {
     await switchCourseStatus(courseID, "created", "send_mornitor", "created_course", time)
+    const courseData = await getInforCourse(mysqlTransaction, courseID)
+    if (courseData[0]?.mail)
+      await emailController.rejectCourse(courseID, courseData[0].title, courseData[0].mail, reason)
     res.status(200).send()
   }
   catch {
@@ -234,14 +251,19 @@ const terminateCourse = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
   const timeRange = req.body.time
   const reason = req.body.reason
-
+  const emailController = new Email()
   const mysqlTransaction = connectMysql.promise()
+
   let updReason = "UPDATE terminated_course SET reason = ? WHERE courseID = ?"
   try {
     await switchCourseStatus(courseID, "terminated", "published_course", "terminated_course", timeRange)
     const [rows_upd] = await mysqlTransaction.query(updReason, [reason, courseID])
-    if (rows_upd.affectedRows > 0)
+    if (rows_upd.affectedRows > 0) {
+      const courseData = await getInforCourse(mysqlTransaction, courseID)
+      if (courseData[0]?.mail)
+        await emailController.terminatedCourse(courseID, courseData[0].title, courseData[0].mail, reason)
       res.status(200).send()
+    }
   }
   catch {
     next({ status: 500, message: 'Failed to terminated course' })

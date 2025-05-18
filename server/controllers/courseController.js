@@ -151,6 +151,7 @@ const getFullInfoMySQL = (connection, courseID) => {
     let query =
       "SELECT c.courseID,\
                 u.fullname AS instructor,\
+                u.mail AS mail,\
                 type_of_course,\
                 title,\
                 method,\

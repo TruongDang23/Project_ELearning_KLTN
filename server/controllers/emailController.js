@@ -17,14 +17,14 @@ class Email {
       }
     })
   }
-
+  //Email thông báo đến các admin rằng có khóa học mới đang chờ được xét duyệt
   async sendCreateCourse(cousreID, courseName, list_receivers) {
-    const url = `${process.env.DOMAIN}/admin/manageCourse`
+    const url = `${process.env.WEB_DOMAIN}/admin/manageCourse`
     const html = this.#generateHtmlCreateNewCourse(cousreID, courseName, url)
     const mailOptions = {
       from: `EL Space <${process.env.EMAIL_USERNAME}>`,
       to: list_receivers,
-      subject: `[ REMIND ] TO APPROVE COURSE: ${courseName}`,
+      subject: `[ REMIND ] TO APPROVE COURSE: ${cousreID} - ${courseName}`,
       html,
       text: htmlToText(html) // sử dụng htmlToText thay vì fromString
     }
@@ -32,8 +32,54 @@ class Email {
     await this.newTransport().sendMail(mailOptions)
   }
 
+  //Email thông báo đến giảng viên của khóa học rằng khóa học đã được publish
+  async publishCourse(cousreID, courseName, receiver) {
+    const url = `${process.env.WEB_DOMAIN}/instructor/manageCourse`
+    const html = this.#generateHtmlCourseApproved(cousreID, courseName, url)
+    const mailOptions = {
+      from: `EL Space <${process.env.EMAIL_USERNAME}>`,
+      to: receiver,
+      subject: `[SUCCESS] Your course "${cousreID} - ${courseName}" is now live!`,
+      html,
+      text: htmlToText(html) // sử dụng htmlToText thay vì fromString
+    }
+
+    await this.newTransport().sendMail(mailOptions)
+  }
+
+  //Email thông báo đến giảng viên của khóa học rằng khóa học đã bị reject
+  async rejectCourse(courseID, courseName, receiver, reason) {
+    const url = `${process.env.WEB_DOMAIN}/instructor/manageCourse`
+    const html = this.#generateHtmlCourseRejected(courseID, courseName, url, reason)
+    const mailOptions = {
+      from: `EL Space <${process.env.EMAIL_USERNAME}>`,
+      to: receiver,
+      subject: `[REVIEW NEEDED] Updates required for your course "${courseID} - ${courseName}"`,
+      html,
+      text: htmlToText(html) // sử dụng htmlToText thay vì fromString
+    }
+
+    await this.newTransport().sendMail(mailOptions)
+  }
+
+  //Email thông báo đến giảng viên của khóa học rằng khóa học đã bị terminated
+  async terminatedCourse(courseID, courseName, receiver, reason) {
+    const url = `${process.env.WEB_DOMAIN}/instructor/manageCourse`
+    const html = this.#generateHtmlCourseTerminated(courseID, courseName, url, reason)
+    const mailOptions = {
+      from: `EL Space <${process.env.EMAIL_USERNAME}>`,
+      to: receiver,
+      subject: `[TERMINATED] "${courseID} - ${courseName}" has been unpublished`,
+      html,
+      text: htmlToText(html) // sử dụng htmlToText thay vì fromString
+    }
+
+    await this.newTransport().sendMail(mailOptions)
+  }
+
+  //Email thông báo đến người dùng password mới
   async sendForgetPass(subject, username, receiver, newPassword) {
-    const url = `${process.env.DOMAIN}/login`
+    const url = `${process.env.WEB_DOMAIN}/login`
     const html = this.#generateHtmlForgotPass(subject, username, newPassword, url)
     const mailOptions = {
       from: `EL Space <${process.env.EMAIL_USERNAME}>`,
@@ -46,12 +92,13 @@ class Email {
     await this.newTransport().sendMail(mailOptions)
   }
 
+  //Email thông báo đến học viên rằng đã mua khóa học thành công
   async sendBuyCourseSuccess(courseID, receiver) {
     //receiver is an object: {
     //                          fullname: 'abc',
     //                          mail: 'abc@gmail.com'
     //                       }
-    const url = `${process.env.DOMAIN}/student/my-learning#`
+    const url = `${process.env.WEB_DOMAIN}/student/my-learning#`
     const html = this.#generateHtmlBuyCourseSuccess(receiver.fullname, courseID, url)
     const mailOptions = {
       from: `EL Space <${process.env.EMAIL_USERNAME}>`,
@@ -64,12 +111,13 @@ class Email {
     await this.newTransport().sendMail(mailOptions)
   }
 
+  //Email thông báo đến giảng viên của khóa học rằng đã có học viên tham gia khóa học của bạn
   async sendCourseIsBuy(courseID, receiver) {
     //receiver is an object: {
     //                          fullname: 'abc',
     //                          mail: 'abc@gmail.com'
     //                       }
-    const url = `${process.env.DOMAIN}/instructor/manageCourse`
+    const url = `${process.env.WEB_DOMAIN}/instructor/manageCourse`
     const html = this.#generateHtmlCourseIsBuy(receiver.fullname, courseID, url)
     const mailOptions = {
       from: `EL Space <${process.env.EMAIL_USERNAME}>`,
@@ -170,6 +218,74 @@ class Email {
           </div>
         </div>
       </div>
+    `
+  }
+
+  #generateHtmlCourseApproved(courseID, courseName, url) {
+    return `
+    <div style="background: linear-gradient(to right, #212121, #3a3a3a); padding: 20px;">
+      <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);">
+        <div style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+          <h2 style="color: #212121;">🎉 Your Course Is Now Live!</h2>
+          <hr style="border: 1px solid #212121; width: 80%; margin: 20px auto;">
+          <p style="font-size: 16px;">Dear <strong>Instructor</strong>,</p>
+          <p style="font-size: 16px;">We’re excited to inform you that your course <strong>${courseName} (${courseID})</strong> has been successfully approved and is now live on our platform.</p>
+          <p style="font-size: 16px;">You can view your course and share it with learners using the link below:</p>
+          <a href="${url}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #28a745; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px;">
+            View Published Course
+          </a>
+          <p style="margin-top: 30px; font-size: 14px; color: #999;">Thank you for contributing to the E-Learning community!<br>— E-Learning System Team</p>
+        </div>
+      </div>
+    </div>
+  `
+  }
+
+  #generateHtmlCourseRejected(courseID, courseName, url, reason) {
+    return ` <div style="background: linear-gradient(to right, #212121, #3a3a3a); padding: 20px;">
+      <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);">
+        <div style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+          <h2 style="color: #C0392B;">⚠️ Course Approval Unsuccessful</h2>
+          <hr style="border: 1px solid #C0392B; width: 80%; margin: 20px auto;">
+          <p style="font-size: 16px;">Dear <strong>Instructor</strong>,</p>
+          <p style="font-size: 16px;">We appreciate your effort in creating the course <strong>${courseName} (${courseID})</strong>.</p>
+          <p style="font-size: 16px;">However, after a careful review, we regret to inform you that the course has not been approved at this time.</p>
+          <p style="font-size: 16px;">Reason for rejection:</p>
+          <blockquote style="background: #f9f9f9; padding: 15px; border-left: 5px solid #C0392B; font-style: italic; color: #555;">
+            ${reason}
+          </blockquote>
+          <p style="font-size: 16px;">You can revise your course and resubmit it for review by visiting the link below:</p>
+          <a href="${url}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #E67E22; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px;">
+            Update and Resubmit
+          </a>
+          <p style="margin-top: 30px; font-size: 14px; color: #999;">Thank you for your understanding,<br>— E-Learning System Team</p>
+        </div>
+      </div>
+    </div>
+    `
+  }
+
+  #generateHtmlCourseTerminated(courseID, courseName, url, reason) {
+    return `
+      <div style="background: linear-gradient(to right, #212121, #3a3a3a); padding: 20px;">
+      <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);">
+        <div style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+          <h2 style="color: #D35400;">⚠️ Course Termination Notice</h2>
+          <hr style="border: 1px solid #D35400; width: 80%; margin: 20px auto;">
+          <p style="font-size: 16px;">Dear <strong>Instructor</strong>,</p>
+          <p style="font-size: 16px;">We regret to inform you that your course <strong>${courseName} (${courseID})</strong> has been removed from our platform.</p>
+          <p style="font-size: 16px;">Reason for termination:</p>
+          <blockquote style="background: #f9f9f9; padding: 15px; border-left: 5px solid #D35400; font-style: italic; color: #555;">
+            ${reason}
+          </blockquote>
+          <p style="font-size: 16px;">If you believe this was a mistake or would like to update your course to meet the platform’s standards, you can review and resubmit it below:</p>
+          <a href="${url}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #E67E22; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px;">
+            Review Course
+          </a>
+          <p style="margin-top: 30px; font-size: 14px; color: #999;">We appreciate your understanding and continued contributions.<br>— E-Learning System Team</p>
+        </div>
+      </div>
+    </div>
     `
   }
 }

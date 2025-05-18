@@ -55,9 +55,11 @@ export class AdminClient extends ApiClient {
     }
   }
 
-  async rejectCourse(id) {
+  async rejectCourse(id, reason) {
     try {
-      const response = await axios.put(`${this.domain}/reject/${id}`)
+      const response = await axios.put(`${this.domain}/reject/${id}`, {
+        reason: reason
+      })
       return response
     } catch (error) {
       return error
