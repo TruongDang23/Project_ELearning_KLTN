@@ -3,7 +3,7 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import { admin } from 'api'
 import { useState } from "react"
 
-const PopupReject = ({ handleClose, course }) => {
+const PopupReject = ({ handleClose, course, setReload }) => {
   const [reason, setReason] = useState('')
 
   const handleInputReason = (e) => {
@@ -13,8 +13,7 @@ const PopupReject = ({ handleClose, course }) => {
   const handleSave = async() => {
     const res = await admin.rejectCourse(course, reason)
     if (res.status == 200)
-      console.log()
-      //setReload(!reload)
+      setReload(prev => !prev)
   }
   return (
     <WrapperPopup>

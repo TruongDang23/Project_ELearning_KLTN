@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import dayjs from 'dayjs'
 import { admin } from 'api'
 
-const PopupTerminate = ({ handleClose, course, reload, setReload }) => {
+const PopupTerminate = ({ handleClose, course, setReload }) => {
   const [dateRange, setDateRange] = useState(['', ''])
   const [showCalendar, setShowCalendar] = useState(false)
   const [currentInput, setCurrentInput] = useState(null)
@@ -46,7 +46,7 @@ const PopupTerminate = ({ handleClose, course, reload, setReload }) => {
   const handleSave = async() => {
     const res = await admin.terminateCourse(course, dateRange, reason)
     if (res.status == 200) {
-      setTimeout(() => setReload(!reload), 1000)
+      setReload(prev => !prev)
     }
   }
   return (

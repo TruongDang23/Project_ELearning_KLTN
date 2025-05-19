@@ -197,9 +197,12 @@ const approveCourse = catchAsync(async (req, res, next) => {
   const time = formatDateTime(new Date())
   const mysqlTransaction = connectMysql.promise()
   const emailController = new Email()
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
   try {
     await switchCourseStatus(courseID, "published", "send_mornitor", "published_course", time)
     const courseData = await getInforCourse(mysqlTransaction, courseID)
+    await mysqlTransaction.query("COMMIT")
     if (courseData[0]?.mail)
       await emailController.publishCourse(courseID, courseData[0].title, courseData[0].mail)
     res.status(200).send()
@@ -214,9 +217,12 @@ const republishCourse = catchAsync(async (req, res, next) => {
   const time = formatDateTime(new Date())
   const mysqlTransaction = connectMysql.promise()
   const emailController = new Email()
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
   try {
     await switchCourseStatus(courseID, "published", "terminated_course", "published_course", time)
     const courseData = await getInforCourse(mysqlTransaction, courseID)
+    await mysqlTransaction.query("COMMIT")
     if (courseData[0]?.mail)
       await emailController.publishCourse(courseID, courseData[0].title, courseData[0].mail)
     res.status(200).send()
@@ -233,9 +239,12 @@ const rejectCourse = catchAsync(async (req, res, next) => {
   const time = formatDateTime(new Date())
   const mysqlTransaction = connectMysql.promise()
   const emailController = new Email()
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
   try {
     await switchCourseStatus(courseID, "created", "send_mornitor", "created_course", time)
     const courseData = await getInforCourse(mysqlTransaction, courseID)
+    await mysqlTransaction.query("COMMIT")
     if (courseData[0]?.mail)
       await emailController.rejectCourse(courseID, courseData[0].title, courseData[0].mail, reason)
     res.status(200).send()
@@ -255,6 +264,8 @@ const terminateCourse = catchAsync(async (req, res, next) => {
   const mysqlTransaction = connectMysql.promise()
 
   let updReason = "UPDATE terminated_course SET reason = ? WHERE courseID = ?"
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
   try {
     await switchCourseStatus(courseID, "terminated", "published_course", "terminated_course", timeRange)
     const [rows_upd] = await mysqlTransaction.query(updReason, [reason, courseID])
@@ -262,10 +273,13 @@ const terminateCourse = catchAsync(async (req, res, next) => {
       const courseData = await getInforCourse(mysqlTransaction, courseID)
       if (courseData[0]?.mail)
         await emailController.terminatedCourse(courseID, courseData[0].title, courseData[0].mail, reason)
-      res.status(200).send()
     }
+
+    await mysqlTransaction.query("COMMIT")
+    res.status(200).send()
   }
   catch {
+    await mysqlTransaction.query("ROLLBACK")
     next({ status: 500, message: 'Failed to terminated course' })
   }
 })

@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import { useState } from 'react'
 import { TerminateCourse } from '~/components/popup/index'
 
-export function Items({ courseItem, reload, setReload }) {
+export function Items({ courseItem, setReload }) {
   const [openTer, setopenTer] = useState(false)
 
   const toggleTer = () => {
@@ -56,7 +56,6 @@ export function Items({ courseItem, reload, setReload }) {
         <TerminateCourse
           handleClose={toggleTer}
           course={courseItem.courseID}
-          reload={reload}
           setReload={setReload}
         />
       )}
