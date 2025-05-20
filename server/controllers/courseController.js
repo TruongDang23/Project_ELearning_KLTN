@@ -840,11 +840,6 @@ const getAllCourses = catchAsync(async (req, res, next) => {
   switch (role) {
   case 'admin':
     try {
-      // [pending, published, terminated] = await Promise.all([
-      //   getPendingCourseAdmin(mysqlTransaction),
-      //   getPublishedCourseAdmin(mysqlTransaction),
-      //   getTerminatedCourseAdmin(mysqlTransaction)
-      // ])
       published = await getPublishedCourseAdmin(mysqlTransaction)
       terminated = await getTerminatedCourseAdmin(mysqlTransaction)
       pending = await getPendingCourseAdmin(mysqlTransaction)
@@ -870,12 +865,10 @@ const getAllCourses = catchAsync(async (req, res, next) => {
 
   case 'instructor':
     try {
-      [created, pending, published, terminated] = await Promise.all([
-        getCreatedCourse(mysqlTransaction, userID),
-        getPendingCourse(mysqlTransaction, userID),
-        getPublishedCourse(mysqlTransaction, userID),
-        getTerminatedCourse(mysqlTransaction, userID)
-      ])
+      created = await getCreatedCourse(mysqlTransaction, userID),
+      pending = await getPendingCourse(mysqlTransaction, userID),
+      published = await getPublishedCourse(mysqlTransaction, userID),
+      terminated = await getTerminatedCourse(mysqlTransaction, userID)
       // Commit Transactions
       await mysqlTransaction.query("COMMIT")
       await mongoTransaction.commitTransaction()
