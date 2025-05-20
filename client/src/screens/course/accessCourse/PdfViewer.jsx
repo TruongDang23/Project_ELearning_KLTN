@@ -23,9 +23,8 @@ const PdfViewer = ({ pdfUrl, setProgress }) => {
     setProgress((prevProgress) => ({
       ...prevProgress,
       percent: 100
-    }));
-    alert("Done");
-  };
+    }))
+  }
   return (
     <PdfViewerWrapper>
       <iframe src={pdfUrl} width="100%" height="100%" title="pdf"></iframe>
