@@ -126,8 +126,8 @@ export class StudentClient extends ApiClient {
     return await this.notify.updateUnreadNotify(id, notifyID)
   }
 
-  async submitAssignment(language, sourceCode, testcases) {
-    return await this.course.submitAssignment(language, sourceCode, testcases)
+  async submitAssignment(courseID, language, sourceCode, testcases) {
+    return await this.course.submitAssignment(courseID, language, sourceCode, testcases)
   }
 
   async getMatchedVouchers(courseID) {

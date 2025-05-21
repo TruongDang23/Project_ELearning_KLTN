@@ -65,7 +65,7 @@ courseRouter
   )
 
 courseRouter
-  .route('/acceptAssignment')
+  .route('/:id/acceptAssignment')
   .post(
     authController.protect,
     checkAccessCourse,
