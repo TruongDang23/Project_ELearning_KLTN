@@ -329,36 +329,39 @@ const updateProgressCourse = catchAsync(async (req, res, next) => {
   // Implement here
   const { courseID, lectureID } = req.params
   const userID = req.userID
-  if ( userID[0] != 'I' ) //Nếu không phải là Student thì ko ghi progress
+  if ( userID[0] != 'S' ) //Nếu không phải là Student thì ko ghi progress
     return
   const progress = parseInt(req.body.data, 10)
   const lectureIDInt = parseInt(lectureID, 10)
   const time = formatDateTime(new Date())
   const connection = connectMysql.promise()
+  if ( progress > 0 ) {
+    await connection.query("START TRANSACTION")
 
-  await connection.query("START TRANSACTION")
+    let query = "INSERT INTO learning (userID, lectureID, time, courseID, percent) VALUES (?, ?, ?, ?, ?)"
 
-  let query = "INSERT INTO learning (userID, lectureID, time, courseID, percent) VALUES (?, ?, ?, ?, ?)"
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          userID,
+          lectureIDInt,
+          time,
+          courseID,
+          progress
+        ])
 
-  try {
-    const [rowsInfo] = await connection.query(query,
-      [
-        userID,
-        lectureIDInt,
-        time,
-        courseID,
-        progress
-      ])
-
-    if (rowsInfo.affectedRows !== 0) {
-      res.status(200).send()
+      if (rowsInfo.affectedRows !== 0) {
+        await connection.query("COMMIT")
+        res.status(200).send()
+      }
+      else {
+        await connection.query("ROLLBACK")
+        next({ status: 400, message: 'Failed when updating progress of lecture' })
+      }
     }
-    else {
-      next({ status: 400, message: 'Failed when updating progress of lecture' })
+    catch (error) {
+      next(error)
     }
-  }
-  catch (error) {
-    next(error)
   }
 })
 
