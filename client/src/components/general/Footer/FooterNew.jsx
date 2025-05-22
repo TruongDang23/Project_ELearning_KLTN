@@ -60,7 +60,7 @@ function FooterNew() {
             Facebook
           </a>
           <a
-            href="https://github.com/Suzukisakae"
+            href="https://github.com/lethanhvinh0604"
             color="inherit"
             target="_blank"
             rel="noreferrer"
