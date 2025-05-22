@@ -85,4 +85,14 @@ studentRouter
 studentRouter
   .route('/payos-hook')
   .post(studentController.payoshook)
+
+
+studentRouter
+  .route('/change-password/:id')
+  .post(
+    authController.protect,
+    authController.restrictTo('student'),
+    userController.changePassword
+  )
+
 export default studentRouter

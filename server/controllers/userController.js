@@ -6,6 +6,44 @@ import { attachFile } from './googleCloudController.js'
 import mongoose from 'mongoose'
 import { createNotification } from './notificationController.js'
 import { socketFunction } from '../app.js'
+import crypto from 'crypto'
+
+
+const changePassword = catchAsync(async (req, res, next) => {
+  const { oldPassword, newPassword } = req.body
+  // const userID = req.userID
+  const userID = req.params.id
+  const connection = connectMysql.promise()
+
+  // Lấy username từ userID
+  const [userRows] = await connection.query(
+    'SELECT username FROM account WHERE userID = ?',
+    [userID]
+  )
+  if (userRows.length === 0) {
+    return next({ status: 404, message: 'User not found' })
+  }
+  const username = userRows[0].username
+
+  // Kiểm tra oldPassword
+  const hashedOldPassword = crypto.createHash('sha512').update(oldPassword).digest('hex')
+  const [rows] = await connection.query(
+    'SELECT * FROM account WHERE username = ? AND password = ?',
+    [username, hashedOldPassword]
+  )
+  if (rows.length === 0) {
+    return next({ status: 400, message: 'Old password is incorrect' })
+  }
+
+  // Cập nhật mật khẩu mới
+  const hashedNewPassword = crypto.createHash('sha512').update(newPassword).digest('hex')
+  await connection.query(
+    'UPDATE account SET password = ? WHERE username = ?',
+    [hashedNewPassword, username]
+  )
+
+  res.status(200).send({ message: 'Password changed successfully' })
+})
 
 const newQnA = catchAsync(async (req, res, next) => {
   // Implement here
@@ -152,7 +190,7 @@ const getListEmailAdmin = async () => {
   })
 }
 
-export default { newQnA, updateAvatar }
+export default { newQnA, updateAvatar, changePassword }
 
 export {
   getUserByEmail,

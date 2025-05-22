@@ -9,6 +9,7 @@ import Sticky from 'react-sticky-el'
 import Logo from '../../../assets/hdh.png'
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 import { userStore } from '~/context/UserStore'
+import ChangePassword from './ChangePassword'
 
 function Information() {
   const [userProfile, setUserProfile] = useState(userStore.getState())
@@ -36,6 +37,7 @@ function Information() {
                   profile={userProfile}
                   setProfile={updateInformation}
                 />
+                <ChangePassword userID={userProfile.userID} />
               </LeftPane>
               <RightPane>
                 <ExtraProfile
@@ -60,7 +62,6 @@ const InformationWrapper = styled.main`
   background-size: auto;
   background-attachment: fixed;
   min-height: 100vh;
-  
 `
 
 const Container = styled.section`
