@@ -53,4 +53,12 @@ instructorRouter
     userController.newQnA
   )
 
+instructorRouter
+  .route('/change-password/:id')
+  .post(
+    authController.protect,
+    authController.restrictTo('instructor', 'admin'),
+    userController.changePassword
+  )
+
 export default instructorRouter

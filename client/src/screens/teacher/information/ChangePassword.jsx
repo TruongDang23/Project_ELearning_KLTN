@@ -29,7 +29,7 @@ function ChangePassword({ userID }) {
   )
 }
 
-const Wrapper = styled.section`
+const Wrapper = styled.div`
   h3 {
     font-size: 2rem;
     font-weight: 700;

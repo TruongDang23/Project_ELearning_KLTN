@@ -10,6 +10,8 @@ import {
   Paper
 } from '@mui/material'
 import { StudentClient } from 'api/studentClient'
+import { InstructorClient } from 'api/instructorClient'
+import { useNavigate } from 'react-router-dom'
 
 const dialogTitleStyles = {
   fontFamily: "'Inter', 'Arial', sans-serif",
@@ -118,6 +120,7 @@ function ChangePasswordDialog({ open, onClose, userID }) {
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('error')
   const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -129,13 +132,13 @@ function ChangePasswordDialog({ open, onClose, userID }) {
       return
     }
     setLoading(true)
-    const client = new StudentClient()
+    const client = new InstructorClient()
     const res = await client.changePassword(userID, oldPassword, newPassword)
 
     if (res.status === 200) {
       if (res?.response?.data?.message) {
         setMessage(res.response.data.message)
-      } else setMessage('Change password successfully!')
+      } else setMessage('Change password successfully!.')
       setMessageType('success')
     } else if (res.status === 400) {
       if (res?.response?.data?.error) {
