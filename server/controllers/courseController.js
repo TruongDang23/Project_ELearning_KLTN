@@ -91,7 +91,7 @@ const getListInforEnroll = (connection, listID) => {
                     FROM course as c
                     INNER JOIN published_course as pc ON c.courseID = pc.courseID
                     INNER JOIN user as u ON u.userID = c.userID
-                    INNER JOIN avg_rating as avg ON avg.courseID = c.courseID
+                    LEFT JOIN avg_rating as avg ON avg.courseID = c.courseID
                     WHERE c.courseID IN (?)`
     try {
       const [rowsInfo] = await connection.query(query,

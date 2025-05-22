@@ -59,7 +59,7 @@ function Output({ editorRef, language, testcases, setProgress }) {
     try
     {
       setIsLoading(true)
-      const res = await student.submitAssignment(language, sourceCode, testcases)
+      const res = await student.submitAssignment(params.courseID, language, sourceCode, testcases)
       if (res.data === true)
       {
         let result = 'Accepted'

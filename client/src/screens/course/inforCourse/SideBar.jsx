@@ -52,6 +52,7 @@ function SideBar({ inforCourseData }) {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarSeverity, setSnackbarSeverity] = useState('success')
+  const [isLoadingBuyCourse, setLoadingBuyCourse] = useState(false)
   const userID = localStorage.getItem('userID')
   const cancel_url = window.location.href
   const return_url = `${window.location.origin}/student/my-learning#`
@@ -78,9 +79,11 @@ function SideBar({ inforCourseData }) {
   }
 
   const handleBuyCourse = async () => {
+    setLoadingBuyCourse(true)
     if (inforCourseData.price == 0) {
       //If course is free => call API buyCourse to insert directly into database table
       const res = await student.buyCourse(courseID)
+      setLoadingBuyCourse(false)
       if (res.data.message === 'enrolled') {
         toggleBuy('enrolled')
       } else if (res.data.message === 'created') {
@@ -94,6 +97,7 @@ function SideBar({ inforCourseData }) {
         return_url,
         voucherCode
       )
+      setLoadingBuyCourse(false)
       if (res.data.message === 'enrolled') {
         toggleBuy('enrolled')
       } else {
@@ -298,7 +302,7 @@ function SideBar({ inforCourseData }) {
                     className="sidebar-button button-buy"
                     onClick={handleBuyCourse}
                   >
-            Buy now
+                    {isLoading ? <CircularProgress size={20} sx={{ color: '#0d0d0d' }} /> : 'Buy now'}
                   </button>
                 )}
 

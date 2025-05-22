@@ -160,7 +160,6 @@ const InteractiveQuestion = () => {
 
   if (!openPopup)
     return null
-
   const handleAnswerSelection = (answerId) => {
     if (hasAnswered) return // Ngăn chọn nhiều lần
 
@@ -171,6 +170,7 @@ const InteractiveQuestion = () => {
     if (correct) {
       setTimeout(() => {
         setOpenPopup(false)
+        setHasAnswered(false) //set false for the next question
       }, 2000)
     }
   };

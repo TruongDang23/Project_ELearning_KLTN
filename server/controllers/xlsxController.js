@@ -1,6 +1,7 @@
 import xlsx from 'xlsx'
 import fs from 'fs'
 import axios from 'axios'
+import { convertToDownLoadLink, convertToEmbedLink } from '../utils/format'
 
 let max_lecture = 0
 
@@ -126,6 +127,8 @@ const convertGeneralInformation = (sheet, course_structure) => {
 
     if (typeof value === 'string' && value.includes('\r\n'))
       value = value.split('\r\n')
+    if (key === 'video_introduce')
+      value = convertToEmbedLink(value) // Just support youtube link
     course_structure[key] = value
   }
   return course_structure
@@ -158,12 +161,30 @@ const processLecture = async (rawData, index) => {
   if (lectureObj.id >= max_lecture)
     max_lecture = lectureObj.id
 
+  let downloadUrl, embedUrl
+
   if (lectureObj.type === "quizz") {
+    // When user upload share link => convert it to download link
+    // Supported link: Google Sheets
+    downloadUrl = convertToDownLoadLink(lectureObj.source)
+    if (downloadUrl)
+      lectureObj.source = downloadUrl
     const quizzObject = await processQuizzOrAssignment(lectureObj.source, convertToQuizObject)
     Object.assign(lectureObj, quizzObject)
   } else if (lectureObj.type === "assignment") {
+    // When user upload share link => convert it to download link
+    // Supported link: Google Sheets
+    downloadUrl = convertToDownLoadLink(lectureObj.source)
+    if (downloadUrl)
+      lectureObj.source = downloadUrl
     const assignmentObject = await processQuizzOrAssignment(lectureObj.source, convertToAssignmentObject)
     Object.assign(lectureObj, assignmentObject)
+  } else if (lectureObj.type === "video") {
+    // When user upload share link => convert it to embed link
+    // Supported link: Youtube
+    embedUrl = convertToEmbedLink(lectureObj.source)
+    if (embedUrl)
+      lectureObj.source = embedUrl
   }
 
   return lectureObj

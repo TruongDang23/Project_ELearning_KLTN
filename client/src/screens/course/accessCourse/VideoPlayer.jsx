@@ -97,7 +97,7 @@ function VideoPlayer({
       setVideoEnded(false)
     }
     setPlaying(!playing)
-    if (!playing) {
+    if (playing) {
       setProgress((prevProgress) => ({
         ...prevProgress,
         percent: (
