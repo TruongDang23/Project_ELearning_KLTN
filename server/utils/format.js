@@ -21,8 +21,9 @@ function convertToDownLoadLink(url) {
 // Support Youtube
 function convertToEmbedLink(url) {
   // Fomat link youtube on url bar: https://www.youtube.com/watch?v=EqKUpelTb6A&list=RD3mY-cD25lPs&index=11
-  const match = url.match(/\/?v=([a-zA-Z0-9-_]{11})/)
-  const id = match ? match[1] : null //EqKUpelTb6A
+  const match = url.match(/\/?v=([a-zA-Z0-9-_]{11})/) // When user copy link from url bar
+  const match2 = url.match(/\.be\/([a-zA-Z0-9-_]{11})/) // When user using button "Copy video url" on youtube
+  const id = match ? match[1] : (match2 ? match2[1] : null) //EqKUpelTb6A
 
   // Format embed link: https://www.youtube.com/embed/EqKUpelTb6A
   const embedLink = `https://www.youtube.com/embed/${id}`

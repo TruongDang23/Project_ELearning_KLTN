@@ -445,10 +445,15 @@ const buyCourse = catchAsync(async (req, res, next) => {
         buyCourseMySQL(connection, req.userID, courseID), // Insert course into enroll table
         addEnrollCourse(mongoTransaction, req.userID, courseID) // Insert new course into field enrolled_course
       ])
-      await connection.query("COMMIT")
       await mongoTransaction.commitTransaction()
-      await emailController.sendBuyCourseSuccess(courseID, inf_student)
-      await emailController.sendCourseIsBuy(courseID, inf_instruc)
+
+      if (inf_student.mail)
+        await emailController.sendBuyCourseSuccess(courseID, inf_student)
+
+      if (inf_instruc.mail)
+        await emailController.sendCourseIsBuy(courseID, inf_instruc)
+
+      await connection.query("COMMIT")
       res.status(201).send({ message: 'created' })
     }
     catch (error) {

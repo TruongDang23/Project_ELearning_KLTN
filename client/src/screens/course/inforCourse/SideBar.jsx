@@ -302,7 +302,7 @@ function SideBar({ inforCourseData }) {
                     className="sidebar-button button-buy"
                     onClick={handleBuyCourse}
                   >
-                    {isLoading ? <CircularProgress size={20} sx={{ color: '#0d0d0d' }} /> : 'Buy now'}
+                    {isLoadingBuyCourse ? <CircularProgress size={20} sx={{ color: '#0d0d0d' }} /> : 'Buy now'}
                   </button>
                 )}
 

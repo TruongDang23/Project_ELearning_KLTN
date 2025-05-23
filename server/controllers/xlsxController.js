@@ -1,7 +1,7 @@
 import xlsx from 'xlsx'
 import fs from 'fs'
 import axios from 'axios'
-import { convertToDownLoadLink, convertToEmbedLink } from '../utils/format'
+import { convertToDownLoadLink, convertToEmbedLink } from '../utils/format.js'
 
 let max_lecture = 0
 
@@ -196,7 +196,7 @@ const processQuizzOrAssignment = async (fileUrl, convertFunction) => {
 
   try {
     await downloadFile(fileUrl, outputPath)
-    console.log("Download completed")
+    //console.log("Download completed")
 
     const workbook = xlsx.readFile(outputPath)
     const result = convertFunction(workbook)
