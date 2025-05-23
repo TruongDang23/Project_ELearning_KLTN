@@ -485,7 +485,8 @@ const payment = catchAsync(async (req, res, next) => {
     if (voucher_code) { // If using voucher code => update price
       const voucherInfo = await getVoucherByCode(voucher_code)
       if (voucherInfo.discount_type === 'percent') {
-        price = Math.floor((courseInfo[0].price * voucherInfo.discount_value) / 100) //integer
+        const discount = Math.floor((courseInfo[0].price * voucherInfo.discount_value) / 100) //integer
+        price = parseInt(Math.max(0, price - discount).toFixed(2))
       }
       else if (voucherInfo.discount_type === 'fixed') {
         price = Number(courseInfo[0].price) - Number(voucherInfo.discount_value) //integer

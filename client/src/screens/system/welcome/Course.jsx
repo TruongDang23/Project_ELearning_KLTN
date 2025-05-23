@@ -19,7 +19,7 @@ function Course({ course }) {
           <span className="rating-count">({number_reviews})</span>
         </div>
         <div className="item-price">
-          {price === '0 ₫' ? <span className="item-price-new">Free</span> : <span className="item-price-new">{price}</span>}
+          {price === 0 ? <span className="item-price-new">Free</span> : <span className="item-price-new">{price}</span>}
         </div>
       </div>
       <div className="item-btns">

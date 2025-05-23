@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 
 import StarRating from '~/components/general/Other/StarRating'
+import { formatVND } from '~/utils/format'
 
 function CoursePublish({ course_enrolled }) {
   return (
@@ -11,7 +12,7 @@ function CoursePublish({ course_enrolled }) {
         <div className="course-enrolled__content">
           {course_enrolled.map((course, index) => {
             const price =
-              course.price == 0 ? 'Free' : course.price + ' ' + course.currency
+              course.price == 0 ? 'Free' : formatVND(course.price)
             return (
               <div key={index} className="course-enrolled__content-item">
                 <div className="item-img">

@@ -146,7 +146,7 @@ const recommendCourse = catchAsync(async (req, res, next) => {
     const mergeData = info_mysql.map(course => {
       return {
         ...course,
-        price: course.price ? formatVND(course.price) : 0.00,
+        price: (course.price > 0) ? formatVND(course.price) : 0,
         image_introduce: info_mongo[0].image_introduce,
         keywords: info_mongo[0].keywords,
         targets: info_mongo[0].targets

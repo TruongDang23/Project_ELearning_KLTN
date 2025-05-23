@@ -1,6 +1,6 @@
 import styled from 'styled-components'
-import { Link } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
+import { formatVND } from '~/utils/format'
 
 export function Items({ courseItem }) {
   const navigate = useNavigate()
@@ -44,7 +44,7 @@ export function Items({ courseItem }) {
         <div className="right_infor">
           <h2>{courseItem.courseID}</h2>
           <p>
-            {courseItem.price} {courseItem.currency}
+            {formatVND(courseItem.price)}
           </p>
           <div className="button">
             <a
@@ -56,14 +56,6 @@ export function Items({ courseItem }) {
             >
               Go to course
             </a>
-            {/* <a
-              href="https://www.youtube.com/watch?v=9O1Hs1Yrg1w"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-edit"
-            >
-              Edit course
-            </a> */}
           </div>
         </div>
       </div>

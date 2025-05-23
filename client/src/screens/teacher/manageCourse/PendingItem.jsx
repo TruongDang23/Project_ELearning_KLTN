@@ -1,18 +1,13 @@
 import styled from 'styled-components'
 import { useState } from 'react'
 import { CancelApprove } from '~/components/popup/index'
-import { useNavigate } from 'react-router-dom'
+import { formatVND } from '~/utils/format'
 
 export function Items({ courseItem, reload, setReload }) {
-  const navigate = useNavigate()
   const [openCancel, setopenCancel] = useState(false)
 
   const toggleCancel = () => {
     setopenCancel(!openCancel)
-  }
-
-  const handleGoToCourse = (courseID) => {
-    navigate(`/course/infor/${courseID}`)
   }
 
   return (
@@ -51,7 +46,7 @@ export function Items({ courseItem, reload, setReload }) {
           <div className="right_infor">
             <h2>{courseItem.courseID}</h2>
             <p>
-              {courseItem.price} {courseItem.currency}
+              {formatVND(courseItem.price)}
             </p>
             <div className="button">
               <button onClick={toggleCancel} className="btn-cancel">

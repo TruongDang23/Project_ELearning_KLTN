@@ -9,37 +9,7 @@ import { BuyCourse } from '~/components/popup'
 import { useEffect, useState } from 'react'
 import { student } from 'api'
 import { Autocomplete, TextField, CircularProgress } from '@mui/material'
-
-const SAMPLE_VOUCHERS = [
-  {
-    voucher_code: 'WELCOME50',
-    description: 'Welcome discount for new users',
-    discount_value: 50,
-    start_date: new Date(),
-    end_date: new Date(new Date().setMonth(new Date().getMonth() + 1)) // 1 month from now
-  },
-  {
-    voucher_code: 'SUMMER25',
-    description: 'Summer sale discount on all courses',
-    discount_value: 25,
-    start_date: new Date(),
-    end_date: new Date(new Date().setDate(new Date().getDate() + 30)) // 30 days from now
-  },
-  {
-    voucher_code: 'FLASH75',
-    description: 'Flash sale - valid for 24 hours only',
-    discount_value: 75,
-    start_date: new Date(),
-    end_date: new Date(new Date().setDate(new Date().getDate() + 1)) // 1 day from now
-  },
-  {
-    voucher_code: 'SPECIAL60',
-    description: 'Special discount for selected courses',
-    discount_value: 60,
-    start_date: new Date(),
-    end_date: new Date(new Date().setDate(new Date().getDate() + 7)) // 7 days from now
-  }
-]
+import { formatVND } from '~/utils/format'
 
 function SideBar({ inforCourseData }) {
   const [openPub, setopenPub] = useState(false)
@@ -64,18 +34,22 @@ function SideBar({ inforCourseData }) {
   const { courseID } = useParams()
 
   useEffect(() => {
-    if (inforCourseData.price > 0) {
+    // if course is free, price = 0
+    // if course is payable, price = '.... đ' => using condition != 0 is correct
+    if (inforCourseData.price != 0) {
       fetchSampleVouchers()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inforCourseData.price])
 
-  const fetchSampleVouchers = () => {
+  const fetchSampleVouchers = async() => {
     setLoading(true)
     // Simulate API delay
-    setTimeout(() => {
-      setAvailableVouchers(SAMPLE_VOUCHERS)
+    const matchedVoucher = await student.getMatchedVouchers(courseID)
+    if (matchedVoucher.status === 200) {
+      setAvailableVouchers(matchedVoucher.data.data)
       setLoading(false)
-    }, 800)
+    }
   }
 
   const handleBuyCourse = async () => {
@@ -130,12 +104,16 @@ function SideBar({ inforCourseData }) {
       availableVouchers.find(
         (v) => v.voucher_code.toLowerCase() === voucherCode.toLowerCase()
       )
-
     if (foundVoucher) {
+      // Get current price
+      const regex = /([0-9-.]+)/
+      const priceMatch = inforCourseData.price.match(regex)
+      const price = priceMatch ? parseFloat(priceMatch[0].replace(/\./g, '')) : 0
       // Calculate discounted price
       const discount =
-        (inforCourseData.price * foundVoucher.discount_value) / 100
-      const newPrice = Math.max(0, inforCourseData.price - discount).toFixed(2)
+        (price * foundVoucher.discount_value) / 100
+      let newPrice = Math.max(0, price - discount).toFixed(2)
+      newPrice = formatVND(newPrice)
       setDiscountedPrice(newPrice)
 
       setSnackbarMessage(`Voucher applied! Your new price is $${newPrice}`)
@@ -195,7 +173,9 @@ function SideBar({ inforCourseData }) {
               <span>
                 {inforCourseData.price == 0
                   ? 'Free'
-                  : `${inforCourseData.price}`}
+                  :
+                  ( discountedPrice ? discountedPrice : `${inforCourseData.price}`)
+                }
               </span>
             </li>
           </ul>
@@ -210,7 +190,8 @@ function SideBar({ inforCourseData }) {
             :
             (
               <>
-                {inforCourseData.price > 0 && (
+                {/* Case course has price => inforCourseData.pice = '.... đ' => using condition != 0 is correct */}
+                {inforCourseData.price != 0 && (
                   <div className="voucher-input-container">
                     <Autocomplete
                       id="voucher-autocomplete"
@@ -244,7 +225,7 @@ function SideBar({ inforCourseData }) {
                       renderOption={(props, option) => (
                         <li {...props}>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ fontWeight: 'bold', color: '#1971c2' }}>
+                            <div style={{ fontWeight: 'bold', color: '#1971c2', fontSize: '1.3rem' }}>
                               {option.voucher_code}
                             </div>
                             <div
@@ -258,8 +239,17 @@ function SideBar({ inforCourseData }) {
                               <span>{option.discount_value}% off</span>
                               <span style={{ color: '#777' }}>
                           Expires:{' '}
-                                {new Date(option.end_date).toLocaleDateString()}
+                                {new Date(option.end_date).toLocaleDateString('vi-VN')}
                               </span>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '1.2rem',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                width: '100%'
+                              }}>
+                              Remaining uses: {option.usage_limit - option.usage_count}
                             </div>
                             {option.description && (
                               <div
