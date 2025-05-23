@@ -195,7 +195,7 @@ function SideBar({ inforCourseData }) {
               <span>
                 {inforCourseData.price == 0
                   ? 'Free'
-                  : `$${inforCourseData.price}`}
+                  : `${inforCourseData.price}`}
               </span>
             </li>
           </ul>

@@ -1,7 +1,7 @@
 import catchAsync from '../utils/catchAsync.js'
 import path from 'path'
 import extract from 'pdf-text-extract'
-import { formatTextfromPDF, downloadPDF, formatContentForRecommendModel } from '../utils/format.js'
+import { formatTextfromPDF, downloadPDF, formatContentForRecommendModel, formatVND } from '../utils/format.js'
 import { v4 as uuid } from 'uuid'
 import fs from 'fs'
 import connectMysql from '../config/connMySql.js'
@@ -146,6 +146,7 @@ const recommendCourse = catchAsync(async (req, res, next) => {
     const mergeData = info_mysql.map(course => {
       return {
         ...course,
+        price: course.price ? formatVND(course.price) : 0.00,
         image_introduce: info_mongo[0].image_introduce,
         keywords: info_mongo[0].keywords,
         targets: info_mongo[0].targets

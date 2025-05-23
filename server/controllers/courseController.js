@@ -14,6 +14,7 @@ import Email from './emailController.js'
 import axios from 'axios'
 import { isCourseAccessible } from '../utils/precheckAccess.js'
 import { decodeToken } from './authController.js'
+import { formatVND } from '../utils/format.js'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -974,6 +975,7 @@ const getCourseById = catchAsync(async (req, res, next) => {
   const mergeData = info_mysql.map(course => {
     return {
       ...course,
+      price: course.price ? formatVND(course.price) : formatVND(0.00),
       is_accessible: is_accessible,
       videos: videos,
       review: reviews,
@@ -1028,12 +1030,14 @@ const searchCourse = catchAsync(async (req, res, next) => {
         if (queryObject.page === 'welcome') {
           return {
             ...course,
+            price: course.price ? formatVND(course.price) : formatVND(0.00),
             image_introduce: info_mongo[0] ? info_mongo[0].image_introduce : null
           }
         }
         else if (queryObject.page === 'searchcourse') {
           return {
             ...course,
+            price: course.price ? formatVND(course.price) : formatVND(0.00),
             image_introduce: info_mongo[0] ? info_mongo[0].image_introduce : null,
             keywords: info_mongo[0] ? info_mongo[0].keywords : [],
             targets: info_mongo[0] ? info_mongo[0].targets : []
@@ -1092,6 +1096,7 @@ const accessCourse = catchAsync(async (req, res, next) => {
   const mergeData = info_mysql.map(course => {
     return {
       ...course,
+      price: course.price ? formatVND(course.price) : formatVND(0.00),
       progress: progress ? progress : 0,
       videos: videos,
       review: reviews,
