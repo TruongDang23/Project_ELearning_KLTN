@@ -12,6 +12,18 @@ export class InstructorClient extends ApiClient {
     this.notify = new NotifyClient()
   }
 
+  async changePassword(id, oldPassword, newPassword) {
+    try {
+      const response = await axios.post(
+        `${this.domain}/change-password/${id}`,
+        { oldPassword, newPassword }
+      )
+      return response
+    } catch (error) {
+      return error
+    }
+  }
+
   async updateAvatar(id, formData) {
     try {
       const response = await axios.put(`${this.domain}/avatar/${id}`, formData, {

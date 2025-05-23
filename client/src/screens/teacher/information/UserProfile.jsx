@@ -353,7 +353,7 @@ const Input = styled.input`
 
 const ProfileContainer = styled.div`
   display: flex;
-  height: 100%;
+  height: auto;
   flex-direction: column;
   background-color: #fff;
   .avt {
