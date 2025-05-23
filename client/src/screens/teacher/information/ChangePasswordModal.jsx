@@ -9,9 +9,10 @@ import {
   Typography,
   Paper
 } from '@mui/material'
-import { StudentClient } from 'api/studentClient'
 import { InstructorClient } from 'api/instructorClient'
-import { useNavigate } from 'react-router-dom'
+import { anonymous } from 'api/index'
+import { globalFlag } from '~/context/GlobalFlag'
+import { userStore } from '~/context/UserStore'
 
 const dialogTitleStyles = {
   fontFamily: "'Inter', 'Arial', sans-serif",
@@ -120,7 +121,17 @@ function ChangePasswordDialog({ open, onClose, userID }) {
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('error')
   const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
+  const reloadVoiceFlow = globalFlag((state) => state.setReloadVoiceflow)
+  const { resetInfor } = userStore()
+
+  const handleLogout = async () => {
+    localStorage.clear()
+    await anonymous.logOut()
+    reloadVoiceFlow()
+    resetInfor()
+    // setReload(true)
+    window.location.href = '/login'
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -138,8 +149,15 @@ function ChangePasswordDialog({ open, onClose, userID }) {
     if (res.status === 200) {
       if (res?.response?.data?.message) {
         setMessage(res.response.data.message)
-      } else setMessage('Change password successfully!.')
+      } else
+        setMessage(
+          'Change password successfully!. You will be logged out in 5 seconds.'
+        )
       setMessageType('success')
+
+      setTimeout(() => {
+        handleLogout()
+      }, 5000)
     } else if (res.status === 400) {
       if (res?.response?.data?.error) {
         setMessage(res.response.data.error)
