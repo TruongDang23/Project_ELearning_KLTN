@@ -380,16 +380,16 @@ function MainDesignCourse({ setStructure }) {
 
   const getFileAccept = (lectureType) => {
     switch (lectureType) {
-      case 'file':
-        return '.pdf'
-      case 'video':
-        return '.mp4,.wmv'
-      case 'quiz':
-        return '.xlsx'
-      case 'assignment':
-        return '.xlsx'
-      default:
-        return '' // Cho phép tất cả các loại file nếu không ràng buộc
+    case 'file':
+      return '.pdf'
+    case 'video':
+      return '.mp4,.wmv'
+    case 'quiz':
+      return '.xlsx'
+    case 'assignment':
+      return '.xlsx'
+    default:
+      return '' // Cho phép tất cả các loại file nếu không ràng buộc
     }
   }
 
@@ -562,7 +562,8 @@ function MainDesignCourse({ setStructure }) {
             name: lecture.name,
             description: lecture.description,
             type: lecture.type,
-            source: lecture.source.name || '',
+            filename: lecture.filename,
+            source: lecture.source,
             interactive: lecture.type === 'video' ? lecture.interactive : []
           }))
         })),

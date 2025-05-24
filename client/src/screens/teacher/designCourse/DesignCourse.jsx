@@ -72,6 +72,7 @@ function DesignCourse() {
       })
     })
 
+    alert('structure')
     const res = await instructor.createCourse(structure, formData)
     if (res.status === 201) {
       setOpenSuccess(true)
