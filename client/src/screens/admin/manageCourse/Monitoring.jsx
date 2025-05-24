@@ -2,7 +2,7 @@
 import styled from 'styled-components'
 import { Items } from './MonitorItem'
 
-function MonitoringCourse({ course, reload, setReload }) {
+function MonitoringCourse({ course, setReload }) {
   return (
     <>
       {course.length === 0 && <Heading>No course monitored </Heading>}
@@ -10,7 +10,6 @@ function MonitoringCourse({ course, reload, setReload }) {
         <Items
           key={courseItem.courseID}
           courseItem={courseItem}
-          reload={reload}
           setReload={setReload}
         />
       ))}

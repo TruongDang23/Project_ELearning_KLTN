@@ -2,6 +2,7 @@ import styled from 'styled-components'
 import { useState } from 'react'
 import { AdjustContent } from '~/components/popup'
 import { useNavigate } from 'react-router-dom'
+import { formatVND } from '~/utils/format'
 
 export function Items({ courseItem, reload, setReload }) {
   const navigate = useNavigate()
@@ -55,17 +56,18 @@ export function Items({ courseItem, reload, setReload }) {
                 {courseItem.end_time}
               </strong>
             </p>
-            <p>Reason: {courseItem.reason}</p>
+            <p>
+              <strong>Reason:</strong> {courseItem.reason}
+            </p>
           </div>
 
           <div className="right_infor">
             <h2>{courseItem.courseID}</h2>
             <p>
-              {courseItem.price} {courseItem.currency}
+              {formatVND(courseItem.price)}
             </p>
             <div className="button">
               <a
-                // to={`/course/infor/${courseItem.courseID}`}
                 onClick={() => handleGoToCourse(courseItem.courseID)}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -73,9 +75,6 @@ export function Items({ courseItem, reload, setReload }) {
               >
                 Go to course
               </a>
-              <button onClick={toggleAdjContent} className="btn-adjust">
-                Adjust Content
-              </button>
             </div>
           </div>
         </div>

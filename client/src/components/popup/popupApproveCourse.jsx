@@ -5,7 +5,7 @@ const PopupApproveCourse = ({ handleClose, course, reload, setReload }) => {
   const handleSave = async() => {
     const res = await instructor.sendApproveCourse(course)
     if (res.status == 200) {
-      setTimeout(() => setReload(!reload), 100)
+      setTimeout(() => setReload(!reload), 1000)
     }
   }
 

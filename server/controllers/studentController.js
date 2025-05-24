@@ -216,7 +216,7 @@ const getAll = catchAsync(async (req, res, next) => {
 
 const getByID = catchAsync(async (req, res, next) => {
   // Implement here
-  const userID = req.userID
+  const userID = req.params.id
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
   let enrolled = []
@@ -329,42 +329,45 @@ const updateProgressCourse = catchAsync(async (req, res, next) => {
   // Implement here
   const { courseID, lectureID } = req.params
   const userID = req.userID
-  if ( userID[0] != 'I' ) //Nếu không phải là Student thì ko ghi progress
+  if ( userID[0] != 'S' ) //Nếu không phải là Student thì ko ghi progress
     return
   const progress = parseInt(req.body.data, 10)
   const lectureIDInt = parseInt(lectureID, 10)
   const time = formatDateTime(new Date())
   const connection = connectMysql.promise()
+  if ( progress > 0 ) {
+    await connection.query("START TRANSACTION")
 
-  await connection.query("START TRANSACTION")
+    let query = "INSERT INTO learning (userID, lectureID, time, courseID, percent) VALUES (?, ?, ?, ?, ?)"
 
-  let query = "INSERT INTO learning (userID, lectureID, time, courseID, percent) VALUES (?, ?, ?, ?, ?)"
+    try {
+      const [rowsInfo] = await connection.query(query,
+        [
+          userID,
+          lectureIDInt,
+          time,
+          courseID,
+          progress
+        ])
 
-  try {
-    const [rowsInfo] = await connection.query(query,
-      [
-        userID,
-        lectureIDInt,
-        time,
-        courseID,
-        progress
-      ])
-
-    if (rowsInfo.affectedRows !== 0) {
-      res.status(200).send()
+      if (rowsInfo.affectedRows !== 0) {
+        await connection.query("COMMIT")
+        res.status(200).send()
+      }
+      else {
+        await connection.query("ROLLBACK")
+        next({ status: 400, message: 'Failed when updating progress of lecture' })
+      }
     }
-    else {
-      next({ status: 400, message: 'Failed when updating progress of lecture' })
+    catch (error) {
+      next(error)
     }
-  }
-  catch (error) {
-    next(error)
   }
 })
 
 const reviewCourse = catchAsync(async (req, res, next) => {
   // Implement here
-  const { courseID, userID, message, star, time } = req.body
+  const { courseID, userID, message, star, time } = req.body.data
   if (!courseID || !userID || !message || !star || !time) {
     next({ status: 400, message: "Missing required fiedls" })
   }
@@ -442,10 +445,15 @@ const buyCourse = catchAsync(async (req, res, next) => {
         buyCourseMySQL(connection, req.userID, courseID), // Insert course into enroll table
         addEnrollCourse(mongoTransaction, req.userID, courseID) // Insert new course into field enrolled_course
       ])
-      await connection.query("COMMIT")
       await mongoTransaction.commitTransaction()
-      await emailController.sendBuyCourseSuccess(courseID, inf_student)
-      await emailController.sendCourseIsBuy(courseID, inf_instruc)
+
+      if (inf_student.mail)
+        await emailController.sendBuyCourseSuccess(courseID, inf_student)
+
+      if (inf_instruc.mail)
+        await emailController.sendCourseIsBuy(courseID, inf_instruc)
+
+      await connection.query("COMMIT")
       res.status(201).send({ message: 'created' })
     }
     catch (error) {
@@ -464,7 +472,7 @@ const payment = catchAsync(async (req, res, next) => {
   const userID = req.userID
   const enrolled = await isEnrolled(courseID, req.userID)
   // eslint-disable-next-line no-undef
-  const baseURL = process.env.NODE_ENV === 'production' ? process.env.WEB_DOMAIN_PRD : process.env.WEB_DOMAIN_DEV
+  const baseURL = process.env.WEB_DOMAIN
   if (enrolled) { //enrolled = true => Đã tham gia khóa học rồi
     res.send({ message: 'enrolled' })
   }
@@ -477,7 +485,8 @@ const payment = catchAsync(async (req, res, next) => {
     if (voucher_code) { // If using voucher code => update price
       const voucherInfo = await getVoucherByCode(voucher_code)
       if (voucherInfo.discount_type === 'percent') {
-        price = Math.floor((courseInfo[0].price * voucherInfo.discount_value) / 100) //integer
+        const discount = Math.floor((courseInfo[0].price * voucherInfo.discount_value) / 100) //integer
+        price = parseInt(Math.max(0, price - discount).toFixed(2))
       }
       else if (voucherInfo.discount_type === 'fixed') {
         price = Number(courseInfo[0].price) - Number(voucherInfo.discount_value) //integer

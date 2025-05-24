@@ -70,8 +70,8 @@ const newQnA = catchAsync(async (req, res, next) => {
           session: mongoTransaction
         }
       )
-      await mongoTransaction.commitTransaction()
       await createNotification('course', id, req.userID, url, 'QnA')
+      await mongoTransaction.commitTransaction()
       socketFunction.increaseUnreadNotify(id)
       res.status(201).send()
     }

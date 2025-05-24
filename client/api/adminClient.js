@@ -55,19 +55,22 @@ export class AdminClient extends ApiClient {
     }
   }
 
-  async rejectCourse(id) {
+  async rejectCourse(id, reason) {
     try {
-      const response = await axios.put(`${this.domain}/reject/${id}`)
+      const response = await axios.put(`${this.domain}/reject/${id}`, {
+        reason: reason
+      })
       return response
     } catch (error) {
       return error
     }
   }
 
-  async terminateCourse(id, dateRange) {
+  async terminateCourse(id, dateRange, reason) {
     try {
       const response = await axios.put(`${this.domain}/terminate/${id}`, {
-        time: dateRange
+        time: dateRange,
+        reason: reason
       })
       return response
     } catch (error) {
@@ -94,6 +97,19 @@ export class AdminClient extends ApiClient {
   async lockAccount(id) {
     try {
       const response = await axios.put(`${this.domain}/locked/${id}`, {
+        headers: {
+          //authentication
+        }
+      })
+      return response
+    } catch (error) {
+      return error
+    }
+  }
+
+  async unLockAccount(id) {
+    try {
+      const response = await axios.put(`${this.domain}/unlocked/${id}`, {
         headers: {
           //authentication
         }

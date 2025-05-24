@@ -2,7 +2,7 @@
 import { Items } from './PublishedItem'
 import styled from 'styled-components'
 
-function PublishedCourse({ course, reload, setReload }) {
+function PublishedCourse({ course, setReload }) {
   return (
     <>
       {course.length === 0 && <Heading>No course created</Heading>}
@@ -10,7 +10,6 @@ function PublishedCourse({ course, reload, setReload }) {
         <Items
           key={courseItem.courseID}
           courseItem={courseItem}
-          reload={reload}
           setReload={setReload}
         />
       ))}

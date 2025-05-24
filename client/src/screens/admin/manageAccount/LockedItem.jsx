@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 import { useState } from 'react'
 import { UnLockAccount } from '~/components/popup/index'
-import { Link } from 'react-router-dom'
 
 export function Items({ accountItem, reload, setReload }) {
   const [openPopup, setopenPopup] = useState(false)
@@ -37,7 +36,7 @@ export function Items({ accountItem, reload, setReload }) {
             <p>{accountItem.role}</p>
             <div className="button">
               <a
-                href={`/course/infor/${accountItem.userID}`}
+                onClick={() => window.open(`/admin/manageAccount/profile/${accountItem.userID}`, '_blank')}
                 className="btn-view"
                 target="_blank"
                 rel="noopener noreferrer"

@@ -10,16 +10,15 @@ import WorkExperience from './WorkExperience'
 import PersonalProject from './PersonalProject'
 import CourseEnrolled from './CoursePublish'
 import Loading from '~/screens/system/Loading'
-import { useState } from 'react'
 import Sticky from 'react-sticky-el'
 import Logo from '../../../assets/hdh.png'
 import { Helmet } from 'react-helmet' // dùng để thay đổi title của trang
 import { userStore } from '~/context/UserStore'
 
 function ProfileInstructor() {
-  const [userProfiles, setUserProfile] = useState(userStore.getState())
+  const userProfiles = userStore.getState()
 
-  const [isLoad, setIsLoad] = useState(false) //Data is loading
+  const isLoad = false //Data is loading
 
   return (
     <>

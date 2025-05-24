@@ -7,9 +7,12 @@ import { useState, useEffect } from 'react'
 import { instructor } from 'api'
 import { useNavigate } from 'react-router-dom'
 import { Snackbar } from "~/components/general"
+import { CircularProgress } from '@mui/material'
+
 
 function Sidebar({ handleSave }) {
   const { completedSections } = useContext(DesignCourseContext)
+  const [isLoading, setIsLoading] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
   const [openSuccess, setOpenSuccess] = useState(false)
   const [openError, setOpenError] = useState({
@@ -23,7 +26,9 @@ function Sidebar({ handleSave }) {
     const formData = new FormData()
     if (file) {
       formData.append(`upload full course`, file)
+      setIsLoading(true)
       const res = await instructor.uploadCourse(formData)
+      setIsLoading(false)
       if (res.status === 201) {
         setOpenSuccess(true)
         setTimeout(() => {
@@ -120,7 +125,7 @@ function Sidebar({ handleSave }) {
           </button>
 
           <label htmlFor="file-upload" id="btn-upload">
-          Upload Course
+            {isLoading ? <CircularProgress size={20} sx={{ color: '#0d0d0d' }} /> : 'Upload Course'}
           </label>
           <input
             type="file"

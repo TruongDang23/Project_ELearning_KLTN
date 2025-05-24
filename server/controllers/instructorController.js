@@ -9,7 +9,7 @@ import { checkEmailExists } from '../utils/validationData.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
-    let query = 'SELECT userID, avatar, fullname, date_of_birth, street, province, country, language\
+    let query = 'SELECT userID, avatar, fullname, mail, date_of_birth, street, province, country, language\
                  from user where userID = ?'
     try {
       const [rowsInfo] = await connection.query(query,
@@ -112,7 +112,7 @@ const updateInfoMongoDB = async (session, inf) => {
 
 const getByID = catchAsync(async (req, res, next) => {
   // Implement here
-  const userID = req.userID
+  const userID = req.params.id
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
   let published
@@ -280,4 +280,18 @@ const sendApproveCourse = catchAsync(async (req, res, next) => {
   }
 })
 
-export default { getByID, getAll, update, sendApproveCourse }
+// Hủy gửi xét duyệt khóa học
+const cancelApproveCourse = catchAsync(async (req, res, next) => {
+  // Implement here
+  const { courseID } = req.params
+  const time = formatDateTime(new Date())
+  try {
+    await switchCourseStatus(courseID, "created", "send_mornitor", "created_course", time)
+    res.status(200).send()
+  }
+  catch {
+    next({ status: 500, message: 'Failed to send approval' })
+  }
+})
+
+export default { getByID, getAll, update, sendApproveCourse, cancelApproveCourse }

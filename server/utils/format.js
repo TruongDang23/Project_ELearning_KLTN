@@ -7,6 +7,28 @@ function formatTextfromPDF(lines) {
     .join('\n\n')
 }
 
+// Support Google Sheets
+function convertToDownLoadLink(url) {
+  // Format share link: https://docs.google.com/spreadsheets/d/1xrvxSI7PYGq0O6WT3FzG20E0G9QgKULP/edit?usp=drive_link
+  const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/)
+  const id = match ? match[1] : null // 1xrvxSI7PYGq0O6WT3FzG20E0G9QgKULP
+
+  // Format download link: https://docs.google.com/uc?export=view&id=1xrvxSI7PYGq0O6WT3FzG20E0G9QgKULP
+  const downloadLink = `https://docs.google.com/uc?export=view&id=${id}`
+  return downloadLink
+}
+
+// Support Youtube
+function convertToEmbedLink(url) {
+  // Fomat link youtube on url bar: https://www.youtube.com/watch?v=EqKUpelTb6A&list=RD3mY-cD25lPs&index=11
+  const match = url.match(/\/?v=([a-zA-Z0-9-_]{11})/) // When user copy link from url bar
+  const match2 = url.match(/\.be\/([a-zA-Z0-9-_]{11})/) // When user using button "Copy video url" on youtube
+  const id = match ? match[1] : (match2 ? match2[1] : null) //EqKUpelTb6A
+
+  // Format embed link: https://www.youtube.com/embed/EqKUpelTb6A
+  const embedLink = `https://www.youtube.com/embed/${id}`
+  return embedLink
+}
 
 async function downloadPDF(url, outputPath) {
   try {
@@ -48,4 +70,11 @@ function formatVND(amount) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }
 
-export { formatTextfromPDF, downloadPDF, formatContentForRecommendModel, formatVND }
+export {
+  formatTextfromPDF,
+  downloadPDF,
+  formatContentForRecommendModel,
+  formatVND,
+  convertToDownLoadLink,
+  convertToEmbedLink
+}

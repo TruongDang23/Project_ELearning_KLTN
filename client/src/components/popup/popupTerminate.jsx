@@ -5,10 +5,11 @@ import styled from 'styled-components'
 import dayjs from 'dayjs'
 import { admin } from 'api'
 
-const PopupTerminate = ({ handleClose, course, reload, setReload }) => {
+const PopupTerminate = ({ handleClose, course, setReload }) => {
   const [dateRange, setDateRange] = useState(['', ''])
   const [showCalendar, setShowCalendar] = useState(false)
   const [currentInput, setCurrentInput] = useState(null)
+  const [reason, setReason] = useState('')
   const calendarRef = useRef()
 
   const handleDateChange = (date) => {
@@ -31,6 +32,10 @@ const PopupTerminate = ({ handleClose, course, reload, setReload }) => {
     }
   };
 
+  const handleInputReason = (e) => {
+    setReason(e.target.value)
+  }
+
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -39,9 +44,9 @@ const PopupTerminate = ({ handleClose, course, reload, setReload }) => {
   }, []);
 
   const handleSave = async() => {
-    const res = await admin.terminateCourse(course, dateRange)
+    const res = await admin.terminateCourse(course, dateRange, reason)
     if (res.status == 200) {
-      setTimeout(() => setReload(!reload), 1000)
+      setReload(prev => !prev)
     }
   }
   return (
@@ -66,6 +71,13 @@ const PopupTerminate = ({ handleClose, course, reload, setReload }) => {
               value = { (dateRange[1] == '' ? 'Permanently' : dateRange[1])}
               readOnly
               onClick={() => handleInputClick('to')}
+            />
+            <h3>Reason:</h3>
+            <input
+              type="text"
+              placeholder='Reason...'
+              value={reason}
+              onChange={handleInputReason}
             />
 
             {showCalendar && (

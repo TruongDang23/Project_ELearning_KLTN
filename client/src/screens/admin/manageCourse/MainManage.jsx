@@ -23,7 +23,6 @@ function ManageCourse() {
 
   const loadListCourse = async () => {
     const res = await admin.loadListCourse()
-    console.log(res)
     if (res.status == 200) {
       setPub(res.data.published)
       setMonitor(res.data.pending)
@@ -32,7 +31,6 @@ function ManageCourse() {
   }
   useEffect(() => {
     loadListCourse()
-    console.log('reload')
   }, [reload])
   return (
     <>

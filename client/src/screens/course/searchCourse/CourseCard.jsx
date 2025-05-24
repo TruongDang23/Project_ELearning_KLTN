@@ -14,7 +14,7 @@ function CourseCard({ course }) {
     program,
     image_introduce,
     price,
-    currency,
+    // currency,
     keywords,
     instructor,
     star,
@@ -97,7 +97,8 @@ function CourseCard({ course }) {
             <p>Free</p>
           ) : (
             <p>
-              {price} {currency}
+              {price}
+              {/* {price} {currency} */}
             </p>
           )}
         </div>

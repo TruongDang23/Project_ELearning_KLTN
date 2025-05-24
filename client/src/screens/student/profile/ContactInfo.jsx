@@ -19,7 +19,7 @@ function ContactInfo({ userProfile }) {
   const handleEditProfile = () => {
     navigate('/student/information')
   }
-
+  const userID = localStorage.getItem('userID')
   return (
     <ContactInfoWrapper>
       <div className="contact-info">
@@ -30,12 +30,14 @@ function ContactInfo({ userProfile }) {
           <div className="contact-info__name">
             <h2>
               {fullname}
-              <span>
-                <BorderColorIcon
-                  onClick={handleEditProfile}
-                  style={{ fontSize: 25 }}
-                />
-              </span>
+              {userID[0] === 'S' && (
+                <span>
+                  <BorderColorIcon
+                    onClick={handleEditProfile}
+                    style={{ fontSize: 25 }}
+                  />
+                </span>
+              )}
             </h2>
           </div>
 

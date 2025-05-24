@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import { useState } from 'react'
 import { PublishCourse, RejectCourse } from '~/components/popup/index'
 
-export function Items({ courseItem, reload, setReload }) {
+export function Items({ courseItem, setReload }) {
   const [openPub, setopenPub] = useState(false)
   const [openReject, setopenReject] = useState(false)
 
@@ -62,7 +62,6 @@ export function Items({ courseItem, reload, setReload }) {
         <PublishCourse
           handleClose={togglePub}
           course={courseItem.courseID}
-          reload={reload}
           setReload={setReload}
         />
       )}
@@ -70,7 +69,6 @@ export function Items({ courseItem, reload, setReload }) {
         <RejectCourse
           handleClose={toggleReject}
           course={courseItem.courseID}
-          reload={reload}
           setReload={setReload}
         />
       )}

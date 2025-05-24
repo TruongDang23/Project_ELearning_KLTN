@@ -19,15 +19,13 @@ function Course({ course }) {
           <span className="rating-count">({number_reviews})</span>
         </div>
         <div className="item-price">
-          <span className="item-price-new">Free</span>
-          <span className="item-price-old">${price}</span>
+          {price === 0 ? <span className="item-price-new">Free</span> : <span className="item-price-new">{price}</span>}
         </div>
       </div>
       <div className="item-btns">
         <Link to={`/course/infor/${courseID}`}>
           <button className="item-btn see-details-btn">See Details</button>
         </Link>
-        {/* <button className="item-btn add-to-cart-btn">Add to Cart</button> */}
       </div>
     </CourseWrapper>
   )

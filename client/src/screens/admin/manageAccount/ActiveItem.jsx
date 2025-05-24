@@ -4,7 +4,6 @@ import { LockAccount } from '~/components/popup/index'
 
 export function Items({ accountItem, reload, setReload }) {
   const [openPopup, setopenPopup] = useState(false)
-
   const togglePub = () => {
     setopenPopup(!openPopup)
   }
@@ -36,7 +35,7 @@ export function Items({ accountItem, reload, setReload }) {
             <p>{accountItem.role}</p>
             <div className="button">
               <a
-                href={`Student/profile`}
+                onClick={() => window.open(`/admin/manageAccount/profile/${accountItem.userID}`, '_blank')}
                 className="btn-view"
                 target="_blank"
                 rel="noopener noreferrer"

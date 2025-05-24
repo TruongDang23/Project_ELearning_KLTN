@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import { useState } from 'react'
 import { RePublishCourse } from '~/components/popup'
 
-export function Items({ courseItem, reload, setReload }) {
+export function Items({ courseItem, setReload }) {
   const [openRePub, setopenRePub] = useState(false)
 
   const toggleRePub = () => {
@@ -39,6 +39,9 @@ export function Items({ courseItem, reload, setReload }) {
             <p>
               <strong>Program:</strong> {courseItem.program}
             </p>
+            <p>
+              <strong>Reason:</strong> {courseItem.reason}
+            </p>
           </div>
 
           <div className="right_infor">
@@ -64,7 +67,6 @@ export function Items({ courseItem, reload, setReload }) {
         <RePublishCourse
           handleClose={toggleRePub}
           course={courseItem.courseID}
-          reload={reload}
           setReload={setReload}
         />
       )}

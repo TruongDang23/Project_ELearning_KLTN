@@ -37,27 +37,27 @@ export function AddWorking({ handleClose, handleSave }) {
   )
 }
 
-export function PublishCourse({ handleClose, course, reload, setReload }) {
+export function PublishCourse({ handleClose, course, setReload }) {
   return (
-    <PopupPub handleClose={handleClose} course={course} reload={reload} setReload={setReload} />
+    <PopupPub handleClose={handleClose} course={course} setReload={setReload} />
   )
 }
 
-export function RejectCourse({ handleClose, course, reload, setReload }) {
+export function RejectCourse({ handleClose, course, setReload }) {
   return (
-    <PopupReject handleClose={handleClose} course={course} reload={reload} setReload={setReload} />
+    <PopupReject handleClose={handleClose} course={course} setReload={setReload} />
   )
 }
 
-export function RePublishCourse({ handleClose, course, reload, setReload }) {
+export function RePublishCourse({ handleClose, course, setReload }) {
   return (
-    <PopupRePub handleClose={handleClose} course={course} reload={reload} setReload={setReload} />
+    <PopupRePub handleClose={handleClose} course={course} setReload={setReload} />
   )
 }
 
-export function TerminateCourse({ handleClose, course, reload, setReload }) {
+export function TerminateCourse({ handleClose, course, setReload }) {
   return (
-    <PopupTerminate handleClose={handleClose} course={course} reload={reload} setReload={setReload}/>
+    <PopupTerminate handleClose={handleClose} course={course} setReload={setReload}/>
   )
 }
 

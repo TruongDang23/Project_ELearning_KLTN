@@ -45,6 +45,14 @@ instructorRouter
   )
 
 instructorRouter
+  .route('/cancelapprove/:courseID')
+  .put(
+    authController.protect,
+    authController.restrictTo('instructor'),
+    instructorController.cancelApproveCourse
+  )
+
+instructorRouter
   .route('/:id/:lectureID/QA')
   .post(
     authController.protect,

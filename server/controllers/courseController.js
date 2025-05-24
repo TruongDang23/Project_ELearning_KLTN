@@ -14,6 +14,7 @@ import Email from './emailController.js'
 import axios from 'axios'
 import { isCourseAccessible } from '../utils/precheckAccess.js'
 import { decodeToken } from './authController.js'
+import { formatVND } from '../utils/format.js'
 
 const getListCourseBaseUserID = (userID, role) => {
   return new Promise(async (resolve, reject) => {
@@ -91,7 +92,7 @@ const getListInforEnroll = (connection, listID) => {
                     FROM course as c
                     INNER JOIN published_course as pc ON c.courseID = pc.courseID
                     INNER JOIN user as u ON u.userID = c.userID
-                    INNER JOIN avg_rating as avg ON avg.courseID = c.courseID
+                    LEFT JOIN avg_rating as avg ON avg.courseID = c.courseID
                     WHERE c.courseID IN (?)`
     try {
       const [rowsInfo] = await connection.query(query,
@@ -151,6 +152,7 @@ const getFullInfoMySQL = (connection, courseID) => {
     let query =
       "SELECT c.courseID,\
                 u.fullname AS instructor,\
+                u.mail AS mail,\
                 type_of_course,\
                 title,\
                 method,\
@@ -442,7 +444,7 @@ const switchCourseStatus = async (courseID, to_status, delete_db, insert_db, tim
     let rows_ins = 0
 
     if (insert_db === 'terminated_course') {
-      const to_time = time[0]
+      const to_time = time[0] ? time[0] : new Date()
       const end_time = time[1] == "" ? null : time[1]
 
       insertCourse = "INSERT INTO ?? (courseID, to_time, end_time)\
@@ -595,7 +597,8 @@ const getTerminatedCourseAdmin = async(mysqlTransaction) => {
                   program,
                   u.fullname AS teacher,
                   s.to_time,
-                  s.end_time
+                  s.end_time,
+                  s.reason
                 FROM terminated_course AS s
                 LEFT JOIN course AS c 
                   ON s.courseID = c.courseID
@@ -648,7 +651,8 @@ const getCreatedCourse = async(mysqlTransaction, userID) => {
                   userID
                   FROM course 
                   INNER JOIN created_course AS c ON course.courseID = c.courseID
-                  WHERE userID = ?`
+                  WHERE userID = ?
+                  ORDER BY course.courseID`
     try {
       const [rowCourses] = await mysqlTransaction.query(query, [userID])
       if (rowCourses.length > 0) {
@@ -693,7 +697,8 @@ const getPendingCourse = async(mysqlTransaction, userID) => {
                   userID
                   FROM course 
                   INNER JOIN send_mornitor AS s ON course.courseID = s.courseID
-                  WHERE userID = ?`
+                  WHERE userID = ?
+                  ORDER BY course.courseID`
     try {
       const [rowCourses] = await mysqlTransaction.query(query, [userID])
       if (rowCourses.length > 0) {
@@ -738,7 +743,8 @@ const getPublishedCourse = async(mysqlTransaction, userID) => {
                   userID
                   FROM course 
                   INNER JOIN published_course AS p ON course.courseID = p.courseID
-                  WHERE userID = ?`
+                  WHERE userID = ?
+                  ORDER BY course.courseID`
     try {
       const [rowCourses] = await mysqlTransaction.query(query, [userID])
       if (rowCourses.length > 0) {
@@ -779,12 +785,14 @@ const getTerminatedCourse = async(mysqlTransaction, userID) => {
                   category, 
                   to_time,
                   end_time,
+                  reason,
                   price,
                   currency,
                   userID
                   FROM course 
                   INNER JOIN terminated_course AS c ON course.courseID = c.courseID
-                  WHERE userID = ?`
+                  WHERE userID = ?
+                  ORDER BY course.courseID`
     try {
       const [rowCourses] = await mysqlTransaction.query(query, [userID])
       if (rowCourses.length > 0) {
@@ -833,11 +841,9 @@ const getAllCourses = catchAsync(async (req, res, next) => {
   switch (role) {
   case 'admin':
     try {
-      [pending, published, terminated] = await Promise.all([
-        getPendingCourseAdmin(mysqlTransaction),
-        getPublishedCourseAdmin(mysqlTransaction),
-        getTerminatedCourseAdmin(mysqlTransaction)
-      ])
+      published = await getPublishedCourseAdmin(mysqlTransaction)
+      terminated = await getTerminatedCourseAdmin(mysqlTransaction)
+      pending = await getPendingCourseAdmin(mysqlTransaction)
       // Commit Transactions
       await mysqlTransaction.query("COMMIT")
       await mongoTransaction.commitTransaction()
@@ -860,12 +866,10 @@ const getAllCourses = catchAsync(async (req, res, next) => {
 
   case 'instructor':
     try {
-      [created, pending, published, terminated] = await Promise.all([
-        getCreatedCourse(mysqlTransaction, userID),
-        getPendingCourse(mysqlTransaction, userID),
-        getPublishedCourse(mysqlTransaction, userID),
-        getTerminatedCourse(mysqlTransaction, userID)
-      ])
+      created = await getCreatedCourse(mysqlTransaction, userID),
+      pending = await getPendingCourse(mysqlTransaction, userID),
+      published = await getPublishedCourse(mysqlTransaction, userID),
+      terminated = await getTerminatedCourse(mysqlTransaction, userID)
       // Commit Transactions
       await mysqlTransaction.query("COMMIT")
       await mongoTransaction.commitTransaction()
@@ -971,6 +975,7 @@ const getCourseById = catchAsync(async (req, res, next) => {
   const mergeData = info_mysql.map(course => {
     return {
       ...course,
+      price: (course.price > 0) ? formatVND(course.price) : 0,
       is_accessible: is_accessible,
       videos: videos,
       review: reviews,
@@ -1025,12 +1030,14 @@ const searchCourse = catchAsync(async (req, res, next) => {
         if (queryObject.page === 'welcome') {
           return {
             ...course,
+            price: (course.price > 0) ? formatVND(course.price) : 0,
             image_introduce: info_mongo[0] ? info_mongo[0].image_introduce : null
           }
         }
         else if (queryObject.page === 'searchcourse') {
           return {
             ...course,
+            price: (course.price > 0) ? formatVND(course.price) : 0,
             image_introduce: info_mongo[0] ? info_mongo[0].image_introduce : null,
             keywords: info_mongo[0] ? info_mongo[0].keywords : [],
             targets: info_mongo[0] ? info_mongo[0].targets : []
@@ -1089,6 +1096,7 @@ const accessCourse = catchAsync(async (req, res, next) => {
   const mergeData = info_mysql.map(course => {
     return {
       ...course,
+      price: (course.price > 0) ? formatVND(course.price) : 0,
       progress: progress ? progress : 0,
       videos: videos,
       review: reviews,

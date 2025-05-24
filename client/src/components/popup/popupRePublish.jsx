@@ -1,12 +1,12 @@
 import styled from "styled-components"
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import { admin } from "api"
-const PopupRePub = ({ handleClose, course, reload, setReload }) => {
+const PopupRePub = ({ handleClose, course, setReload }) => {
 
   const handleSave = async() => {
     const res = await admin.republishCourse(course)
     if (res.status == 200) {
-      setTimeout(() => setReload(!reload), 1000)
+      setReload(prev => !prev)
     }
   }
 

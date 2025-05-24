@@ -14,14 +14,15 @@ function TabReview({ accessCourseData, setReload }) {
   const [newReview, setNewReview] = useState({ star: 0, message: "" })
   const courseId = useParams().courseID;
   const userID = localStorage.getItem('userID')
+  const userRole = (userID[0] === 'S') ? 'student' : 'non-student'
   const [openSuccess, setOpenSuccess] = useState(false)
   const [openError, setOpenError] = useState({
     status: false,
     message: ""
   })
   const handleReviewChange = (e) => {
-    setNewReview({ ...newReview, [e.target.name]: e.target.value });
-  };
+    setNewReview({ ...newReview, [e.target.name]: e.target.value })
+  }
 
   const handleSubmitReview = async () => {
     const data = {
@@ -98,26 +99,29 @@ function TabReview({ accessCourseData, setReload }) {
             </div>
           </div>
 
-          <div className="review-yours">
-            <h2>Your Review</h2>
-            <div className="review-yours-star">
-              <StarDynamic
-                size="18"
-                onSetRating={(rating) =>
-                  setNewReview({ ...newReview, star: rating })
-                }
-              />
+          {userRole === 'student' && (
+            <div className="review-yours">
+              <h2>Your Review</h2>
+              <div className="review-yours-star">
+                <StarDynamic
+                  size="18"
+                  onSetRating={(rating) =>
+                    setNewReview({ ...newReview, star: rating })
+                  }
+                />
+              </div>
+              <div className="review-yours-content">
+                <textarea
+                  name="message"
+                  placeholder="Write your review here..."
+                  value={newReview.message}
+                  onChange={handleReviewChange}
+                />
+                <button onClick={handleSubmitReview}>Submit</button>
+              </div>
             </div>
-            <div className="review-yours-content">
-              <textarea
-                name="message"
-                placeholder="Write your review here..."
-                value={newReview.message}
-                onChange={handleReviewChange}
-              />
-              <button onClick={handleSubmitReview}>Submit</button>
-            </div>
-          </div>
+          )}
+
         </div>
       </TabRatingWrapper>
       {openSuccess ? <> <Snackbar vertical="bottom" horizontal="right" severity="success" message="Add Review Successfully" /> </> : <> </>}

@@ -4,11 +4,12 @@ import mongoose from 'mongoose'
 import User from '../models/user.js'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
-import { switchCourseStatus } from './courseController.js'
+import { switchCourseStatus, getFullInfoMySQL as getInforCourse } from './courseController.js'
 import axios from 'axios'
 import { attachFile } from './googleCloudController.js'
 import EmbeddedList from '../models/embedded_course.js'
 import { checkEmailExists } from '../utils/validationData.js'
+import Email from './emailController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -194,8 +195,16 @@ const update = catchAsync(async (req, res, next) => {
 const approveCourse = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
   const time = formatDateTime(new Date())
+  const mysqlTransaction = connectMysql.promise()
+  const emailController = new Email()
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
   try {
     await switchCourseStatus(courseID, "published", "send_mornitor", "published_course", time)
+    const courseData = await getInforCourse(mysqlTransaction, courseID)
+    await mysqlTransaction.query("COMMIT")
+    if (courseData[0]?.mail)
+      await emailController.publishCourse(courseID, courseData[0].title, courseData[0].mail)
     res.status(200).send()
   }
   catch {
@@ -206,8 +215,16 @@ const approveCourse = catchAsync(async (req, res, next) => {
 const republishCourse = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
   const time = formatDateTime(new Date())
+  const mysqlTransaction = connectMysql.promise()
+  const emailController = new Email()
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
   try {
     await switchCourseStatus(courseID, "published", "terminated_course", "published_course", time)
+    const courseData = await getInforCourse(mysqlTransaction, courseID)
+    await mysqlTransaction.query("COMMIT")
+    if (courseData[0]?.mail)
+      await emailController.publishCourse(courseID, courseData[0].title, courseData[0].mail)
     res.status(200).send()
   }
   catch {
@@ -218,9 +235,18 @@ const republishCourse = catchAsync(async (req, res, next) => {
 // Từ chối xét duyệt khóa học dựa vào courseID
 const rejectCourse = catchAsync(async (req, res, next) => {
   const courseID = req.params.id
+  const reason = req.body.reason
   const time = formatDateTime(new Date())
+  const mysqlTransaction = connectMysql.promise()
+  const emailController = new Email()
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
   try {
     await switchCourseStatus(courseID, "created", "send_mornitor", "created_course", time)
+    const courseData = await getInforCourse(mysqlTransaction, courseID)
+    await mysqlTransaction.query("COMMIT")
+    if (courseData[0]?.mail)
+      await emailController.rejectCourse(courseID, courseData[0].title, courseData[0].mail, reason)
     res.status(200).send()
   }
   catch {
@@ -233,17 +259,62 @@ const terminateCourse = catchAsync(async (req, res, next) => {
   // Implement here
   const courseID = req.params.id
   const timeRange = req.body.time
+  const reason = req.body.reason
+  const emailController = new Email()
+  const mysqlTransaction = connectMysql.promise()
+
+  let updReason = "UPDATE terminated_course SET reason = ? WHERE courseID = ?"
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
   try {
     await switchCourseStatus(courseID, "terminated", "published_course", "terminated_course", timeRange)
+    const [rows_upd] = await mysqlTransaction.query(updReason, [reason, courseID])
+    if (rows_upd.affectedRows > 0) {
+      const courseData = await getInforCourse(mysqlTransaction, courseID)
+      if (courseData[0]?.mail)
+        await emailController.terminatedCourse(courseID, courseData[0].title, courseData[0].mail, reason)
+    }
+
+    await mysqlTransaction.query("COMMIT")
     res.status(200).send()
   }
   catch {
+    await mysqlTransaction.query("ROLLBACK")
     next({ status: 500, message: 'Failed to terminated course' })
   }
 })
 
 // KHóa tài khoản
 const lockUser = catchAsync(async (req, res, next) => {
+  // Implement here'
+  const userID = req.params.id
+  const mysqlTransaction = connectMysql.promise()
+
+  // Start Transaction
+  await mysqlTransaction.query("START TRANSACTION")
+  let query = `UPDATE account SET activity_status = 'locked' WHERE userID = ?`
+  try {
+    const [rowsInfo] = await mysqlTransaction.query(query,
+      [
+        userID
+      ])
+
+    await mysqlTransaction.query("COMMIT")
+    if (rowsInfo.affectedRows !== 0) {
+      res.status(200).send()
+    }
+    else {
+      res.status(404).send('UserID not exist')
+    }
+  } catch (error) {
+    // Rollback Transactions in case of an error
+    await mysqlTransaction.query("ROLLBACK")
+    next(error) // Pass the error to the next middleware
+  }
+})
+
+// Mở khóa tài khoản
+const unLockUser = catchAsync(async (req, res, next) => {
   // Implement here'
   const userID = req.params.id
   const mysqlTransaction = connectMysql.promise()
@@ -318,6 +389,7 @@ export default {
   rejectCourse,
   terminateCourse,
   lockUser,
+  unLockUser,
   republishCourse,
   embeddedCourse,
   addFileToEmbedded
