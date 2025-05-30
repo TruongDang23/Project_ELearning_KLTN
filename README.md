@@ -11,6 +11,7 @@
 - ![Screens](/src/assets/image.png "Screens Tree") -->
 
 # BÁO CÁO KHÓA LUẬN TỐT NGHIỆP CÔNG NGHỆ PHẦN MỀM
+
 ## Trường Đại Học Sư Phạm Kỹ Thuật TP.HCM. Khoa Công Nghệ Thông Tin
 
 # _Đề tài_: _Xây dựng hệ thống website E-learning cung cấp khóa học CNTT dùng React.js và Node.js_
@@ -48,13 +49,17 @@ CNTT dùng ReactJS và NodeJS". Nền tảng tập trung:
 
 ### 4. Sơ đồ usecase
 
-Admin
+#### Admin
 
 ![admin](/client/src/assets/readme/ucAdmin.png)
 
-Giảng viên ![gv](/client/src/assets/readme/ucInsruction.png)
+#### Giảng viên
 
-Học viên ![hv](/client/src/assets/readme/ucStudent.png)
+![gv](/client/src/assets/readme/ucInsruction.png)
+
+#### Học viên
+
+![hv](/client/src/assets/readme/ucStudent.png)
 
 ## Thực hành:
 
@@ -83,48 +88,73 @@ Trang web được deploy trên VPS (Virtual Private Server) với tên miền l
 
 ### 3. Một số giao diện
 
-Đăng nhập ![Đăng nhập](/client/src/assets/readme/login.png)
+#### Đăng nhập
 
-Trang chủ ![Trang chủ](/client/src/assets/readme/Home.png)
+![Đăng nhập](/client/src/assets/readme/login.png)
 
-Chatbot trợ lý ![Chatbot trợ lý](/client/src/assets/readme/Chatbot.png)
+#### Trang chủ
 
-Trang tìm kiếm khóa học
+![Trang chủ](/client/src/assets/readme/Home.png)
+
+#### Chatbot trợ lý
+
+![Chatbot trợ lý](/client/src/assets/readme/Chatbot.png)
+
+#### Trang tìm kiếm khóa học
+
 ![Trang tìm kiếm khóa học](/client/src/assets/readme/Search.png)
 
-Trang My Learning (Khóa học của tôi)
+#### Trang My Learning (Khóa học của tôi)
+
 ![Trang My Learning](/client/src/assets/readme/learning.png)
 
-Trang chi tiết khóa học
+#### Trang chi tiết khóa học
+
 ![Trang chi tiết khóa học](/client/src/assets/readme/IntroCourse.png)
 
-Trang truy cập khóa học
+#### Trang truy cập khóa học
+
 ![Trang truy cập khóa học](/client/src/assets/readme/DetailCourse.png)
 
-Tài nguyên File của khóa học
+#### Tài nguyên File của khóa học
+
 ![Tài nguyên File của khóa học](/client/src/assets/readme/FileResource.png)
 
-Tài nguyên Quizz của khóa học
+#### Tài nguyên Quizz của khóa học
+
 ![Tài nguyên Quizz của khóa học](/client/src/assets/readme/quizz.png)
 
-Tài nguyên Assignment của khóa học
+#### Tài nguyên Assignment của khóa học
+
 ![Tài nguyên Assignment của khóa học](/client/src/assets/readme/asign.png)
 
-Chat AI ![Chat AI](/client/src/assets/readme/ChatAI.png)
+#### Chat AI
 
-Face Detection ![Face Detection](/client/src/assets/readme/FaceDetect.png)
+![Chat AI](/client/src/assets/readme/ChatAI.png)
 
-Câu hỏi tương tác
+#### Face Detection
+
+![Face Detection](/client/src/assets/readme/FaceDetect.png)
+
+#### Câu hỏi tương tác
+
 ![Câu hỏi tương tác](/client/src/assets/readme/Interaction.png)
 
-Tóm tắt bài giảng
+#### Tóm tắt bài giảng
+
 ![Tóm tắt bài giảng](/client/src/assets/readme/SummaryLecture.png)
 
-Dashboard Admin ![Dashboard Admin](/client/src/assets/readme/DashboardAdmin.png)
+#### Dashboard Admin
 
-Quản lí khóa học ![Quản lí khóa học](/client/src/assets/readme/quanlikhoa.png)
+![Dashboard Admin](/client/src/assets/readme/DashboardAdmin.png)
 
-Quản lí người dùng ![Quản lí người dùng](/client/src/assets/readme//Account.png)
+#### Quản lí khóa học
+
+![Quản lí khóa học](/client/src/assets/readme/quanlikhoa.png)
+
+#### Quản lí người dùng
+
+![Quản lí người dùng](/client/src/assets/readme//Account.png)
 
 ## Kết luận
 
