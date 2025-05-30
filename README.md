@@ -10,9 +10,10 @@
 - Công cụ xây dựng source code: Vite (version 5.2.0)
 - ![Screens](/src/assets/image.png "Screens Tree") -->
 
-# BÁO CÁO TIỂU LUẬN CHUYÊN NGÀNH CÔNG NGHỆ PHẦN MỀM
+# BÁO CÁO KHÓA LUẬN TỐT NGHIỆP CÔNG NGHỆ PHẦN MỀM
+## Trường Đại Học Sư Phạm Kỹ Thuật TP.HCM. Khoa Công Nghệ Thông Tin
 
-## *Đề tài*: Xây dựng hệ thống website E-learning cung cấp khóa học CNTT dùng React.js và Node.js
+# _Đề tài_: _Xây dựng hệ thống website E-learning cung cấp khóa học CNTT dùng React.js và Node.js_
 
 ### Nhóm sinh viên thực hiện:
 
@@ -20,40 +21,40 @@
 - Lê Thành Vinh: 21110940
 
 ### Giảng viên hướng dẫn: TS. Lê Vĩnh Thịnh
-### Giảng viên phản biện: TS. Huỳnh Xuân Phụng
 
 ## Lý thuyết:
 
 ### 1. Đặt vấn đề:
 
-- Sự phát triển nhanh của CNTT cùng yêu cầu khắt khe từ thị trường lao động đòi hỏi người học phải nâng cao kiến thức và kỹ năng.
-- Đặc biệt là sau đại dịch Covid-19, mô hình học trực tuyến được thúc đẩy mạnh mẽ, giúp tiết kiệm chi phí, thời gian và tạo sự linh hoạt trong việc học tập mọi lúc, mọi nơi.
+- Sự phát triển nhanh của CNTT cùng yêu cầu khắt khe từ thị trường lao động đòi
+  hỏi người học phải nâng cao kiến thức và kỹ năng.
+- Đặc biệt là sau đại dịch Covid-19, mô hình học trực tuyến được thúc đẩy mạnh
+  mẽ, giúp tiết kiệm chi phí, thời gian và tạo sự linh hoạt trong việc học tập
+  mọi lúc, mọi nơi.
 
 ### 2. Giải pháp đề xuất:
 
-Nhóm sinh viên chúng em đã chọn đề tài "Xây dựng website cung cấp các khóa học CNTT dùng ReactJS và NodeJS". Nền tảng tập trung:
+Nhóm sinh viên chúng em đã chọn đề tài "Xây dựng website cung cấp các khóa học
+CNTT dùng ReactJS và NodeJS". Nền tảng tập trung:
 
 - Cung cấp khóa học CNTT từ cơ bản đến nâng cao, phù hợp nhiều đối tượng.
-- Tích hợp tính năng quản lý khóa học, đánh giá chất lượng, tương tác học viên - giảng viên.
+- Tích hợp tính năng quản lý khóa học, đánh giá chất lượng, tương tác học viên -
+  giảng viên.
 - Tối ưu trải nghiệm với công nghệ ReactJS và NodeJS.
 
 ### 3. Kiến trúc hệ thống:
 
-![Kiến trúc hệ thống](/src/assets/readme/kt.png)
+![Kiến trúc hệ thống](/client/src/assets/readme/newstrucure.jpg)
 
 ### 4. Sơ đồ usecase
 
 Admin
 
-![admin](/src/assets/readme/admin.png)
-![admin](/src/assets/readme/admin2.png)
+![admin](/client/src/assets/readme/ucAdmin.png)
 
-Giảng viên
-![gv](/src/assets/readme/gv.png)
+Giảng viên ![gv](/client/src/assets/readme/ucInsruction.png)
 
-Học viên
-![hv](/src/assets/readme/hv.png)
-![hv](/src/assets/readme/hv2.png)
+Học viên ![hv](/client/src/assets/readme/ucStudent.png)
 
 ## Thực hành:
 
@@ -63,9 +64,11 @@ Bước 1: Clone project về máy tính
 
 Bước 2:
 
-- Đầu tiên, mở cmd và tiến hành truy cập vào thư mục server bằng lệnh: `cd server`.
+- Đầu tiên, mở cmd và tiến hành truy cập vào thư mục server bằng lệnh:
+  `cd server`.
 - Sau đó, dùng lệnh `npm i` để tiến hành cài đặt các thư viện.
-- Dùng lệnh `npm run dev` để chạy server, và mở một cmd khác nhập lệnh `npm run socket` để chạy socket server.
+- Dùng lệnh `npm run dev` để chạy server, và mở một cmd khác nhập lệnh
+  `npm run socket` để chạy socket server.
 
 Bước 3:
 
@@ -73,63 +76,131 @@ Bước 3:
 - Dùng lệnh `npm run dev` để chạy client
 - Nhập đường dẫn: `http://localhost:5173/` trên trình duyệt
 
-### 2. Một số giao diện
+### 2. Deploy lên VPS
 
-Đăng nhập
-![Đăng nhập](/src/assets/readme/dangnhap.png)
+Trang web được deploy trên VPS (Virtual Private Server) với tên miền là
+[https://techskillup.online/](https://techskillup.online/)
 
-Trang chủ
-![Trang chủ](/src/assets/readme/trangchu.png)
+### 3. Một số giao diện
+
+Đăng nhập ![Đăng nhập](/client/src/assets/readme/login.png)
+
+Trang chủ ![Trang chủ](/client/src/assets/readme/Home.png)
+
+Chatbot trợ lý ![Chatbot trợ lý](/client/src/assets/readme/Chatbot.png)
 
 Trang tìm kiếm khóa học
-![Trang tìm kiếm khóa học](/src/assets/readme/timkiem.png)
+![Trang tìm kiếm khóa học](/client/src/assets/readme/Search.png)
 
 Trang My Learning (Khóa học của tôi)
-![Trang My Learning](/src/assets/readme/mylearning.png)
+![Trang My Learning](/client/src/assets/readme/learning.png)
 
 Trang chi tiết khóa học
-![Trang chi tiết khóa học](/src/assets/readme/chitiet.png)
+![Trang chi tiết khóa học](/client/src/assets/readme/IntroCourse.png)
 
 Trang truy cập khóa học
-![Trang truy cập khóa học](/src/assets/readme/truycap.png)
-
-Tài nguyên Video của khóa học
-![Tài nguyên Video của khóa học](/src/assets/readme/video.png)
+![Trang truy cập khóa học](/client/src/assets/readme/DetailCourse.png)
 
 Tài nguyên File của khóa học
-![Tài nguyên File của khóa học](/src/assets/readme/file.png)
+![Tài nguyên File của khóa học](/client/src/assets/readme/FileResource.png)
 
 Tài nguyên Quizz của khóa học
-![Tài nguyên Quizz của khóa học](/src/assets/readme/quizz.png)
+![Tài nguyên Quizz của khóa học](/client/src/assets/readme/quizz.png)
 
 Tài nguyên Assignment của khóa học
-![Tài nguyên Assignment của khóa học](/src/assets/readme/asign.png)
+![Tài nguyên Assignment của khóa học](/client/src/assets/readme/asign.png)
 
-Giao diện trang Manage Courses (Quản lý khóa học)
-![Giao diện trang Manage Courses](/src/assets/readme/quanlikhoa.png)
+Chat AI ![Chat AI](/client/src/assets/readme/ChatAI.png)
+
+Face Detection ![Face Detection](/client/src/assets/readme/FaceDetect.png)
+
+Câu hỏi tương tác
+![Câu hỏi tương tác](/client/src/assets/readme/Interaction.png)
+
+Tóm tắt bài giảng
+![Tóm tắt bài giảng](/client/src/assets/readme/SummaryLecture.png)
+
+Dashboard Admin ![Dashboard Admin](/client/src/assets/readme/DashboardAdmin.png)
+
+Quản lí khóa học ![Quản lí khóa học](/client/src/assets/readme/quanlikhoa.png)
+
+Quản lí người dùng ![Quản lí người dùng](/client/src/assets/readme//Account.png)
 
 ## Kết luận
+
 ### 1. Kiến thức đã tìm hiểu
+
 - Công nghệ MERN Stack
+
 - Kiến trúc Restful API.
-- Tiêu chuẩn JSON Web Token (JWT) để xác thực người dùng.
-- Giao thức Socket. 
-- Phương pháp tích hợp dịch vụ Azure Open AI và Google Cloud Storeage vào đồ án.
+
+- Tiêu chuẩn JSON Web Token (JWT) để xác thực người dùng
+
+- Giao thức Web Socket
+
+- Dịch vụ lưu trữ Google Cloud Storage
+
+- Giải thuật Content-Based Filtering
+
+- AI Automation trên nền tảng N8N
+
+- Kỹ thuật Retrieval-Augmented Generation (RAG)
+
+- Thư viện face-api.js
+
+- Phương pháp xây dựng customer chatbot bằng các workflow thông qua nền tảng
+  VoiceFlow
+
+- Phương pháp thanh toán điện tử qua PayOS
+- Tích hợp chức năng gửi mail bằng Gmail
+
+- Quy trình xây dựng và deploy project lên VPS (Virtual Private Server)
 
 ### 2. Kiến thức đã áp dụng
+
 - Xây dựng API bằng Node.js và Express Framework.
-- Lưu trữ dữ liệu hệ thống kết hợp MongoDB và MySQL.
-- Ứng dụng JWT để đảm bảo tính bảo mật và hiệu quả của hệ thống API.
-- Tích hợp giao thức WebSocket để tạo kết nối runtime giữa những người dùng trong hệ thống.
+
+- Lưu trữ dữ liệu hệ thống kết hợp giữa MongoDB và MySQL.
+
+- Ứng dụng JWT để xác thực người dùng, đảm bảo tính bảo mật và hiệu quả của hệ
+  thống API.
+
+- Xây dựng giao thức WebSocket để tạo kết nối trong thời gian thực giữa những
+  người dùng trong hệ thống.
+
 - Phát triển giao diện website bằng thư viện ReactJS.
-- Sử dụng dịch vụ Azure OpenAI để tích hợp Chatbot assistant vào website nhằm nâng cao trải nghiệm người dùng.
-- Sử dụng dịch vụ Google Cloud Storage để lưu trữ các file đa phương tiện của người dùng, khóa học
+
+- Sử dụng dịch vụ Google Cloud Storage để lưu trữ các file đa phương tiện của
+  người dùng, khóa học
+
+- Xây dựng tính năng gợi ý khóa học phù hợp đối với từng học viên dựa trên giải
+  thuật Content-Based Filtering
+
+- Sử dụng nền tảng N8N để tạo các workflow tự động, có tích hợp AI vào chức
+  năng: Tóm tắt nội dung khóa học, Chatbot assistant dùng kỹ thuật RAG
+
+- Sử dụng thư viện face-api.js để nhận diện độ tập trung của học viên trong các
+  bài giảng video
+
+- Xây dựng customer chatbot để hướng dẫn người dùng sử dụng website thông qua
+  nền tảng VoiceFlow. Chatbot được xây dựng bằng phương pháp no-code & low-code
+  mà chỉ cần thiết kế các workflow phù hợp
+
+- Tích hợp PayOS nhằm thực hiện chức năng thanh toán điện tử để mua khóa học
+
+- Thư viện nodemailer để tích hợp chức năng gửi mail qua dịch vụ Gmail
+
+- Xây dựng và deploy project lên VPS, cấu hình domain để truy cập website global
 
 ### 3. Hướng mong muốn nghiên cứu
-- Xây dựng thêm tác nhân Admin để quản lý toàn bộ tài nguyên của website. 
-- Deploy website và xây dựng cơ chế cân bằng tải.
-- Training mô hình LLM để Chatbot có thể hiểu được ngữ cảnh cụ thể của người dùng website.
-- Tích hợp mô hình gợi ý sản phẩm.
-- Tích hợp Chatbot hướng dẫn sử dụng website.
-- Xây dựng mô hình giảng viên ảo. 
-- Xây dựng mô hình eye tracking để theo dõi độ tập trung của học viên.
+
+- Cấu hình cân bằng tải cho project trên VPS để có thể chịu được lượng truy cập
+  lớn trong cùng một thời điểm
+
+- Xây dựng mô hình giảng viên ảo để hướng đến một website có nội dung đa dạng
+  hơn, học viên được hỗ trợ mọi lúc, mọi nơi bởi AI
+
+- Tối ưu hóa kỹ thuật RAG để cải thiện thời gian hỏi – đáp của học viên
+
+- Ứng dụng giao thức MCP (Model Context Protocol) để mở rộng hệ sinh thái AI
+  trên website
