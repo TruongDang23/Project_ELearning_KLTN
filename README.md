@@ -72,13 +72,13 @@ Bước 2:
 - Đầu tiên, mở cmd và tiến hành truy cập vào thư mục server bằng lệnh:
   `cd server`.
 - Sau đó, dùng lệnh `npm i` để tiến hành cài đặt các thư viện.
-- Dùng lệnh `npm run dev` để chạy server, và mở một cmd khác nhập lệnh
-  `npm run socket` để chạy socket server.
+- Dùng lệnh `npm start` để chạy server.
 
 Bước 3:
-
+- Truy cập vào thư mục client bằng lệnh: 
+  `cd client`.
 - Sau đó dùng lệnh `npm i` để tiến hành cài đặt các thư viện
-- Dùng lệnh `npm run dev` để chạy client
+- Dùng lệnh `yarn dev` để chạy client
 - Nhập đường dẫn: `http://localhost:5173/` trên trình duyệt
 
 ### 2. Deploy lên VPS
