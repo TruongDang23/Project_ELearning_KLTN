@@ -480,7 +480,7 @@ const payment = catchAsync(async (req, res, next) => {
     const orderID = Math.floor(Math.random() * 9007199254740991) //Get random orderCode, orderCode is unique
     const mysqlTransaction = connectMysql.promise()
     const courseInfo = await getFullInfoMySQLCourse(mysqlTransaction, courseID)
-    let price = courseInfo[0].price // Default price is defined in datbase
+    let price = Number(courseInfo[0].price) // Default price is defined in datbase
 
     if (voucher_code) { // If using voucher code => update price
       const voucherInfo = await getVoucherByCode(voucher_code)
