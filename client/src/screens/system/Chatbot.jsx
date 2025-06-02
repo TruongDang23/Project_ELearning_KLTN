@@ -14,7 +14,7 @@ const ChatBotUI = () => {
       const response = await anonymous.getToken()
 
       if (response.status === 200) {
-        setCookie(response.data.token)
+        setCookie(response.data)
       }
     } catch (error) {
       // eslint-disable-next-line no-console
