@@ -16,6 +16,8 @@ const ChatBotUI = () => {
       if (response.status === 200) {
         setCookie(response.data)
       }
+      else
+        setCookie('none')
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Failed to get token:", error.response?.data || error)
@@ -24,6 +26,7 @@ const ChatBotUI = () => {
   useEffect(() => {
     const userID = localStorage.getItem("userID") ? localStorage.getItem("userID") : 'guest'
     getCookie()
+    if (!cookie) return
     if (!document.getElementById("voiceflow-chat-script")) {
       const script = document.createElement("script")
       script.id = "voiceflow-chat-script"; // Thêm ID để tránh chèn nhiều lần
