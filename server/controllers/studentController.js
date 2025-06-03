@@ -445,7 +445,6 @@ const buyCourse = catchAsync(async (req, res, next) => {
         buyCourseMySQL(connection, req.userID, courseID), // Insert course into enroll table
         addEnrollCourse(mongoTransaction, req.userID, courseID) // Insert new course into field enrolled_course
       ])
-      await mongoTransaction.commitTransaction()
 
       if (inf_student.mail)
         await emailController.sendBuyCourseSuccess(courseID, inf_student)
@@ -453,6 +452,7 @@ const buyCourse = catchAsync(async (req, res, next) => {
       if (inf_instruc.mail)
         await emailController.sendCourseIsBuy(courseID, inf_instruc)
 
+      await mongoTransaction.commitTransaction()
       await connection.query("COMMIT")
       res.status(201).send({ message: 'created' })
     }
@@ -529,6 +529,11 @@ const payoshook = catchAsync(async (req, res, next) => {
   const userID = str.match(regexUserID)?.[0] || null
   const courseID = str.match(regexCourseID)?.[0] || null
 
+  const instructorID = await getInstructorOfCourse(courseID)
+  const inf_student = (userID) ? await getUserByID(userID) : inf_student.mail = 'example@gmail.com'
+  const inf_instruc = (instructorID) ? await getUserByID(instructorID) : inf_instruc.mail = 'example@gmail.com'
+  const emailController = new Email()
+
   if (response.success == true) {
     try {
       await connection.query("START TRANSACTION")
@@ -538,6 +543,13 @@ const payoshook = catchAsync(async (req, res, next) => {
         addEnrollCourse(mongoTransaction, userID, courseID), // Insert new course into field enrolled_course
         logPayment(connection, response.data) // Log payment information
       ])
+
+      if (inf_student.mail)
+        await emailController.sendBuyCourseSuccess(courseID, inf_student)
+
+      if (inf_instruc.mail)
+        await emailController.sendCourseIsBuy(courseID, inf_instruc)
+
       await connection.query("COMMIT")
       await mongoTransaction.commitTransaction()
       res.status(201).send('created')
