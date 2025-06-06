@@ -43,12 +43,13 @@ function SideBar({ inforCourseData }) {
   }, [inforCourseData.price])
 
   const fetchSampleVouchers = async() => {
-    setLoading(true)
-    // Simulate API delay
-    const matchedVoucher = await student.getMatchedVouchers(courseID)
-    if (matchedVoucher.status === 200) {
-      setAvailableVouchers(matchedVoucher.data.data)
-      setLoading(false)
+    if (userID[0] === 'S') {
+      setLoading(true)
+      const matchedVoucher = await student.getMatchedVouchers(courseID)
+      if (matchedVoucher.status === 200) {
+        setAvailableVouchers(matchedVoucher.data.data)
+        setLoading(false)
+      }
     }
   }
 
