@@ -4,8 +4,10 @@ import mongoose from 'mongoose'
 import User from '../models/user.js'
 import { formatDate, formatDateTime } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
-import { getListInforPublish, switchCourseStatus } from './courseController.js'
+import { getListInforPublish, switchCourseStatus, getFullInfoMySQL as getInforCourse } from './courseController.js'
 import { checkEmailExists } from '../utils/validationData.js'
+import Email from './emailController.js'
+import { getListEmailAdmin } from './userController.js'
 
 const getFullInfoMySQL = (connection, userID) => {
   return new Promise(async (resolve, reject) => {
@@ -270,9 +272,17 @@ const update = catchAsync(async (req, res, next) => {
 const sendApproveCourse = catchAsync(async (req, res, next) => {
   // Implement here
   const { courseID } = req.params
+  const connection = connectMysql.promise()
+  const structure = await getInforCourse(connection, courseID)
+  const emailController = new Email()
+  let list_email = await getListEmailAdmin()
+  list_email = list_email.map(row => row.mail)
   const time = formatDateTime(new Date())
   try {
     await switchCourseStatus(courseID, "mornitor", "created_course", "send_mornitor", time)
+    if (list_email.length != 0 )
+      await emailController.sendCreateCourse(courseID, structure[0].title, list_email)
+
     res.status(200).send()
   }
   catch {

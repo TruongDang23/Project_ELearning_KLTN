@@ -1127,10 +1127,6 @@ const createCourse = catchAsync(async (req, res, next) => {
   const mysqlTransaction = connectMysql.promise()
   const mongoTransaction = await mongoose.startSession()
   const time = formatDateTime(new Date())
-  const emailController = new Email()
-  let list_email = await getListEmailAdmin()
-  list_email = list_email.map(row => row.mail)
-
   //Upload file video_introduce & image_introduce
   try {
     const extendVideo = structure.video_file.slice(-3)
@@ -1307,9 +1303,6 @@ const createCourse = catchAsync(async (req, res, next) => {
     }
     else
     {
-      if (list_email.length != 0 )
-        await emailController.sendCreateCourse(courseID, structure.title, list_email)
-
       await mysqlTransaction.query("COMMIT")
       await mongoTransaction.commitTransaction()
 
@@ -1341,9 +1334,6 @@ const uploadCourse = catchAsync(async (req, res, next) => {
     const courseID = await getNewCourseID()
     const structure = await convertToCourseObject(workbook)
     const time = formatDateTime(new Date())
-    const emailController = new Email()
-    let list_email = await getListEmailAdmin()
-    list_email = list_email.map(row => row.mail)
     structure.courseID = courseID
     structure.userID = req.userID
 
@@ -1421,9 +1411,6 @@ const uploadCourse = catchAsync(async (req, res, next) => {
     }
     else
     {
-      if (list_email.length != 0 )
-        await emailController.sendCreateCourse(courseID, structure.title, list_email)
-
       await mysqlTransaction.query("COMMIT")
       await mongoTransaction.commitTransaction()
 
