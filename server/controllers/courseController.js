@@ -5,12 +5,11 @@ import mongoose from 'mongoose'
 import { formatDateTime, formatDate } from '../utils/dateTimeHandler.js'
 import connectMysql from '../config/connMySql.js'
 import storage from '../config/connGCS.js'
-import { getListEmailAdmin, getUserByID } from './userController.js'
+import { getUserByID } from './userController.js'
 import { putFileToStorage } from './googleCloudController.js'
 import xlsx from 'xlsx'
 import { convertToAssignmentObject, convertToCourseObject, convertToQuizObject } from './xlsxController.js'
 import fs from 'fs'
-import Email from './emailController.js'
 import axios from 'axios'
 import { isCourseAccessible } from '../utils/precheckAccess.js'
 import { decodeToken } from './authController.js'
@@ -540,7 +539,7 @@ const callAPICompile = async (language, sourceCode, testcase) => {
 }
 
 const compareResult = async (output, key) => {
-  return output === key ? true : false
+  return output == key ? true : false
 }
 
 const getPublishedCourseAdmin = (mysqlTransaction) => {

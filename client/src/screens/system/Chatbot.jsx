@@ -14,7 +14,7 @@ const ChatBotUI = () => {
       const response = await anonymous.getToken()
 
       if (response.status === 200) {
-        setCookie(response.data)
+        setCookie(`access_token=${response.data}`)
       }
       else
         setCookie('none')
