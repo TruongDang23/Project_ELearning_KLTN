@@ -218,22 +218,27 @@ const updateVoucherObject = async(mysqlTransaction, voucher) => {
   }
 }
 
-const getVouchersForAll = async(mysqlTransaction) => {
+const getVouchersForAll = async(mysqlTransaction, userID) => {
   const query = `SELECT 
-                  voucher_code, 
-                  description, 
-                  discount_value,
-                  discount_type,
-                  usage_limit,
-                  usage_count,
-                  start_date,
-                  end_date
-                 FROM vouchers 
-                 WHERE is_deleted = false AND (is_all_users = true OR is_all_courses = true)
-                 AND usage_limit > usage_count
-                 AND start_date <= DATE(now())
-                 AND end_date >= DATE(now())`
-  const [result] = await mysqlTransaction.query(query)
+                  v.voucher_code, 
+                  v.description, 
+                  v.discount_value,
+                  v.discount_type,
+                  v.usage_limit,
+                  v.usage_count,
+                  v.start_date,
+                  v.end_date,
+                  uv.userID,
+                  uv.use_at
+                FROM vouchers as v
+                LEFT JOIN used_vouchers as uv
+                  ON v.voucher_code = uv.voucher_code
+                WHERE v.is_deleted = false AND (v.is_all_users = true OR v.is_all_courses = true)
+                AND v.usage_limit > v.usage_count
+                AND v.start_date <= DATE(now())
+                AND v.end_date >= DATE(now())
+                AND (uv.userID IS NULL OR uv.userID <> ?)` // Exclude user who has aleady used the voucher
+  const [result] = await mysqlTransaction.query(query, [userID])
   if (result.length === 0)
     return []
   return result
@@ -251,17 +256,19 @@ const getVouchersForUser = async(mysqlTransaction, userID) => {
                   vc.end_date
                  FROM vouchers as vc
                  INNER JOIN vouchers_user as vu ON vc.voucher_code = vu.voucher_code
+                 LEFT JOIN used_vouchers as used ON vc.voucher_code = used.voucher_code
                  WHERE vu.userID = ? AND vc.is_deleted = false AND vc.is_all_users = false AND vc.is_all_courses = false
                  AND vc.usage_limit > vc.usage_count
                  AND vc.start_date <= DATE(now())
-                 AND vc.end_date >= DATE(now())`
-  const [result] = await mysqlTransaction.query(query, [userID])
+                 AND vc.end_date >= DATE(now())
+                 AND (used.userID IS NULL OR used.userID <> ?)` // Exclude user who has already used the voucher
+  const [result] = await mysqlTransaction.query(query, [userID, userID])
   if (result.length === 0)
     return []
   return result
 }
 
-const getVouchersForCourse = async(mysqlTransaction, courseID) => {
+const getVouchersForCourse = async(mysqlTransaction, courseID, userID) => {
   const query = `SELECT 
                   vc.voucher_code, 
                   vc.description, 
@@ -273,11 +280,13 @@ const getVouchersForCourse = async(mysqlTransaction, courseID) => {
                   vc.end_date
                  FROM vouchers as vc
                  INNER JOIN vouchers_course as vcourse ON vc.voucher_code = vcourse.voucher_code
+                 LEFT JOIN used_vouchers as used ON vc.voucher_code = used.voucher_code
                  WHERE vcourse.courseID = ? AND vc.is_deleted = false AND vc.is_all_users = false AND vc.is_all_courses = false
                  AND vc.usage_limit > vc.usage_count
                  AND vc.start_date <= DATE(now())
-                 AND vc.end_date >= DATE(now())`
-  const [result] = await mysqlTransaction.query(query, [courseID])
+                 AND vc.end_date >= DATE(now())
+                 AND (used.userID IS NULL OR used.userID <> ?)` // Exclude user who has already used the voucher
+  const [result] = await mysqlTransaction.query(query, [courseID, userID])
   if (result.length === 0)
     return []
   return result
@@ -543,9 +552,9 @@ const getMatchedVouchers = catchAsync(async (req, res, next) => {
   mysqlTransaction.query("START TRANSACTION")
   try {
     const [vouchers_for_all, vouchers_for_user, vouchers_for_course] = await Promise.all([
-      getVouchersForAll(mysqlTransaction),
+      getVouchersForAll(mysqlTransaction, userID),
       getVouchersForUser(mysqlTransaction, userID),
-      getVouchersForCourse(mysqlTransaction, courseID)
+      getVouchersForCourse(mysqlTransaction, courseID, userID)
     ])
 
     await mysqlTransaction.query("COMMIT")
